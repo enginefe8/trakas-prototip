@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Trakas - Klasik Takas Pazarı</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body class="bg-gray-50 font-sans min-h-screen">
 
@@ -41,6 +42,20 @@
         </aside>
 
         <main class="flex-grow space-y-4">
+            <div class="bg-yellow-50 p-6 rounded-2xl border-2 border-yellow-200 mb-8">
+                <h3 class="font-black mb-4 uppercase italic">Hızlı İlan Ver</h3>
+                <div class="grid gap-4">
+                    <input id="baslik" type="text" placeholder="Ürün Adı Nedir?" class="p-3 rounded-xl border border-yellow-300 outline-none">
+                    
+                    <input id="deger" type="number" placeholder="Tahmini Değer (TL)" class="p-3 rounded-xl border border-yellow-300 outline-none">
+                    
+                    <textarea id="aciklama" placeholder="Takas tercihin nedir?" class="p-3 rounded-xl border border-yellow-300 outline-none"></textarea>
+                    
+                    <button onclick="ilanVer()" class="bg-gray-900 text-white font-black py-3 rounded-xl hover:bg-black transition-all">
+                        🚀 VERİTABANINA GÖNDER
+                    </button>
+                </div>
+            </div>
             <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 flex flex-col md:flex-row gap-6 hover:shadow-lg transition-all group cursor-pointer">
                 <div class="w-full md:w-48 h-48 bg-gray-200 rounded-xl overflow-hidden flex-shrink-0">
                     <img src="https://images.unsplash.com/photo-1696446701796-da61225697cc?q=80&w=400" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
@@ -68,6 +83,32 @@
         </main>
 
     </div>
-
+    <script>
+        // 1. Supabase Bağlantısı
+        const supabaseUrl = 'https://ivnazfhahtjcdspclkis.supabase.co'
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml2bmF6aGZhaHRqY2RzcGNsa2lzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMyMTgxNzEsImV4cCI6MjA4ODc5NDE3MX0.Z2bKgccAQX8dgex99cQL-GLpTYU1vhb-0BqWiuIMhxU'
+        const _supabase = supabase.createClient(supabaseUrl, supabaseKey)
+    
+        // 2. İlan Verme Fonksiyonu
+        async function ilanVer() {
+            // Formdaki verileri alalım (Buradaki ID'lerin form inputlarında olduğundan emin olmalıyız)
+            const baslik = document.getElementById('baslik')?.value || "İsimsiz İlan";
+            const deger = document.getElementById('deger')?.value || 0;
+            const aciklama = document.getElementById('aciklama')?.value || "";
+    
+            const { data, error } = await _supabase
+              .from('ilanlar')
+              .insert([
+                { baslik: baslik, deger: deger, aciklama: aciklama }
+              ])
+    
+            if (error) {
+                alert("Hata oluştu: " + error.message);
+            } else {
+                alert("Tebrikler Engin! İlan başarıyla veritabanına kaydedildi.");
+                location.reload(); // Sayfayı yenileyip yeni ilanı görelim
+            }
+        }
+    </script>
 </body>
 </html>
