@@ -15,99 +15,116 @@
             <div class="flex-grow mx-8 hidden md:block">
                 <input type="text" placeholder="Ürün, marka veya takas tercihi ara..." class="w-full p-2 rounded-lg bg-gray-800 border border-gray-700 text-white focus:outline-none focus:border-yellow-500 text-sm">
             </div>
-            <div class="flex gap-4">
-                <a href="giris.html" class="text-white font-bold text-sm hidden sm:block hover:text-yellow-500 transition-colors">Giriş Yap</a>
+            <div class="flex gap-4 items-center">
+                <a href="giris.html" id="btn-giris" class="text-white font-bold text-sm hidden sm:block hover:text-yellow-500 transition-colors">Giriş Yap</a>
+                <button onclick="cikisYap()" id="btn-cikis" class="text-red-400 font-bold text-sm hidden hover:text-red-300 transition-colors uppercase tracking-widest">Çıkış Yap</button>
                 <a href="ilan-ver.html" class="bg-yellow-500 px-6 py-2 rounded-lg font-black text-sm hover:bg-yellow-400 transition-all uppercase flex items-center justify-center">İLAN VER +</a>
             </div>
         </div>
     </nav>
 
     <div class="max-w-7xl mx-auto flex flex-col md:flex-row gap-6 p-6">
-        
         <aside class="w-full md:w-64 space-y-6">
             <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-200">
                 <h3 class="font-black text-gray-800 mb-4 border-b pb-2 uppercase text-xs tracking-widest">Kategoriler</h3>
-                <div class="space-y-2 text-sm">
-                    <p class="text-yellow-600 font-bold bg-yellow-50 p-2 rounded-lg">📱 Elektronik (142)</p>
-                    <p class="text-gray-600 hover:bg-gray-50 p-2 rounded-lg cursor-pointer">🚗 Vasıta (85)</p>
-                    <p class="text-gray-600 hover:bg-gray-50 p-2 rounded-lg cursor-pointer">🏠 Emlak (32)</p>
-                    <p class="text-gray-600 hover:bg-gray-50 p-2 rounded-lg cursor-pointer">👕 Moda (120)</p>
-                </div>
-
-                <h3 class="font-black text-gray-800 mt-8 mb-4 border-b pb-2 uppercase text-xs tracking-widest italic">Hüzünlü Veda Modu</h3>
-                <div class="p-3 bg-orange-50 rounded-xl border border-orange-100">
-                    <p class="text-[10px] text-orange-800 font-bold italic">Arabanı teslim ederken dinlemelik şarkı tavsiyesi aktiftir. 🎧</p>
+                <div class="space-y-2 text-sm text-gray-600">
+                    <p class="text-yellow-600 font-bold bg-yellow-50 p-2 rounded-lg italic">📱 Elektronik (142)</p>
+                    <p class="p-2">🚗 Vasıta (85)</p>
+                    <p class="p-2">🏠 Emlak (32)</p>
+                    <p class="p-2">👕 Moda (120)</p>
                 </div>
             </div>
         </aside>
 
-        <main class="flex-grow space-y-4">
-            
+        <main class="flex-grow">
             <div id="ilan-vitrini" class="flex flex-col gap-4 mb-8">
-                <p class="text-center text-gray-400 italic py-10">İlanlar veritabanından çekiliyor...</p>
+                <p class="text-center text-gray-400 italic py-10">İlanlar yükleniyor...</p>
             </div>
-            
-            <p class="text-center text-gray-300 text-[10px] py-10 uppercase tracking-[0.3em] font-black">Trakas v1.0 - Engin & Arda Ortaklığı</p>
         </main>
-
     </div>
-    <script>
-        const supabaseUrl = 'https://ivnazhfahtjcdspclkis.supabase.co'
-        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml2bmF6aGZhaHRqY2RzcGNsa2lzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMyMTgxNzEsImV4cCI6MjA4ODc5NDE3MX0.Z2bKgccAQX8dgex99cQL-GLpTYU1vhb-0BqWiuIMhxU'
-        const _supabase = supabase.createClient(supabaseUrl, supabaseKey)
-    
-        async function ilanlariGetir() {
-            const { data, error } = await _supabase
-                .from('ilanlar')
-                .select('*')
-                .order('id', { ascending: false });
 
-            if (error) {
-                console.log("Hata:", error);
+    <script>
+        const supabaseUrl = 'https://ivnazhfahtjcdspclkis.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml2bmF6aGZhaHRqY2RzcGNsa2lzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMyMTgxNzEsImV4cCI6MjA4ODc5NDE3MX0.Z2bKgccAQX8dgex99cQL-GLpTYU1vhb-0BqWiuIMhxU';
+        const _supabase = supabase.createClient(supabaseUrl, supabaseKey);
+
+        async function oturumKontrol() {
+            const { data: { session } } = await _supabase.auth.getSession();
+            const btnGiris = document.getElementById('btn-giris');
+            const btnCikis = document.getElementById('btn-cikis');
+            if (session) {
+                btnGiris.style.display = 'none';
+                btnCikis.style.display = 'block';
+            } else {
+                btnGiris.style.display = 'block';
+                btnCikis.style.display = 'none';
+            }
+        }
+
+        async function cikisYap() {
+            await _supabase.auth.signOut();
+            window.location.reload();
+        }
+
+        async function teklifVer(ilanId, ilanBaslik) {
+            const { data: { session } } = await _supabase.auth.getSession();
+            
+            if (!session) {
+                alert("Teklif vermek için önce giriş yapmalısın!");
+                window.location.href = 'giris.html';
                 return;
             }
 
+            const onay = confirm(`${ilanBaslik} ilanı için takas teklifi göndermek istiyor musun?`);
+            
+            if (onay) {
+                const { error } = await _supabase
+                    .from('teklifler')
+                    .insert([
+                        { 
+                            ilan_id: ilanId, 
+                            teklif_veren_email: session.user.email,
+                            mesaj: "Bu ürünle ilgileniyorum!" 
+                        }
+                    ]);
+
+                if (error) {
+                    alert("Teklif gönderilirken hata oluştu: " + error.message);
+                } else {
+                    alert("🤝 Teklifin başarıyla iletildi! Karşı tarafın yanıtını bekleyelim.");
+                }
+            }
+        }
+
+        async function ilanlariGetir() {
+            const { data, error } = await _supabase.from('ilanlar').select('*').order('id', { ascending: false });
+            if (error) return;
             const vitrin = document.getElementById('ilan-vitrini');
             vitrin.innerHTML = ''; 
-
-            if (data.length === 0) {
-                vitrin.innerHTML = '<p class="text-center text-gray-400 py-10">Henüz hiç ilan verilmemiş. İlk ilanı sen ver!</p>';
-                return;
-            }
-
             data.forEach(ilan => {
-                // Eğer ilanın fotoğrafı varsa onu, yoksa boş bir gri kutu gösterelim
-                const resimAlani = ilan.resim_url 
-                    ? `<img src="${ilan.resim_url}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">` 
-                    : `<div class="w-full h-full flex items-center justify-center text-4xl">📸</div>`;
-
+                const resimHtml = ilan.resim_url ? `<img src="${ilan.resim_url}" class="w-full h-full object-cover">` : '<span class="text-4xl">📸</span>';
                 vitrin.innerHTML += `
-                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 flex flex-col md:flex-row gap-6 hover:shadow-lg transition-all group cursor-pointer">
-                    <div class="w-full md:w-48 h-48 bg-gray-200 rounded-xl overflow-hidden flex-shrink-0 flex items-center justify-center">
-                        ${resimAlani}
-                    </div>
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 flex flex-col md:flex-row gap-6 hover:shadow-lg transition-all group">
+                    <div class="w-full md:w-48 h-48 bg-gray-100 rounded-xl overflow-hidden flex-shrink-0 flex items-center justify-center">${resimHtml}</div>
                     <div class="flex-grow flex flex-col justify-between">
                         <div>
                             <div class="flex justify-between items-start">
-                                <h2 class="text-xl font-bold text-gray-800 uppercase tracking-tight italic">${ilan.baslik}</h2>
-                                <span class="text-green-600 font-black text-sm">Değer: ${ilan.deger} TL</span>
+                                <h2 class="text-xl font-bold uppercase italic text-gray-800">${ilan.baslik}</h2>
+                                <span class="text-green-600 font-black text-sm">${ilan.deger} TL</span>
                             </div>
-                            <div class="mt-4 bg-gray-50 p-3 rounded-xl border-l-4 border-yellow-500">
-                                <span class="text-[10px] font-black text-yellow-700 block uppercase italic">Takas Tercihi:</span>
-                                <p class="text-sm font-semibold italic text-gray-700">${ilan.aciklama}</p>
-                            </div>
+                            <p class="mt-4 text-sm italic text-gray-700 bg-gray-50 p-3 rounded-xl border-l-4 border-yellow-500">${ilan.aciklama}</p>
                         </div>
                         <div class="flex gap-2 mt-4">
-                            <button class="flex-grow bg-gray-900 text-white py-2 rounded-lg font-bold text-sm uppercase tracking-widest">Detayları Gör</button>
-                            <button class="bg-yellow-500 px-8 py-2 rounded-lg font-black shadow-lg shadow-yellow-100 text-sm uppercase italic">TEKLİF VER 🤝</button>
+                            <button class="flex-grow bg-gray-900 text-white py-2 rounded-lg font-bold text-sm uppercase tracking-widest">Detaylar</button>
+                            <button onclick="teklifVer(${ilan.id}, '${ilan.baslik}')" class="bg-yellow-500 px-6 py-2 rounded-lg font-black text-sm uppercase italic hover:bg-yellow-400 transition-all">TEKLİF VER 🤝</button>
                         </div>
                     </div>
-                </div>
-                `;
+                </div>`;
             });
         }
+
+        oturumKontrol();
         ilanlariGetir();
     </script>
 </body>
 </html>
-
