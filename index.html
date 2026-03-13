@@ -17,7 +17,7 @@
             </div>
             <div class="flex gap-4">
                 <button class="text-white font-bold text-sm hidden sm:block">Giriş Yap</button>
-                <button class="bg-yellow-500 px-6 py-2 rounded-lg font-black text-sm hover:bg-yellow-400 transition-all uppercase">İLAN VER +</button>
+                <a href="ilan-ver.html" class="bg-yellow-500 px-6 py-2 rounded-lg font-black text-sm hover:bg-yellow-400 transition-all uppercase flex items-center justify-center">İLAN VER +</a>
             </div>
         </div>
     </nav>
@@ -42,73 +42,53 @@
         </aside>
 
         <main class="flex-grow space-y-4">
-            <div class="bg-yellow-50 p-6 rounded-2xl border-2 border-yellow-200 mb-8">
-                <h3 class="font-black mb-4 uppercase italic">Hızlı İlan Ver</h3>
-                <div class="grid gap-4">
-                    <input id="baslik" type="text" placeholder="Ürün Adı Nedir?" class="p-3 rounded-xl border border-yellow-300 outline-none">
-                    
-                    <input id="deger" type="number" placeholder="Tahmini Değer (TL)" class="p-3 rounded-xl border border-yellow-300 outline-none">
-                    
-                    <textarea id="aciklama" placeholder="Takas tercihin nedir?" class="p-3 rounded-xl border border-yellow-300 outline-none"></textarea>
-                    
-                    <button onclick="ilanVer()" class="bg-gray-900 text-white font-black py-3 rounded-xl hover:bg-black transition-all">
-                        🚀 VERİTABANINA GÖNDER
-                    </button>
-                </div>
-            </div>  
-            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 flex flex-col md:flex-row gap-6 hover:shadow-lg transition-all group cursor-pointer">
-                <div class="w-full md:w-48 h-48 bg-gray-200 rounded-xl overflow-hidden flex-shrink-0">
-                    <img src="https://images.unsplash.com/photo-1696446701796-da61225697cc?q=80&w=400" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
-                </div>
-                <div class="flex-grow flex flex-col justify-between">
-                    <div>
-                        <div class="flex justify-between items-start">
-                            <h2 class="text-xl font-bold text-gray-800 uppercase tracking-tight italic">iPhone 15 Pro Max 256GB</h2>
-                            <span class="text-green-600 font-black text-sm">Değer: 75.000 TL</span>
-                        </div>
-                        <p class="text-xs text-gray-400 mt-1 uppercase font-bold tracking-tighter">Sıfır Ayarında • 22 Ay Garanti • Engin'in Vitrini</p>
-                        <div class="mt-4 bg-gray-50 p-3 rounded-xl border-l-4 border-yellow-500">
-                            <span class="text-[10px] font-black text-yellow-700 block uppercase italic">Takas Tercihi:</span>
-                            <p class="text-sm font-semibold italic text-gray-700">MacBook Pro M2/M3 veya üzerine nakit alabileceğim üst segment saatler.</p>
-                        </div>
-                    </div>
-                    <div class="flex gap-2 mt-4">
-                        <button class="flex-grow bg-gray-900 text-white py-2 rounded-lg font-bold text-sm uppercase tracking-widest">Detayları Gör</button>
-                        <button class="bg-yellow-500 px-8 py-2 rounded-lg font-black shadow-lg shadow-yellow-100 text-sm uppercase italic">TEKLİF VER 🤝</button>
-                    </div>
-                </div>
+            <div id="ilan-vitrini" class="flex flex-col gap-4 mb-8">
+                <p class="text-center text-gray-400 italic py-10">İlanlar veritabanından çekiliyor...</p>
             </div>
-            
             <p class="text-center text-gray-300 text-[10px] py-10 uppercase tracking-[0.3em] font-black">Trakas v1.0 - Engin & Arda Ortaklığı</p>
         </main>
 
     </div>
     <script>
-        // 1. Supabase Bağlantısı
         const supabaseUrl = 'https://ivnazhfahtjcdspclkis.supabase.co'
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml2bmF6aGZhaHRqY2RzcGNsa2lzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMyMTgxNzEsImV4cCI6MjA4ODc5NDE3MX0.Z2bKgccAQX8dgex99cQL-GLpTYU1vhb-0BqWiuIMhxU'
         const _supabase = supabase.createClient(supabaseUrl, supabaseKey)
     
-        // 2. İlan Verme Fonksiyonu
-        async function ilanVer() {
-            // Formdaki verileri alalım (Buradaki ID'lerin form inputlarında olduğundan emin olmalıyız)
-            const baslik = document.getElementById('baslik')?.value || "İsimsiz İlan";
-            const deger = document.getElementById('deger')?.value || 0;
-            const aciklama = document.getElementById('aciklama')?.value || "";
-    
+        async function ilanlariGetir() {
             const { data, error } = await _supabase
-              .from('ilanlar')
-              .insert([
-                { baslik: baslik, deger: deger, aciklama: aciklama }
-              ])
-    
+                .from('ilanlar')
+                .select('*')
+                .order('id', { ascending: false });
+
             if (error) {
-                alert("Hata oluştu: " + error.message);
-            } else {
-                alert("Tebrikler Engin! İlan başarıyla veritabanına kaydedildi.");
-                location.reload(); // Sayfayı yenileyip yeni ilanı görelim
+                console.log("Hata:", error);
+                return;
             }
+
+            const vitrin = document.getElementById('ilan-vitrini');
+            vitrin.innerHTML = ''; 
+
+            if (data.length === 0) {
+                vitrin.innerHTML = '<p class="text-center text-gray-400 py-10">Henüz hiç ilan verilmemiş. İlk ilanı sen ver!</p>';
+                return;
+            }
+
+            data.forEach(ilan => {
+                vitrin.innerHTML += `
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 flex flex-col gap-2 hover:shadow-lg transition-all border-l-4 border-yellow-500">
+                    <div class="flex justify-between items-start">
+                        <h2 class="text-xl font-bold text-gray-800 uppercase italic">${ilan.baslik}</h2>
+                        <span class="text-green-600 font-black text-sm">${ilan.deger} TL</span>
+                    </div>
+                    <div class="bg-gray-50 p-3 rounded-xl mt-2">
+                        <span class="text-[10px] font-black text-gray-400 block uppercase tracking-widest mb-1">Takas Tercihi / Açıklama</span>
+                        <p class="text-sm font-semibold italic text-gray-700">${ilan.aciklama}</p>
+                    </div>
+                </div>
+                `;
+            });
         }
+        ilanlariGetir();
     </script>
 </body>
 </html>
