@@ -21,11 +21,11 @@
             <h2 class="text-3xl font-black text-gray-800 mb-8 uppercase italic border-b-4 border-yellow-500 inline-block pb-2">Yeni İlan Ekle</h2>
             
             <div class="space-y-6">
-                <div class="border-2 border-dashed border-gray-300 rounded-2xl p-10 text-center hover:bg-gray-50 transition-all cursor-pointer">
-                    <div class="text-5xl mb-2">📸</div>
-                    <p class="font-bold text-gray-500">Fotoğraf Yüklemek İçin Tıkla</p>
-                    <p class="text-xs text-gray-400 mt-2">Yakında aktif olacak!</p>
-                </div>
+                <label for="resim-input" class="block border-2 border-dashed border-gray-300 rounded-2xl p-10 text-center hover:bg-gray-50 transition-all cursor-pointer group">
+                    <div class="text-5xl mb-2 group-hover:scale-110 transition-transform">📸</div>
+                    <p id="dosya-adi-goster" class="font-bold text-gray-500">Fotoğraf Seçmek İçin Tıkla</p>
+                    <input type="file" id="resim-input" accept="image/*" class="hidden" onchange="dosyaSecildi(this)">
+                </label>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
@@ -55,10 +55,21 @@
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml2bmF6aGZhaHRqY2RzcGNsa2lzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMyMTgxNzEsImV4cCI6MjA4ODc5NDE3MX0.Z2bKgccAQX8dgex99cQL-GLpTYU1vhb-0BqWiuIMhxU';
         const _supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
+        // Kullanıcı fotoğraf seçtiğinde adını ekranda gösterelim
+        function dosyaSecildi(input) {
+            const yaziAlan = document.getElementById('dosya-adi-goster');
+            if (input.files && input.files[0]) {
+                yaziAlan.innerHTML = "<span class='text-green-600'>Seçilen Fotoğraf: " + input.files[0].name + "</span>";
+            } else {
+                yaziAlan.innerHTML = "Fotoğraf Seçmek İçin Tıkla";
+            }
+        }
+
         async function ilanGonder() {
             const baslik = document.getElementById('baslik').value;
             const deger = document.getElementById('deger').value;
             const aciklama = document.getElementById('aciklama').value;
+            const resimDosyasi = document.getElementById('resim-input').files[0];
 
             if (!baslik || !deger) {
                 alert("Lütfen ürün adı ve değerini boş bırakma!");
@@ -67,19 +78,46 @@
 
             const btn = document.querySelector('button[onclick="ilanGonder()"]');
             const eskiYazi = btn.innerHTML;
-            btn.innerHTML = "⏳ Yükleniyor...";
+            btn.innerHTML = "⏳ Fotoğraf Yükleniyor, Lütfen Bekle...";
             btn.disabled = true;
 
+            let resimUrl = null;
+
+            // Eğer kullanıcı fotoğraf seçtiyse önce onu Supabase Storage'a yükleyelim
+            if (resimDosyasi) {
+                // Aynı isimli dosyalar çakışmasın diye başına tarih/saat ekliyoruz
+                const dosyaIsmi = Date.now() + '-' + resimDosyasi.name;
+                
+                const { data: uploadData, error: uploadError } = await _supabase.storage
+                    .from('ilan-resimleri')
+                    .upload(dosyaIsmi, resimDosyasi);
+
+                if (uploadError) {
+                    alert("Fotoğraf yüklenemedi: " + uploadError.message);
+                    btn.innerHTML = eskiYazi;
+                    btn.disabled = false;
+                    return;
+                }
+
+                // Yüklenen fotoğrafın açık linkini alıyoruz
+                const { data: publicUrlData } = _supabase.storage
+                    .from('ilan-resimleri')
+                    .getPublicUrl(dosyaIsmi);
+                
+                resimUrl = publicUrlData.publicUrl;
+            }
+
+            // Şimdi ilanın tamamını (resim linki dahil) veritabanına kaydediyoruz
             const { error } = await _supabase
                 .from('ilanlar')
-                .insert([{ baslik: baslik, deger: deger, aciklama: aciklama }]);
+                .insert([{ baslik: baslik, deger: deger, aciklama: aciklama, resim_url: resimUrl }]);
 
             if (error) {
                 alert("Hata oluştu: " + error.message);
                 btn.innerHTML = eskiYazi;
                 btn.disabled = false;
             } else {
-                alert("Tebrikler! İlanın vitrine eklendi.");
+                alert("Harika! İlanın vitrine eklendi.");
                 window.location.href = 'index.html'; 
             }
         }
