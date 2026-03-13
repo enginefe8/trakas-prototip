@@ -20,7 +20,7 @@
                 <a href="giris.html" id="btn-giris" class="text-white font-bold text-sm hover:text-yellow-500 transition-colors">Giriş Yap</a>
                 
                 <div id="user-panel" style="display: none;" class="items-center gap-3">
-                    <span id="user-name" class="text-yellow-500 font-black text-xs uppercase tracking-widest border-r border-gray-700 pr-3"></span>
+                    <span id="user-name" class="text-yellow-500 font-black text-xs uppercase tracking-widest border-r border-gray-700 pr-3 font-mono"></span>
                     <button onclick="cikisYap()" class="text-red-400 font-bold text-sm hover:text-red-300 transition-colors uppercase tracking-widest">Çıkış Yap</button>
                 </div>
                 
@@ -29,11 +29,33 @@
         </div>
     </nav>
 
-    <main class="max-w-7xl mx-auto p-6">
-        <div id="ilan-vitrini" class="flex flex-col gap-4">
-            <p class="text-center text-gray-400 italic py-10">İlanlar yükleniyor...</p>
-        </div>
-    </main>
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row gap-6 p-6">
+        
+        <aside class="w-full md:w-64 space-y-6">
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-200">
+                <h3 class="font-black text-gray-800 mb-4 border-b pb-2 uppercase text-xs tracking-widest">Kategoriler</h3>
+                <div class="space-y-2 text-sm text-gray-600">
+                    <p class="text-yellow-600 font-bold bg-yellow-50 p-2 rounded-lg italic">📱 Elektronik (142)</p>
+                    <p class="p-2 hover:bg-gray-50 rounded-lg cursor-pointer">🚗 Vasıta (85)</p>
+                    <p class="p-2 hover:bg-gray-50 rounded-lg cursor-pointer">🏠 Emlak (32)</p>
+                    <p class="p-2 hover:bg-gray-50 rounded-lg cursor-pointer">👕 Moda (120)</p>
+                </div>
+
+                <h3 class="font-black text-gray-800 mt-8 mb-4 border-b pb-2 uppercase text-xs tracking-widest italic">Hüzünlü Veda Modu</h3>
+                <div class="p-3 bg-orange-50 rounded-xl border border-orange-100">
+                    <p class="text-[10px] text-orange-800 font-bold italic">Arabanı teslim ederken dinlemelik şarkı tavsiyesi aktiftir. 🎧</p>
+                </div>
+            </div>
+        </aside>
+
+        <main class="flex-grow">
+            <div id="ilan-vitrini" class="flex flex-col gap-4 mb-8">
+                <p class="text-center text-gray-400 italic py-10">İlanlar veritabanından çekiliyor...</p>
+            </div>
+            <p class="text-center text-gray-300 text-[10px] py-10 uppercase tracking-[0.3em] font-black">Trakas v1.0 - Engin & Arda Ortaklığı</p>
+        </main>
+
+    </div>
 
     <script>
         const supabaseUrl = 'https://ivnazhfahtjcdspclkis.supabase.co';
@@ -66,47 +88,19 @@
             const vitrin = document.getElementById('ilan-vitrini');
             
             if (error) {
-                vitrin.innerHTML = 'Hata oluştu.';
+                vitrin.innerHTML = '<p class="text-center text-red-400">Veri çekme hatası!</p>';
                 return;
             }
             
             vitrin.innerHTML = ''; 
             if (data.length === 0) {
-                vitrin.innerHTML = 'Henüz ilan yok.';
+                vitrin.innerHTML = '<p class="text-center text-gray-400">Henüz ilan yok.</p>';
                 return;
             }
 
             data.forEach(ilan => {
-                const resim = ilan.resim_url ? `<img src="${ilan.resim_url}" class="w-full h-full object-cover">` : '📸';
+                const resim = ilan.resim_url ? `<img src="${ilan.resim_url}" class="w-full h-full object-cover group-hover:scale-105 transition-all">` : '📸';
                 vitrin.innerHTML += `
-                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 flex gap-6 hover:shadow-md transition-all">
-                    <div class="w-32 h-32 md:w-48 md:h-48 bg-gray-100 rounded-xl overflow-hidden flex-shrink-0 flex items-center justify-center">${resim}</div>
-                    <div class="flex-grow flex flex-col justify-between">
-                        <div>
-                            <div class="flex justify-between items-start">
-                                <h2 class="text-xl font-bold uppercase italic text-gray-800">${ilan.baslik}</h2>
-                                <span class="text-green-600 font-black text-sm">${ilan.deger} TL</span>
-                            </div>
-                            <p class="mt-2 text-sm text-gray-600 italic line-clamp-2">${ilan.aciklama}</p>
-                        </div>
-                        <button onclick="teklifVer(${ilan.id}, '${ilan.baslik}')" class="w-full bg-yellow-500 py-2 rounded-lg font-black text-sm uppercase italic mt-4">TEKLİF VER 🤝</button>
-                    </div>
-                </div>`;
-            });
-        }
-
-        async function teklifVer(ilanId, ilanBaslik) {
-            const { data: { session } } = await _supabase.auth.getSession();
-            if (!session) { alert("Giriş yapmalısın!"); window.location.href = 'giris.html'; return; }
-            if (confirm(ilanBaslik + " için teklif gitsin mi?")) {
-                const { error } = await _supabase.from('teklifler').insert([{ ilan_id: ilanId, teklif_veren_email: session.user.email }]);
-                if (error) alert("Hata!"); else alert("🤝 Teklif iletildi!");
-            }
-        }
-
-        // Başlat
-        oturumKontrol();
-        ilanlariGetir();
-    </script>
-</body>
-</html>
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 flex flex-col md:flex-row gap-6 hover:shadow-lg transition-all group">
+                    <div class="w-full md:w-48 h-48 bg-gray-100 rounded-xl overflow-hidden flex-shrink-0 flex items-center justify-center">${resim}</div>
+                    <div class="flex
