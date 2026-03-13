@@ -42,9 +42,11 @@
         </aside>
 
         <main class="flex-grow space-y-4">
+            
             <div id="ilan-vitrini" class="flex flex-col gap-4 mb-8">
                 <p class="text-center text-gray-400 italic py-10">İlanlar veritabanından çekiliyor...</p>
             </div>
+            
             <p class="text-center text-gray-300 text-[10px] py-10 uppercase tracking-[0.3em] font-black">Trakas v1.0 - Engin & Arda Ortaklığı</p>
         </main>
 
@@ -74,15 +76,31 @@
             }
 
             data.forEach(ilan => {
+                // Eğer ilanın fotoğrafı varsa onu, yoksa boş bir gri kutu gösterelim
+                const resimAlani = ilan.resim_url 
+                    ? `<img src="${ilan.resim_url}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">` 
+                    : `<div class="w-full h-full flex items-center justify-center text-4xl">📸</div>`;
+
                 vitrin.innerHTML += `
-                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 flex flex-col gap-2 hover:shadow-lg transition-all border-l-4 border-yellow-500">
-                    <div class="flex justify-between items-start">
-                        <h2 class="text-xl font-bold text-gray-800 uppercase italic">${ilan.baslik}</h2>
-                        <span class="text-green-600 font-black text-sm">${ilan.deger} TL</span>
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 flex flex-col md:flex-row gap-6 hover:shadow-lg transition-all group cursor-pointer">
+                    <div class="w-full md:w-48 h-48 bg-gray-200 rounded-xl overflow-hidden flex-shrink-0 flex items-center justify-center">
+                        ${resimAlani}
                     </div>
-                    <div class="bg-gray-50 p-3 rounded-xl mt-2">
-                        <span class="text-[10px] font-black text-gray-400 block uppercase tracking-widest mb-1">Takas Tercihi / Açıklama</span>
-                        <p class="text-sm font-semibold italic text-gray-700">${ilan.aciklama}</p>
+                    <div class="flex-grow flex flex-col justify-between">
+                        <div>
+                            <div class="flex justify-between items-start">
+                                <h2 class="text-xl font-bold text-gray-800 uppercase tracking-tight italic">${ilan.baslik}</h2>
+                                <span class="text-green-600 font-black text-sm">Değer: ${ilan.deger} TL</span>
+                            </div>
+                            <div class="mt-4 bg-gray-50 p-3 rounded-xl border-l-4 border-yellow-500">
+                                <span class="text-[10px] font-black text-yellow-700 block uppercase italic">Takas Tercihi:</span>
+                                <p class="text-sm font-semibold italic text-gray-700">${ilan.aciklama}</p>
+                            </div>
+                        </div>
+                        <div class="flex gap-2 mt-4">
+                            <button class="flex-grow bg-gray-900 text-white py-2 rounded-lg font-bold text-sm uppercase tracking-widest">Detayları Gör</button>
+                            <button class="bg-yellow-500 px-8 py-2 rounded-lg font-black shadow-lg shadow-yellow-100 text-sm uppercase italic">TEKLİF VER 🤝</button>
+                        </div>
                     </div>
                 </div>
                 `;
