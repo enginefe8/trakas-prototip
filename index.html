@@ -81,47 +81,4 @@
                 data.forEach(ilan => {
                     const resimHtml = ilan.resim_url ? `<img src="${ilan.resim_url}" class="w-full h-full object-cover">` : '<span class="text-4xl">📸</span>';
                     vitrin.innerHTML += `
-                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 flex flex-col md:flex-row gap-6 hover:shadow-lg transition-all">
-                        <div class="w-full md:w-48 h-48 bg-gray-100 rounded-xl overflow-hidden flex-shrink-0 flex items-center justify-center">${resimHtml}</div>
-                        <div class="flex-grow flex flex-col justify-between">
-                            <div>
-                                <div class="flex justify-between items-start">
-                                    <h2 class="text-xl font-bold uppercase italic text-gray-800 tracking-tight">${ilan.baslik}</h2>
-                                    <span class="text-green-600 font-black text-sm whitespace-nowrap">${ilan.deger} TL</span>
-                                </div>
-                                <div class="mt-4 bg-gray-50 p-3 rounded-xl border-l-4 border-yellow-500 text-sm italic font-semibold text-gray-700">
-                                    <span class="text-[10px] font-black text-yellow-700 block uppercase mb-1 not-italic">Takas Tercihi:</span>
-                                    ${ilan.aciklama}
-                                </div>
-                            </div>
-                            
-                            <div class="flex gap-2 mt-4">
-                                <a href="detay.html?id=${ilan.id}" class="flex-grow bg-gray-900 text-white py-2.5 rounded-lg font-bold text-sm uppercase flex items-center justify-center hover:bg-gray-800 transition-colors shadow-md">Detayları Gör</a>
-                                <button onclick="teklifVer(${ilan.id}, '${ilan.baslik}')" class="bg-yellow-500 px-8 py-2.5 rounded-lg font-black text-sm uppercase italic hover:bg-yellow-400 transition-all shadow-md shadow-yellow-100">TEKLİF VER 🤝</button>
-                            </div>
-                        </div>
-                    </div>`;
-                });
-            } catch (e) {
-                document.getElementById('ilan-vitrini').innerHTML = '<p class="text-center text-red-500 font-bold py-10">İlanlar şu an yüklenemiyor.</p>';
-            }
-        }
-
-        async function cikisYap() {
-            await _supabase.auth.signOut();
-            window.location.reload();
-        }
-
-        async function teklifVer(id, baslik) {
-            const { data: { session } } = await _supabase.auth.getSession();
-            if (!session) { alert("Lütfen giriş yap!"); window.location.href = 'giris.html'; return; }
-            if (confirm(baslik + " ilanı için takas teklifi gitsin mi?")) {
-                const { error } = await _supabase.from('teklifler').insert([{ ilan_id: id, teklif_veren_email: session.user.email }]);
-                alert(error ? "Hata oluştu!" : "🤝 Teklifin başarıyla iletildi!");
-            }
-        }
-
-        sitemiCalistir();
-    </script>
-</body>
-</html>
+                    <div
