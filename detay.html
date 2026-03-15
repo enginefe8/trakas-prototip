@@ -5,12 +5,90 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>İlan Detayları - Trakas</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
-<body class="bg-gray-50 flex items-center justify-center min-h-screen">
-    <div class="text-center">
-        <h1 class="text-4xl font-black italic text-gray-900 tracking-tighter mb-4">TRAKAS</h1>
-        <p class="text-gray-500 font-medium">İlan detay sayfası yapım aşamasında... 🚧</p>
-        <a href="index.html" class="mt-8 inline-block bg-yellow-500 text-gray-900 px-6 py-3 rounded-xl font-black uppercase tracking-widest hover:bg-yellow-400 transition-colors shadow-lg">← Ana Sayfaya Dön</a>
-    </div>
+<body class="bg-gray-50 font-sans min-h-screen p-6">
+
+    <nav class="max-w-5xl mx-auto mb-8 flex justify-between items-center bg-gray-900 p-4 rounded-2xl shadow-lg">
+        <a href="index.html" class="text-3xl font-black text-white tracking-tighter italic hover:text-yellow-500 transition-colors">TRAKAS</a>
+        <a href="index.html" class="text-sm font-bold text-gray-400 hover:text-white uppercase tracking-widest transition-colors">← Vitrine Dön</a>
+    </nav>
+
+    <main class="max-w-5xl mx-auto bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden" id="detay-kutusu">
+        <p class="text-center text-gray-400 italic py-32 font-bold tracking-widest uppercase">İlan Detayları Çekiliyor...</p>
+    </main>
+
+    <script>
+        const supabaseUrl = 'https://ivnazhfahtjcdspclkis.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml2bmF6aGZhaHRqY2RzcGNsa2lzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMyMTgxNzEsImV4cCI6MjA4ODc5NDE3MX0.Z2bKgccAQX8dgex99cQL-GLpTYU1vhb-0BqWiuIMhxU';
+        const _supabase = supabase.createClient(supabaseUrl, supabaseKey);
+
+        async function ilaniGetir() {
+            // URL'deki "id=7" kısmından 7 rakamını yakala
+            const urlParams = new URLSearchParams(window.location.search);
+            const ilanId = urlParams.get('id');
+            const kutu = document.getElementById('detay-kutusu');
+
+            if (!ilanId) {
+                kutu.innerHTML = '<p class="text-center text-red-500 py-20 font-black text-2xl uppercase">Geçersiz İlan Bağlantısı!</p>';
+                return;
+            }
+
+            // Supabase'den sadece bu ID'ye sahip ilanı çek
+            const { data: ilan, error } = await _supabase
+                .from('ilanlar')
+                .select('*')
+                .eq('id', ilanId)
+                .single(); 
+
+            if (error || !ilan) {
+                kutu.innerHTML = '<p class="text-center text-red-500 py-20 font-black text-2xl uppercase">İlan bulunamadı veya silinmiş.</p>';
+                return;
+            }
+
+            const resim = ilan.resim_url ? `<img src="${ilan.resim_url}" class="w-full h-full object-cover">` : '<div class="w-full h-full bg-gray-200 flex items-center justify-center text-8xl">📸</div>';
+
+            // Verileri ekrana devasa şekilde bas
+            kutu.innerHTML = `
+                <div class="flex flex-col md:flex-row">
+                    <div class="w-full md:w-1/2 h-[500px] bg-gray-100 relative">
+                        ${resim}
+                        <div class="absolute top-4 left-4 bg-gray-900 text-white text-xs font-black uppercase tracking-widest px-4 py-2 rounded-lg shadow-lg">
+                            İlan No: #${ilan.id}
+                        </div>
+                    </div>
+                    <div class="w-full md:w-1/2 p-10 flex flex-col justify-between bg-white">
+                        <div>
+                            <h1 class="text-5xl font-black text-gray-900 uppercase italic tracking-tighter mb-4">${ilan.baslik}</h1>
+                            <p class="text-4xl font-black text-green-600 mb-8 border-b-2 border-gray-100 pb-6">${ilan.deger} TL</p>
+                            
+                            <div class="bg-gray-50 p-6 rounded-2xl border-l-4 border-yellow-500 shadow-sm mb-8">
+                                <h3 class="text-xs font-black text-yellow-700 uppercase tracking-widest mb-3 italic">Açıklama / Takas Tercihi</h3>
+                                <p class="text-gray-700 font-semibold text-lg leading-relaxed">${ilan.aciklama}</p>
+                            </div>
+                        </div>
+
+                        <div>
+                            <button onclick="teklifVer(${ilan.id}, '${ilan.baslik}')" class="w-full bg-yellow-500 text-gray-900 py-5 rounded-xl font-black text-xl uppercase tracking-widest hover:bg-yellow-400 transition-all shadow-xl shadow-yellow-100 hover:scale-[1.02]">
+                                TEKLİF VER 🤝
+                            </button>
+                            <p class="text-center text-xs text-gray-400 mt-4 font-bold tracking-widest uppercase">Trakas Güvenli Takas Alanı</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        async function teklifVer(id, baslik) {
+            const { data: { session } } = await _supabase.auth.getSession();
+            if (!session) { alert("Teklif vermek için önce giriş yapmalısın!"); window.location.href = 'giris.html'; return; }
+            if (confirm(baslik + " ilanı için takas teklifi gitsin mi?")) {
+                const { error } = await _supabase.from('teklifler').insert([{ ilan_id: id, teklif_veren_email: session.user.email, mesaj: "Takas istiyor!" }]);
+                alert(error ? "Hata oluştu!" : "🤝 Harika! Teklifin başarıyla iletildi.");
+            }
+        }
+
+        ilaniGetir();
+    </script>
 </body>
 </html>
