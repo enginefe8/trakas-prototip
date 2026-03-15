@@ -17,10 +17,13 @@
             </div>
             <div class="flex gap-4 items-center">
                 <a href="giris.html" id="btn-giris" class="text-white font-bold text-sm hover:text-yellow-500 transition-colors">Giriş Yap</a>
+                
                 <div id="user-panel" style="display: none;" class="items-center gap-3 border-r border-gray-700 pr-3">
                     <span id="user-name" class="text-yellow-500 font-black text-xs uppercase tracking-widest"></span>
+                    <a href="teklifler.html" class="text-white font-bold text-xs uppercase hover:text-yellow-500 transition-colors bg-gray-800 px-3 py-1.5 rounded-lg ml-2 border border-gray-700 shadow-sm">Tekliflerim 🤝</a>
                     <button onclick="cikisYap()" class="text-red-400 font-bold text-[10px] uppercase ml-2 hover:text-red-300 transition-colors">Çıkış</button>
                 </div>
+                
                 <a href="ilan-ver.html" class="bg-yellow-500 px-6 py-2 rounded-lg font-black text-sm hover:bg-yellow-400 uppercase transition-all shadow-md shadow-yellow-900/20">İLAN VER +</a>
             </div>
         </div>
@@ -52,7 +55,6 @@
                 <div class="bg-red-100 border-l-4 border-red-500 p-6 rounded-lg shadow-sm">
                     <h3 class="text-red-800 font-black text-xl mb-2">🚨 SİSTEM BİR HATAYA TAKILDI!</h3>
                     <p class="text-red-600 font-mono text-sm">Hata: ${msg}</p>
-                    <p class="text-red-600 font-mono text-xs mt-2">Satır: ${line}</p>
                 </div>`;
             return true;
         };
@@ -60,8 +62,6 @@
 
     <script>
         const vitrin = document.getElementById('ilan-vitrini');
-        vitrin.innerHTML = "<p class='text-center text-blue-500 py-10 font-bold uppercase'>Adım 1: Supabase'e bağlanılıyor...</p>";
-
         const supabaseUrl = 'https://ivnazhfahtjcdspclkis.supabase.co';
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml2bmF6aGZhaHRqY2RzcGNsa2lzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMyMTgxNzEsImV4cCI6MjA4ODc5NDE3MX0.Z2bKgccAQX8dgex99cQL-GLpTYU1vhb-0BqWiuIMhxU';
         const _supabase = supabase.createClient(supabaseUrl, supabaseKey);
@@ -78,21 +78,10 @@
                 console.log("Oturum kontrolü atlandı.");
             }
 
-            vitrin.innerHTML = "<p class='text-center text-yellow-500 py-10 font-bold uppercase'>Adım 2: İlanlar veritabanından isteniyor...</p>";
-
             try {
                 const { data, error } = await _supabase.from('ilanlar').select('*').order('id', { ascending: false });
                 
-                if (error) {
-                    vitrin.innerHTML = `
-                        <div class="bg-red-50 p-6 rounded-xl border border-red-200 text-center">
-                            <p class="text-red-600 font-bold text-lg mb-2">❌ Veritabanı Hatası (Supabase'den geldi)</p>
-                            <p class="text-red-500 font-mono text-sm">${error.message}</p>
-                        </div>`;
-                    return;
-                }
-
-                vitrin.innerHTML = "<p class='text-center text-green-500 py-10 font-bold uppercase'>Adım 3: İlanlar bulundu, ekrana çiziliyor...</p>";
+                if (error) { throw error; }
                 
                 if (!data || data.length === 0) {
                     vitrin.innerHTML = '<p class="text-center text-gray-500 py-10 font-bold text-lg">📭 Henüz hiç ilan verilmemiş.</p>';
@@ -117,7 +106,7 @@
                             </div>
                             <div class="flex gap-2 mt-4">
                                 <a href="detay.html?id=${ilan.id}" class="flex-grow bg-gray-900 text-white py-2 rounded-lg font-bold text-sm uppercase flex items-center justify-center">Detayları Gör</a>
-                                <button onclick="teklifVer(${ilan.id})" class="bg-yellow-500 px-8 py-2 rounded-lg font-black text-sm uppercase italic">TEKLİF VER 🤝</button>
+                                <button onclick="teklifVer(${ilan.id})" class="bg-yellow-500 px-8 py-2 rounded-lg font-black text-sm uppercase italic hover:bg-yellow-400 transition-all">TEKLİF VER 🤝</button>
                             </div>
                         </div>
                     </div>`;
@@ -141,7 +130,7 @@
 
         async function teklifVer(id) {
             const { data: { session } } = await _supabase.auth.getSession();
-            if (!session) { alert("Lütfen önce giriş yap!"); return; }
+            if (!session) { alert("Lütfen önce giriş yap!"); window.location.href = 'giris.html'; return; }
             if (confirm("Bu ilan için takas teklifi göndermek istiyor musun?")) {
                 const { error } = await _supabase.from('teklifler').insert([{ ilan_id: id, teklif_veren_email: session.user.email }]);
                 alert(error ? "Hata oluştu!" : "🤝 Teklif iletildi!");
