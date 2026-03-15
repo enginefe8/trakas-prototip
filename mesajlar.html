@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trakas Sohbet - Canlı</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        /* Mesajlaşma arka planı deseni (WhatsApp hissi için) */
+        body { background-color: #f3f4f6; background-image: radial-gradient(#e5e7eb 1px, transparent 1px); background-size: 20px 20px; }
+        /* Scrollbar gizleme */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+    </style>
+</head>
+<body class="font-sans h-screen flex flex-col overflow-hidden">
+
+    <nav class="bg-gray-900 p-4 shadow-md z-50 flex items-center justify-between flex-shrink-0">
+        <div class="flex items-center gap-4">
+            <a href="teklifler.html" class="text-gray-400 hover:text-white font-bold text-xl transition-colors">←</a>
+            <div>
+                <h1 class="text-lg font-black text-white italic tracking-tighter uppercase" id="sohbet-baslik">Sohbet Yükleniyor...</h1>
+                <p class="text-yellow-500 text-[10px] font-bold tracking-widest uppercase">🟢 Çevrimiçi</p>
+            </div>
+        </div>
+        <div class="text-white text-xs font-bold uppercase tracking-widest bg-gray-800 px-3 py-1 rounded-lg border border-gray-700">Trakas Güvenli Alan</div>
+    </nav>
+
+    <main id="mesaj-kutusu" class="flex-grow overflow-y-auto p-4 flex flex-col gap-3 pb-24">
+        <div class="text-center w-full">
+            <span class="inline-block bg-yellow-100 text-yellow-800 text-[10px] font-black uppercase tracking-widest px-4 py-2 rounded-full shadow-sm mb-4">
+                🔒 Trakas uçtan uca güvenli sohbetine hoş geldin.
+            </span>
+        </div>
+        </main>
+
+    <footer class="bg-white p-3 md:p-4 border-t border-gray-200 fixed bottom-0 w-full shadow-[0_-5px_15px_-5px_rgba(0,0,0,0.1)]">
+        <div class="max-w-4xl mx-auto flex gap-2">
+            <input type="text" id="mesaj-input" placeholder="Bir mesaj yaz..." class="flex-grow p-3 rounded-xl bg-gray-100 border border-gray-200 focus:border-yellow-500 focus:ring-2 focus:ring-yellow-200 outline-none transition-all text-sm font-medium" onkeypress="if(event.key === 'Enter') mesajGonder()">
+            <button onclick="mesajGonder()" class="bg-yellow-500 hover:bg-yellow-400 text-gray-900 w-12 h-12 rounded-xl flex items-center justify-center transition-all shadow-md flex-shrink-0">
+                <span class="text-xl">🚀</span>
+            </button>
+        </div>
+    </footer>
+
+    <script>
+        const supabaseUrl = 'https://ivnazhfahtjcdspclkis.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml2bmF6aGZhaHRqY2RzcGNsa2lzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMyMTgxNzEsImV4cCI6MjA4ODc5NDE3MX0.Z2bKgccAQX8dgex99cQL-GLpTYU1vhb-0BqWiuIMhxU';
+        const _supabase = supabase.createClient(supabaseUrl, supabaseKey);
+
+        // URL'den "kiminle" konuştuğumuzu ve hangi "ilan" olduğunu alıyoruz
+        const urlParams = new URLSearchParams(window.location.search);
+        const ilanId = urlParams.get('ilan_id');
+        const karsiTaraf = urlParams.get('kiminle');
+        
+        let benimEmailim = "";
+        let sonMesajSayisi = 0;
+
+        async function sohbetiBaslat() {
+            const { data: { session } } = await _supabase.auth.getSession();
+            if (!session) { window.location.href = 'giris.html'; return; }
+            
+            benimEmailim = session.user.email;
+
+            if (!ilanId || !karsiTaraf) {
+                document.getElementById('sohbet-baslik').innerText = "Hatalı Bağlantı!";
+                return;
+            }
+
+            // Başlığa karşı tarafın ismini yaz
+            document.getElementById('sohbet-baslik').innerText = karsiTaraf.split('@')[0] + " İLE TAKAS";
+
+            // Mesajları çek ve her 2 saniyede bir güncelle (Canlı hissi)
+            await mesajlariGetir();
+            setInterval(mesajlariGetir, 2000); 
+        }
+
+        async function mesajlariGetir() {
+            if(!benimEmailim) return;
+
+            // Hem benim ona attıklarımı hem onun bana attıklarını getir
+            const { data, error } = await _supabase
+                .from('mesajlar')
+                .select('*')
+                .eq('ilan_id', ilanId)
+                .or(`and(gonderen_email.eq.${benimEmailim},alici_email.eq.${karsiTaraf}),and(gonderen_email.eq.${karsiTaraf},alici_email.eq.${benimEmailim})`)
+                .order('id', { ascending: true });
+
+            if (error) { console.error(error); return; }
+
+            // Eğer yeni mesaj yoksa ekranı boşuna yenileme (titreme yapmasın)
+            if (data.length === sonMesajSayisi) return; 
+            sonMesajSayisi = data.length;
+
+            const kutu = document.getElementById('mesaj-kutusu');
+            
+            // Üstteki güvenlik mesajını koruyarak kutuyu temizle
+            kutu.innerHTML = `
+                <div class="text-center w-full mt-2">
+                    <span class="inline-block bg-yellow-100 text-yellow-800 text-[10px] font-black uppercase tracking-widest px-4 py-2 rounded-full shadow-sm mb-4">
+                        🔒 İlan #${ilanId} için güvenli sohbet odası
+                    </span>
+                </div>`;
+
+            if(data.length === 0) {
+                kutu.innerHTML += `<p class="text-center text-gray-400 text-sm font-bold mt-10">Henüz mesaj yok. İlk adımı sen at! 👋</p>`;
+                return;
+            }
+
+            // Mesajları ekrana diz
+            data.forEach(msg => {
+                const benMiyim = msg.gonderen_email === benimEmailim;
+                
+                if (benMiyim) {
+                    // BENİM GÖNDERDİĞİM MESAJLAR (Sağda, Yeşil)
+                    kutu.innerHTML += `
+                    <div class="flex justify-end w-full">
+                        <div class="bg-green-500 text-white p-3 rounded-2xl rounded-br-sm max-w-[80%] md:max-w-[60%] shadow-md">
+                            <p class="text-sm font-medium">${msg.mesaj_metni}</p>
+                        </div>
+                    </div>`;
+                } else {
+                    // KARŞI TARAFIN MESAJLARI (Solda, Beyaz)
+                    kutu.innerHTML += `
+                    <div class="flex justify-start w-full">
+                        <div class="bg-white text-gray-800 border border-gray-100 p-3 rounded-2xl rounded-bl-sm max-w-[80%] md:max-w-[60%] shadow-sm">
+                            <p class="text-sm font-medium">${msg.mesaj_metni}</p>
+                        </div>
+                    </div>`;
+                }
+            });
+
+            // En son mesaja otomatik kaydır
+            kutu.scrollTop = kutu.scrollHeight;
+        }
+
+        async function mesajGonder() {
+            const input = document.getElementById('mesaj-input');
+            const metin = input.value.trim();
+            
+            if (!metin || !benimEmailim || !karsiTaraf) return;
+            
+            input.value = ""; // Kutuyu hemen boşalt (hızlı hissettirsin)
+            
+            const { error } = await _supabase.from('mesajlar').insert([{
+                gonderen_email: benimEmailim,
+                alici_email: karsiTaraf,
+                ilan_id: ilanId,
+                mesaj_metni: metin
+            }]);
+
+            if (error) {
+                alert("Mesaj gitmedi: " + error.message);
+            } else {
+                mesajlariGetir(); // Hemen ekrana yansıt
+            }
+        }
+
+        sohbetiBaslat();
+    </script>
+</body>
+</html>
