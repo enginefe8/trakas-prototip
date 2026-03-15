@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tekliflerim - Trakas</title>
+    <title>Teklif Merkezi - Trakas</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -19,13 +19,27 @@
         </div>
     </nav>
 
-    <main class="max-w-4xl mx-auto p-6 mt-8">
-        <div class="flex items-center justify-between mb-8 border-b-2 border-gray-200 pb-4">
-            <h1 class="text-3xl font-black text-gray-900 uppercase italic tracking-tight">Gönderdiğim Teklifler 🤝</h1>
-        </div>
+    <main class="max-w-7xl mx-auto p-6 mt-8">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
+            
+            <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-100">
+                <h2 class="text-2xl font-black text-gray-900 uppercase italic tracking-tight mb-6 border-b-2 border-gray-100 pb-4">Gönderdiğim Teklifler 📤</h2>
+                <div id="giden-listesi" class="space-y-4">
+                    <p class="text-center text-gray-400 italic py-10 font-bold tracking-widest uppercase">Tekliflerin getiriliyor...</p>
+                </div>
+            </div>
 
-        <div id="teklif-listesi" class="space-y-4">
-            <p class="text-center text-gray-400 italic py-10 font-bold tracking-widest uppercase">Tekliflerin getiriliyor...</p>
+            <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 bg-gradient-to-br from-white to-yellow-50/30">
+                <h2 class="text-2xl font-black text-gray-900 uppercase italic tracking-tight mb-6 border-b-2 border-gray-100 pb-4">Bana Gelen Teklifler 📥</h2>
+                <div id="gelen-listesi" class="space-y-4 flex flex-col items-center justify-center py-10">
+                    <span class="text-5xl mb-4">🚧</span>
+                    <h3 class="font-black text-gray-800 text-lg uppercase">Altyapı Kuruluyor</h3>
+                    <p class="text-center text-gray-500 font-medium text-sm mt-2 max-w-xs">
+                        Gelen teklifleri görebilmek için "İlan Ver" sisteminin güncellenmesi bekleniyor. (Adım 2'de aktif olacak!)
+                    </p>
+                </div>
+            </div>
+
         </div>
     </main>
 
@@ -35,9 +49,8 @@
         const _supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
         async function teklifleriGetir() {
-            // 1. Önce kimin giriş yaptığını bulalım
             const { data: { session } } = await _supabase.auth.getSession();
-            const liste = document.getElementById('teklif-listesi');
+            const gidenListe = document.getElementById('giden-listesi');
 
             if (!session) {
                 window.location.href = 'giris.html';
@@ -46,7 +59,7 @@
 
             document.getElementById('user-name').innerText = session.user.email.split('@')[0].toUpperCase();
 
-            // 2. Sadece bu kişinin gönderdiği teklifleri çekelim
+            // SADECE GÖNDERDİĞİMİZ TEKLİFLERİ ÇEKİYORUZ
             const { data, error } = await _supabase
                 .from('teklifler')
                 .select('*')
@@ -54,32 +67,28 @@
                 .order('id', { ascending: false });
 
             if (error) {
-                liste.innerHTML = '<p class="text-center text-red-500 py-10 font-bold">Teklifler yüklenirken bir hata oluştu.</p>';
+                gidenListe.innerHTML = '<p class="text-center text-red-500 py-10 font-bold">Bir hata oluştu.</p>';
                 return;
             }
 
             if (!data || data.length === 0) {
-                liste.innerHTML = `
-                    <div class="bg-white p-10 rounded-2xl shadow-sm text-center border border-gray-100 hover:shadow-md transition-all">
-                        <span class="text-6xl mb-4 block">📭</span>
-                        <p class="text-gray-500 font-bold text-lg">Henüz hiç teklif göndermemişsin.</p>
-                        <a href="index.html" class="mt-4 inline-block bg-yellow-500 px-6 py-2 rounded-lg font-black text-sm uppercase text-gray-900 hover:bg-yellow-400 transition-all shadow-md">Hemen Vitrine Göz At</a>
+                gidenListe.innerHTML = `
+                    <div class="text-center py-10">
+                        <span class="text-5xl mb-4 block">📭</span>
+                        <p class="text-gray-500 font-bold">Hiç teklif göndermemişsin.</p>
                     </div>`;
                 return;
             }
 
-            // 3. Teklifleri ekrana yazdır
-            liste.innerHTML = '';
+            gidenListe.innerHTML = '';
             data.forEach(teklif => {
-                liste.innerHTML += `
-                <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col md:flex-row justify-between items-center hover:shadow-lg transition-all gap-4 border-l-4 border-l-yellow-500">
-                    <div>
-                        <span class="bg-gray-100 text-gray-600 text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full mb-2 inline-block">İşlem No: #${teklif.id}</span>
-                        <h3 class="text-xl font-bold text-gray-800 italic uppercase">İlan #${teklif.ilan_id} için teklif verdin</h3>
-                        <p class="text-gray-500 text-sm mt-1 font-medium">İlettiğin Mesaj: <span class="text-gray-800 italic">"${teklif.mesaj || 'Takas istiyor!'}"</span></p>
-                    </div>
-                    <div>
-                        <a href="detay.html?id=${teklif.ilan_id}" class="bg-gray-900 text-white px-6 py-3 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-gray-800 transition-colors whitespace-nowrap shadow-md">İlanı Gör</a>
+                gidenListe.innerHTML += `
+                <div class="p-4 rounded-2xl border border-gray-100 hover:shadow-md transition-all border-l-4 border-l-yellow-500 bg-gray-50">
+                    <span class="bg-gray-200 text-gray-700 text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded-md mb-2 inline-block">İşlem #${teklif.id}</span>
+                    <h3 class="font-bold text-gray-800 italic uppercase">İlan #${teklif.ilan_id}</h3>
+                    <div class="mt-3 flex justify-between items-center">
+                        <span class="text-xs font-bold text-green-600 bg-green-100 px-2 py-1 rounded-md">Bekliyor</span>
+                        <a href="detay.html?id=${teklif.ilan_id}" class="text-yellow-600 hover:text-yellow-700 font-black text-xs uppercase tracking-widest transition-colors">İlanı Gör →</a>
                     </div>
                 </div>`;
             });
