@@ -51,7 +51,9 @@
             const userEmail = session.user.email;
             document.getElementById('user-name').innerText = userEmail.split('@')[0].toUpperCase();
 
+            // ==========================================
             // 1. MOTOR: GÖNDERDİĞİM TEKLİFLERİ GETİR
+            // ==========================================
             const gidenListe = document.getElementById('giden-listesi');
             const { data: gidenler, error: gidenHata } = await _supabase
                 .from('teklifler')
@@ -68,6 +70,14 @@
             } else {
                 gidenListe.innerHTML = '';
                 gidenler.forEach(teklif => {
+                    // Duruma göre etiket rengi belirleme
+                    let durumHTML = `<span class="text-[10px] font-bold text-gray-500 bg-gray-200 px-2 py-1 rounded-md">Bekliyor ⏳</span>`;
+                    if (teklif.durum === 'kabul_edildi') {
+                        durumHTML = `<span class="text-[10px] font-bold text-green-700 bg-green-100 px-2 py-1 rounded-md">Kabul Edildi ✅</span>`;
+                    } else if (teklif.durum === 'reddedildi') {
+                        durumHTML = `<span class="text-[10px] font-bold text-red-700 bg-red-100 px-2 py-1 rounded-md">Reddedildi ❌</span>`;
+                    }
+
                     gidenListe.innerHTML += `
                     <div class="p-4 rounded-2xl border border-gray-100 hover:shadow-md transition-all border-l-4 border-l-gray-400 bg-gray-50">
                         <div class="flex justify-between items-start">
@@ -75,7 +85,7 @@
                                 <span class="bg-gray-200 text-gray-700 text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded-md mb-2 inline-block">İşlem #${teklif.id}</span>
                                 <h3 class="font-bold text-gray-800 italic uppercase">İlan #${teklif.ilan_id}</h3>
                             </div>
-                            <span class="text-[10px] font-bold text-gray-500 bg-gray-200 px-2 py-1 rounded-md">Bekliyor ⏳</span>
+                            ${durumHTML}
                         </div>
                         <div class="mt-3 text-right">
                             <a href="detay.html?id=${teklif.ilan_id}" class="text-gray-600 hover:text-gray-900 font-black text-xs uppercase tracking-widest transition-colors">İlanı Gör →</a>
@@ -84,66 +94,80 @@
                 });
             }
 
+            // ==========================================
             // 2. MOTOR: BANA GELEN TEKLİFLERİ GETİR
+            // ==========================================
             const gelenListe = document.getElementById('gelen-listesi');
-            
-            // Önce benim ilanlarımı bul
-            const { data: benimIlanlarim, error: ilanHata } = await _supabase
-                .from('ilanlar')
-                .select('id, baslik')
-                .eq('sahip_email', userEmail);
+            const { data: benimIlanlarim } = await _supabase.from('ilanlar').select('id, baslik').eq('sahip_email', userEmail);
 
-            if (ilanHata || !benimIlanlarim || benimIlanlarim.length === 0) {
-                gelenListe.innerHTML = `
-                    <div class="text-center py-10">
-                        <span class="text-5xl mb-4 block">📦</span>
-                        <p class="text-gray-500 font-bold mb-2">Sisteme kayıtlı ilanın yok.</p>
-                        <p class="text-xs text-gray-400 uppercase tracking-widest">Önce bir ilan vermelisin.</p>
-                    </div>`;
+            if (!benimIlanlarim || benimIlanlarim.length === 0) {
+                gelenListe.innerHTML = `<div class="text-center py-10"><span class="text-5xl mb-4 block">📦</span><p class="text-gray-500 font-bold mb-2">Sisteme kayıtlı ilanın yok.</p></div>`;
                 return;
             }
 
-            // İlanlarımın ID'lerini bir listeye koy
             const ilanIdListesi = benimIlanlarim.map(ilan => ilan.id);
+            const { data: gelenler } = await _supabase.from('teklifler').select('*').in('ilan_id', ilanIdListesi).order('id', { ascending: false });
 
-            // Bu ID'lere yapılmış teklifleri bul
-            const { data: gelenler, error: gelenHata } = await _supabase
-                .from('teklifler')
-                .select('*')
-                .in('ilan_id', ilanIdListesi)
-                .order('id', { ascending: false });
-
-            if (gelenHata || !gelenler || gelenler.length === 0) {
-                gelenListe.innerHTML = `
-                    <div class="text-center py-10">
-                        <span class="text-5xl mb-4 block">😴</span>
-                        <p class="text-gray-500 font-bold">İlanlarına henüz teklif gelmemiş.</p>
-                    </div>`;
+            if (!gelenler || gelenler.length === 0) {
+                gelenListe.innerHTML = `<div class="text-center py-10"><span class="text-5xl mb-4 block">😴</span><p class="text-gray-500 font-bold">İlanlarına henüz teklif gelmemiş.</p></div>`;
                 return;
             }
 
             gelenListe.innerHTML = '';
             gelenler.forEach(teklif => {
-                // Hangi ilanıma geldiğini bulalım (başlığını yazmak için)
                 const ilgiliIlan = benimIlanlarim.find(i => i.id === teklif.ilan_id);
                 const ilanBasligi = ilgiliIlan ? ilgiliIlan.baslik : `İlan #${teklif.ilan_id}`;
 
+                // Eğer teklif zaten cevaplanmışsa butonları gizle, mesaj göster
+                let ustEtiket = `<span class="bg-yellow-100 text-yellow-800 text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded-md inline-block">YENİ TEKLİF 🚨</span>`;
+                let aksiyonAlani = `
+                    <div class="flex gap-2">
+                        <button onclick="teklifCevapla(${teklif.id}, 'kabul_edildi')" class="flex-grow bg-green-500 text-white py-2 rounded-lg font-black text-xs uppercase tracking-widest hover:bg-green-600 transition-colors shadow-sm">Kabul Et ✅</button>
+                        <button onclick="teklifCevapla(${teklif.id}, 'reddedildi')" class="flex-grow bg-red-100 text-red-600 py-2 rounded-lg font-black text-xs uppercase tracking-widest hover:bg-red-200 transition-colors">Reddet ❌</button>
+                    </div>`;
+
+                if (teklif.durum === 'kabul_edildi') {
+                    ustEtiket = `<span class="bg-green-100 text-green-800 text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded-md inline-block">KABUL ETTİN 🤝</span>`;
+                    aksiyonAlani = `<p class="text-center text-green-600 font-bold text-sm bg-green-50 py-2 rounded-lg border border-green-200">Bu takası onayladın! E-posta ile iletişime geçin.</p>`;
+                } else if (teklif.durum === 'reddedildi') {
+                    ustEtiket = `<span class="bg-red-100 text-red-800 text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded-md inline-block">REDDETTİN ❌</span>`;
+                    aksiyonAlani = `<p class="text-center text-red-400 font-bold text-sm bg-red-50 py-2 rounded-lg border border-red-100">Bu teklifi geri çevirdin.</p>`;
+                }
+
                 gelenListe.innerHTML += `
-                <div class="p-5 rounded-2xl border border-yellow-200 hover:shadow-lg transition-all border-l-4 border-l-yellow-500 bg-white shadow-sm mb-4">
+                <div class="p-5 rounded-2xl border border-gray-200 hover:shadow-lg transition-all border-l-4 ${teklif.durum === 'kabul_edildi' ? 'border-l-green-500' : teklif.durum === 'reddedildi' ? 'border-l-red-500' : 'border-l-yellow-500 border-yellow-200'} bg-white shadow-sm mb-4">
                     <div class="flex justify-between items-start mb-2">
-                        <span class="bg-yellow-100 text-yellow-800 text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded-md inline-block">YENİ TEKLİF 🚨</span>
+                        ${ustEtiket}
                         <span class="text-xs font-bold text-gray-400">İşlem #${teklif.id}</span>
                     </div>
                     
                     <h3 class="text-lg font-black text-gray-900 italic uppercase leading-tight mb-1">${ilanBasligi}</h3>
                     <p class="text-sm text-gray-600 font-medium mb-4"><span class="font-bold text-gray-800">${teklif.teklif_veren_email.split('@')[0]}</span> sana takas teklif etti!</p>
                     
-                    <div class="flex gap-2">
-                        <button class="flex-grow bg-green-500 text-white py-2 rounded-lg font-black text-xs uppercase tracking-widest hover:bg-green-600 transition-colors shadow-sm">Kabul Et ✅</button>
-                        <button class="flex-grow bg-red-100 text-red-600 py-2 rounded-lg font-black text-xs uppercase tracking-widest hover:bg-red-200 transition-colors">Reddet ❌</button>
-                    </div>
+                    ${aksiyonAlani}
                 </div>`;
             });
+        }
+
+        // ==========================================
+        // BUTONLARA TIKLAYINCA ÇALIŞACAK FONKSİYON
+        // ==========================================
+        async function teklifCevapla(teklifId, yeniDurum) {
+            const mesaj = yeniDurum === 'kabul_edildi' ? "Bu teklifi KABUL ETMEK istediğine emin misin?" : "Bu teklifi REDDETMEK istediğine emin misin?";
+            
+            if (confirm(mesaj)) {
+                const { error } = await _supabase
+                    .from('teklifler')
+                    .update({ durum: yeniDurum })
+                    .eq('id', teklifId);
+
+                if (error) {
+                    alert("Hata oluştu: " + error.message);
+                } else {
+                    alert(yeniDurum === 'kabul_edildi' ? "🤝 Harika! Teklifi kabul ettin." : "❌ Teklif reddedildi.");
+                    window.location.reload(); // Sayfayı yenile ki değişiklik görünsün
+                }
+            }
         }
 
         teklifMerkeziniCalistir();
