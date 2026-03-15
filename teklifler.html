@@ -62,18 +62,27 @@
                 .order('id', { ascending: false });
 
             if (gidenHata || !gidenler || gidenler.length === 0) {
-                gidenListe.innerHTML = `
-                    <div class="text-center py-10">
-                        <span class="text-5xl mb-4 block">📭</span>
-                        <p class="text-gray-500 font-bold">Hiç teklif göndermemişsin.</p>
-                    </div>`;
+                gidenListe.innerHTML = `<div class="text-center py-10"><span class="text-5xl mb-4 block">📭</span><p class="text-gray-500 font-bold">Hiç teklif göndermemişsin.</p></div>`;
             } else {
                 gidenListe.innerHTML = '';
+                
+                // Mesaj atacağımız ilan sahiplerinin e-postalarını bulalım
+                const gidenIlanIdleri = gidenler.map(t => t.ilan_id);
+                const { data: gidenIlanlar } = await _supabase.from('ilanlar').select('id, sahip_email').in('id', gidenIlanIdleri);
+
                 gidenler.forEach(teklif => {
-                    // Duruma göre etiket rengi belirleme
                     let durumHTML = `<span class="text-[10px] font-bold text-gray-500 bg-gray-200 px-2 py-1 rounded-md">Bekliyor ⏳</span>`;
+                    
                     if (teklif.durum === 'kabul_edildi') {
-                        durumHTML = `<span class="text-[10px] font-bold text-green-700 bg-green-100 px-2 py-1 rounded-md">Kabul Edildi ✅</span>`;
+                        // Kime mesaj atacağımızı buluyoruz
+                        const ilanDetay = gidenIlanlar ? gidenIlanlar.find(i => i.id === teklif.ilan_id) : null;
+                        const karsiTaraf = ilanDetay ? ilanDetay.sahip_email : '';
+                        
+                        durumHTML = `
+                        <div class="flex flex-col items-end gap-2">
+                            <span class="text-[10px] font-bold text-green-700 bg-green-100 px-2 py-1 rounded-md">Kabul Edildi ✅</span>
+                            <a href="mesajlar.html?ilan_id=${teklif.ilan_id}&kiminle=${karsiTaraf}" class="bg-gray-900 text-white text-[10px] font-black px-3 py-1.5 rounded-lg hover:bg-gray-800 transition-colors shadow-sm">💬 MESAJLAŞ</a>
+                        </div>`;
                     } else if (teklif.durum === 'reddedildi') {
                         durumHTML = `<span class="text-[10px] font-bold text-red-700 bg-red-100 px-2 py-1 rounded-md">Reddedildi ❌</span>`;
                     }
@@ -98,7 +107,7 @@
             // 2. MOTOR: BANA GELEN TEKLİFLERİ GETİR
             // ==========================================
             const gelenListe = document.getElementById('gelen-listesi');
-            const { data: benimIlanlarim } = await _supabase.from('ilanlar').select('id, baslik').eq('sahip_email', userEmail);
+            const { data: benimIlanlarim } = await _supabase.from('ilanlar').select('id, baslik, sahip_email').eq('sahip_email', userEmail);
 
             if (!benimIlanlarim || benimIlanlarim.length === 0) {
                 gelenListe.innerHTML = `<div class="text-center py-10"><span class="text-5xl mb-4 block">📦</span><p class="text-gray-500 font-bold mb-2">Sisteme kayıtlı ilanın yok.</p></div>`;
@@ -118,7 +127,7 @@
                 const ilgiliIlan = benimIlanlarim.find(i => i.id === teklif.ilan_id);
                 const ilanBasligi = ilgiliIlan ? ilgiliIlan.baslik : `İlan #${teklif.ilan_id}`;
 
-                // Eğer teklif zaten cevaplanmışsa butonları gizle, mesaj göster
+                // Butonlar ve Etiketler
                 let ustEtiket = `<span class="bg-yellow-100 text-yellow-800 text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded-md inline-block">YENİ TEKLİF 🚨</span>`;
                 let aksiyonAlani = `
                     <div class="flex gap-2">
@@ -128,10 +137,16 @@
 
                 if (teklif.durum === 'kabul_edildi') {
                     ustEtiket = `<span class="bg-green-100 text-green-800 text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded-md inline-block">KABUL ETTİN 🤝</span>`;
-                    aksiyonAlani = `<p class="text-center text-green-600 font-bold text-sm bg-green-50 py-2 rounded-lg border border-green-200">Bu takası onayladın! E-posta ile iletişime geçin.</p>`;
+                    aksiyonAlani = `
+                    <div class="bg-green-50 p-4 rounded-xl border border-green-200 mt-2">
+                        <p class="text-green-700 font-bold text-sm text-center mb-3">Takas anlaşması sağlandı! Detayları konuşun.</p>
+                        <a href="mesajlar.html?ilan_id=${teklif.ilan_id}&kiminle=${teklif.teklif_veren_email}" class="block w-full text-center bg-gray-900 text-white px-4 py-3 rounded-lg font-black text-xs uppercase tracking-widest hover:bg-gray-800 transition-all shadow-md">
+                            💬 SOHBETE GİT
+                        </a>
+                    </div>`;
                 } else if (teklif.durum === 'reddedildi') {
                     ustEtiket = `<span class="bg-red-100 text-red-800 text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded-md inline-block">REDDETTİN ❌</span>`;
-                    aksiyonAlani = `<p class="text-center text-red-400 font-bold text-sm bg-red-50 py-2 rounded-lg border border-red-100">Bu teklifi geri çevirdin.</p>`;
+                    aksiyonAlani = `<p class="text-center text-red-400 font-bold text-sm bg-red-50 py-2 rounded-lg border border-red-100 mt-2">Bu teklifi geri çevirdin.</p>`;
                 }
 
                 gelenListe.innerHTML += `
@@ -164,8 +179,7 @@
                 if (error) {
                     alert("Hata oluştu: " + error.message);
                 } else {
-                    alert(yeniDurum === 'kabul_edildi' ? "🤝 Harika! Teklifi kabul ettin." : "❌ Teklif reddedildi.");
-                    window.location.reload(); // Sayfayı yenile ki değişiklik görünsün
+                    window.location.reload(); 
                 }
             }
         }
