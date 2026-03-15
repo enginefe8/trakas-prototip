@@ -21,10 +21,14 @@
             <div class="flex gap-2 md:gap-4 items-center">
                 <a href="giris.html" id="btn-giris" class="text-white font-bold text-xs md:text-sm hover:text-yellow-500 transition-colors whitespace-nowrap">Giriş Yap</a>
                 
-                <div id="user-panel" style="display: none;" class="items-center gap-2 border-r border-gray-700 pr-2 md:pr-3">
-                    <span id="user-name" class="text-yellow-500 font-black text-xs uppercase tracking-widest hidden sm:block"></span>
+                <div id="user-panel" style="display: none;" class="items-center gap-1 md:gap-2 border-r border-gray-700 pr-2 md:pr-3">
+                    <span id="user-name" class="text-yellow-500 font-black text-xs uppercase tracking-widest hidden sm:block mr-2"></span>
                     
-                    <a href="teklifler.html" class="text-white font-bold text-[10px] md:text-xs uppercase hover:text-yellow-500 transition-colors bg-gray-800 px-2 py-1.5 md:px-3 md:py-1.5 rounded-lg ml-0 md:ml-2 border border-gray-700 shadow-sm flex items-center">
+                    <a href="sohbetler.html" class="text-white font-bold text-[10px] md:text-xs uppercase hover:text-yellow-500 transition-colors bg-gray-800 px-2 py-1.5 md:px-3 rounded-lg border border-gray-700 shadow-sm flex items-center">
+                        <span class="hidden sm:inline mr-1">Mesajlarım</span> 💬
+                    </a>
+
+                    <a href="teklifler.html" class="text-white font-bold text-[10px] md:text-xs uppercase hover:text-yellow-500 transition-colors bg-gray-800 px-2 py-1.5 md:px-3 rounded-lg border border-gray-700 shadow-sm flex items-center">
                         <span class="hidden sm:inline mr-1">Tekliflerim</span> 🤝
                     </a>
                     
@@ -61,17 +65,10 @@
     </div>
 
     <script>
-        window.onerror = function(msg, url, line) {
-            document.getElementById('ilan-vitrini').innerHTML = `
-                <div class="bg-red-100 border-l-4 border-red-500 p-6 rounded-lg shadow-sm">
-                    <h3 class="text-red-800 font-black text-xl mb-2">🚨 SİSTEM BİR HATAYA TAKILDI!</h3>
-                    <p class="text-red-600 font-mono text-sm">Hata: ${msg}</p>
-                </div>`;
-            return true;
+        window.onerror = function(msg) {
+            document.getElementById('ilan-vitrini').innerHTML = `<div class="bg-red-100 p-6 rounded-lg"><p class="text-red-600 font-mono text-sm">Hata: ${msg}</p></div>`; return true;
         };
-    </script>
 
-    <script>
         const vitrin = document.getElementById('ilan-vitrini');
         const supabaseUrl = 'https://ivnazhfahtjcdspclkis.supabase.co';
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml2bmF6aGZhaHRqY2RzcGNsa2lzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMyMTgxNzEsImV4cCI6MjA4ODc5NDE3MX0.Z2bKgccAQX8dgex99cQL-GLpTYU1vhb-0BqWiuIMhxU';
@@ -85,19 +82,12 @@
                     document.getElementById('user-panel').style.display = 'flex';
                     document.getElementById('user-name').innerText = session.user.email.split('@')[0].toUpperCase();
                 }
-            } catch (e) {
-                console.log("Oturum kontrolü atlandı.");
-            }
+            } catch (e) {}
 
             try {
                 const { data, error } = await _supabase.from('ilanlar').select('*').order('id', { ascending: false });
-                
-                if (error) { throw error; }
-                
-                if (!data || data.length === 0) {
-                    vitrin.innerHTML = '<p class="text-center text-gray-500 py-10 font-bold text-lg">📭 Henüz hiç ilan verilmemiş.</p>';
-                    return;
-                }
+                if (error) throw error;
+                if (!data || data.length === 0) { vitrin.innerHTML = '<p class="text-center text-gray-500 py-10 font-bold">📭 Henüz ilan yok.</p>'; return; }
 
                 let htmlBirlestirici = '';
                 data.forEach(ilan => {
@@ -111,9 +101,7 @@
                                     <h2 class="text-xl font-bold uppercase italic text-gray-800">${ilan.baslik}</h2>
                                     <span class="text-green-600 font-black text-sm whitespace-nowrap">${ilan.deger} TL</span>
                                 </div>
-                                <div class="mt-4 bg-gray-50 p-3 rounded-xl border-l-4 border-yellow-500 text-sm italic font-semibold text-gray-700">
-                                    ${ilan.aciklama}
-                                </div>
+                                <div class="mt-4 bg-gray-50 p-3 rounded-xl border-l-4 border-yellow-500 text-sm italic font-semibold text-gray-700">${ilan.aciklama}</div>
                             </div>
                             <div class="flex gap-2 mt-4">
                                 <a href="detay.html?id=${ilan.id}" class="flex-grow bg-gray-900 text-white py-2.5 rounded-lg font-bold text-xs md:text-sm uppercase flex items-center justify-center hover:bg-gray-800 transition-colors">Detayları Gör</a>
@@ -122,29 +110,20 @@
                         </div>
                     </div>`;
                 });
-                
                 vitrin.innerHTML = htmlBirlestirici;
-
             } catch (err) {
-                vitrin.innerHTML = `
-                    <div class="bg-red-50 p-6 rounded-xl border border-red-200 text-center">
-                        <p class="text-red-600 font-bold text-lg mb-2">❌ Beklenmeyen Çöküş!</p>
-                        <p class="text-red-500 font-mono text-sm">${err.message}</p>
-                    </div>`;
+                vitrin.innerHTML = `<div class="bg-red-50 p-6 rounded-xl text-center"><p class="text-red-500 font-mono text-sm">${err.message}</p></div>`;
             }
         }
 
-        async function cikisYap() {
-            await _supabase.auth.signOut();
-            window.location.reload();
-        }
+        async function cikisYap() { await _supabase.auth.signOut(); window.location.reload(); }
 
         async function teklifVer(id) {
             const { data: { session } } = await _supabase.auth.getSession();
-            if (!session) { alert("Lütfen önce giriş yap!"); window.location.href = 'giris.html'; return; }
+            if (!session) { alert("Önce giriş yap!"); window.location.href = 'giris.html'; return; }
             if (confirm("Bu ilan için takas teklifi göndermek istiyor musun?")) {
                 const { error } = await _supabase.from('teklifler').insert([{ ilan_id: id, teklif_veren_email: session.user.email }]);
-                alert(error ? "Hata oluştu!" : "🤝 Teklif iletildi!");
+                alert(error ? "Hata: " + error.message : "🤝 Teklif iletildi!");
             }
         }
 
