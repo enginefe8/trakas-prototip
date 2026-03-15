@@ -31,4 +31,124 @@
             <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-200">
                 <h3 class="font-black text-gray-800 mb-4 border-b pb-2 uppercase text-xs tracking-widest text-center">Kategoriler</h3>
                 <div class="space-y-2 text-sm text-gray-600 font-medium">
-                    <p class="text-yellow-600 font-bold bg-yellow-50 p-2 rounded-lg italic">
+                    <p class="text-yellow-600 font-bold bg-yellow-50 p-2 rounded-lg italic">📱 Elektronik (142)</p>
+                    <p class="p-2 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors">🚗 Vasıta (85)</p>
+                    <p class="p-2 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors">🏠 Emlak (32)</p>
+                    <p class="p-2 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors">👕 Moda (120)</p>
+                </div>
+            </div>
+        </aside>
+
+        <main class="flex-grow">
+            <div id="ilan-vitrini" class="flex flex-col gap-4 mb-8">
+                <p class="text-center text-gray-400 italic py-10 font-bold tracking-widest uppercase">Motor çalıştırılıyor...</p>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        window.onerror = function(msg, url, line) {
+            document.getElementById('ilan-vitrini').innerHTML = `
+                <div class="bg-red-100 border-l-4 border-red-500 p-6 rounded-lg shadow-sm">
+                    <h3 class="text-red-800 font-black text-xl mb-2">🚨 SİSTEM BİR HATAYA TAKILDI!</h3>
+                    <p class="text-red-600 font-mono text-sm">Hata: ${msg}</p>
+                    <p class="text-red-600 font-mono text-xs mt-2">Satır: ${line}</p>
+                </div>`;
+            return true;
+        };
+    </script>
+
+    <script>
+        const vitrin = document.getElementById('ilan-vitrini');
+        vitrin.innerHTML = "<p class='text-center text-blue-500 py-10 font-bold uppercase'>Adım 1: Supabase'e bağlanılıyor...</p>";
+
+        const supabaseUrl = 'https://ivnazhfahtjcdspclkis.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml2bmF6aGZhaHRqY2RzcGNsa2lzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMyMTgxNzEsImV4cCI6MjA4ODc5NDE3MX0.Z2bKgccAQX8dgex99cQL-GLpTYU1vhb-0BqWiuIMhxU';
+        const _supabase = supabase.createClient(supabaseUrl, supabaseKey);
+
+        async function sitemiCalistir() {
+            try {
+                const { data: { session } } = await _supabase.auth.getSession();
+                if (session) {
+                    document.getElementById('btn-giris').style.display = 'none';
+                    document.getElementById('user-panel').style.display = 'flex';
+                    document.getElementById('user-name').innerText = session.user.email.split('@')[0].toUpperCase();
+                }
+            } catch (e) {
+                console.log("Oturum kontrolü atlandı.");
+            }
+
+            vitrin.innerHTML = "<p class='text-center text-yellow-500 py-10 font-bold uppercase'>Adım 2: İlanlar veritabanından isteniyor...</p>";
+
+            try {
+                const { data, error } = await _supabase.from('ilanlar').select('*').order('id', { ascending: false });
+                
+                if (error) {
+                    vitrin.innerHTML = `
+                        <div class="bg-red-50 p-6 rounded-xl border border-red-200 text-center">
+                            <p class="text-red-600 font-bold text-lg mb-2">❌ Veritabanı Hatası (Supabase'den geldi)</p>
+                            <p class="text-red-500 font-mono text-sm">${error.message}</p>
+                        </div>`;
+                    return;
+                }
+
+                vitrin.innerHTML = "<p class='text-center text-green-500 py-10 font-bold uppercase'>Adım 3: İlanlar bulundu, ekrana çiziliyor...</p>";
+                
+                if (!data || data.length === 0) {
+                    vitrin.innerHTML = '<p class="text-center text-gray-500 py-10 font-bold text-lg">📭 Henüz hiç ilan verilmemiş.</p>';
+                    return;
+                }
+
+                let htmlBirlestirici = '';
+                data.forEach(ilan => {
+                    const resimHtml = ilan.resim_url ? `<img src="${ilan.resim_url}" class="w-full h-full object-cover">` : '<span class="text-4xl">📸</span>';
+                    htmlBirlestirici += `
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 flex flex-col md:flex-row gap-6 mb-4 hover:shadow-lg transition-all">
+                        <div class="w-full md:w-48 h-48 bg-gray-100 rounded-xl overflow-hidden flex-shrink-0 flex items-center justify-center">${resimHtml}</div>
+                        <div class="flex-grow flex flex-col justify-between">
+                            <div>
+                                <div class="flex justify-between items-start">
+                                    <h2 class="text-xl font-bold uppercase italic text-gray-800">${ilan.baslik}</h2>
+                                    <span class="text-green-600 font-black text-sm">${ilan.deger} TL</span>
+                                </div>
+                                <div class="mt-4 bg-gray-50 p-3 rounded-xl border-l-4 border-yellow-500 text-sm italic font-semibold text-gray-700">
+                                    ${ilan.aciklama}
+                                </div>
+                            </div>
+                            <div class="flex gap-2 mt-4">
+                                <a href="detay.html?id=${ilan.id}" class="flex-grow bg-gray-900 text-white py-2 rounded-lg font-bold text-sm uppercase flex items-center justify-center">Detayları Gör</a>
+                                <button onclick="teklifVer(${ilan.id})" class="bg-yellow-500 px-8 py-2 rounded-lg font-black text-sm uppercase italic">TEKLİF VER 🤝</button>
+                            </div>
+                        </div>
+                    </div>`;
+                });
+                
+                vitrin.innerHTML = htmlBirlestirici;
+
+            } catch (err) {
+                vitrin.innerHTML = `
+                    <div class="bg-red-50 p-6 rounded-xl border border-red-200 text-center">
+                        <p class="text-red-600 font-bold text-lg mb-2">❌ Beklenmeyen Çöküş!</p>
+                        <p class="text-red-500 font-mono text-sm">${err.message}</p>
+                    </div>`;
+            }
+        }
+
+        async function cikisYap() {
+            await _supabase.auth.signOut();
+            window.location.reload();
+        }
+
+        async function teklifVer(id) {
+            const { data: { session } } = await _supabase.auth.getSession();
+            if (!session) { alert("Lütfen önce giriş yap!"); return; }
+            if (confirm("Bu ilan için takas teklifi göndermek istiyor musun?")) {
+                const { error } = await _supabase.from('teklifler').insert([{ ilan_id: id, teklif_veren_email: session.user.email }]);
+                alert(error ? "Hata oluştu!" : "🤝 Teklif iletildi!");
+            }
+        }
+
+        sitemiCalistir();
+    </script>
+</body>
+</html>
