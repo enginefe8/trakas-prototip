@@ -24,7 +24,7 @@
             <h1 class="text-3xl font-black text-gray-900 uppercase italic tracking-tight mb-2">Sohbetlerim 💬</h1>
             <p class="text-gray-500 font-medium text-sm mb-8 border-b-2 border-gray-100 pb-4">Aktif takas görüşmelerin burada listelenir.</p>
 
-            <div id="sohbet-listesi" class="space-y-4">
+            <div id="sohbet-listesi" class="space-y-3">
                 <p class="text-center text-gray-400 italic py-10 font-bold tracking-widest uppercase">Mesaj kutun taranıyor...</p>
             </div>
         </div>
@@ -71,7 +71,8 @@
                         ilan_id: msg.ilan_id,
                         karsi_taraf: karsiTaraf,
                         son_mesaj: msg.mesaj_metni,
-                        ben_mi_attim: msg.gonderen_email === benimEmailim
+                        ben_mi_attim: msg.gonderen_email === benimEmailim,
+                        tarih: msg.created_at // Supabase'den gelen otomatik tarih
                     };
                 }
             });
@@ -79,7 +80,16 @@
             let htmlCikti = '';
             Object.values(benzersizSohbetler).forEach(sohbet => {
                 const kisaMesaj = sohbet.son_mesaj.length > 40 ? sohbet.son_mesaj.substring(0, 40) + "..." : sohbet.son_mesaj;
-                const okIcon = sohbet.ben_mi_attim ? "Gittin: " : "Geldi: ";
+                
+                // "Gittin" yerine efsanevi WhatsApp stili: "Sen: "
+                const okIcon = sohbet.ben_mi_attim ? "Sen: " : "";
+                
+                // Tarihi alıp güzel bir saate (Örn: 22:45) çevirelim
+                let saatMetni = "";
+                if (sohbet.tarih) {
+                    const tarihObj = new Date(sohbet.tarih);
+                    saatMetni = tarihObj.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+                }
 
                 htmlCikti += `
                 <a href="mesajlar.html?ilan_id=${sohbet.ilan_id}&kiminle=${sohbet.karsi_taraf}" class="block bg-gray-50 hover:bg-yellow-50 p-4 rounded-2xl border border-gray-100 hover:border-yellow-300 transition-all flex items-center justify-between group">
@@ -95,10 +105,14 @@
                             <p class="text-sm text-gray-500 font-medium italic"><span class="text-gray-400 font-bold">${okIcon}</span>${kisaMesaj}</p>
                         </div>
                     </div>
-                    <div class="text-gray-300 group-hover:text-yellow-600 transition-colors">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                        </svg>
+                    
+                    <div class="flex flex-col items-end gap-1">
+                        <span class="text-[10px] font-black text-gray-400 tracking-widest">${saatMetni}</span>
+                        <div class="text-gray-300 group-hover:text-yellow-600 transition-colors">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                            </svg>
+                        </div>
                     </div>
                 </a>`;
             });
