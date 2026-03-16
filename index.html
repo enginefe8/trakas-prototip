@@ -86,7 +86,7 @@
 
         let tumIlanlar = [];
         let seciliKategori = "";
-        let benimFavorilerim = []; // Kullanıcının kalp attığı ilanların ID listesi ❤️
+        let benimFavorilerim = []; 
 
         window.aramaMetniTemizle = function(metin) {
             if (!metin) return "";
@@ -101,10 +101,9 @@
                     document.getElementById('user-panel').style.display = 'flex';
                     document.getElementById('user-name').innerText = session.user.email.split('@')[0].toUpperCase();
                     
-                    // Giriş yapmışsak, favori listemizi veritabanından çekelim!
                     const { data: favData } = await _supabase.from('favoriler').select('ilan_id').eq('kullanici_email', session.user.email);
                     if (favData) {
-                        benimFavorilerim = favData.map(f => f.ilan_id); // Örn: [3, 7, 12]
+                        benimFavorilerim = favData.map(f => f.ilan_id);
                     }
                 }
             } catch (e) {}
@@ -211,11 +210,8 @@
             vitrineBas(filtrelenmisListe);
         }
 
-        // ==========================================
-        // ❤️ FAVORİ DEĞİŞTİRME MOTORU
-        // ==========================================
         window.favoriDegistir = async function(event, ilanId) {
-            event.stopPropagation(); // Resme tıklamayı (detay sayfasına gitmeyi) durdur, sadece kalbe bassın.
+            event.stopPropagation();
 
             const { data: { session } } = await _supabase.auth.getSession();
             if (!session) { 
@@ -227,19 +223,16 @@
             const email = session.user.email;
             const kalpButonu = document.getElementById(`fav-btn-${ilanId}`);
             
-            // Eğer favorilerimde varsa (Kaldırma İşlemi)
             if (benimFavorilerim.includes(ilanId)) {
-                kalpButonu.innerText = '🤍'; // Beyaz yap
-                kalpButonu.classList.remove('scale-125'); // Büyümeyi sıfırla
-                benimFavorilerim = benimFavorilerim.filter(id => id !== ilanId); // Hafızadan sil
-                await _supabase.from('favoriler').delete().eq('ilan_id', ilanId).eq('kullanici_email', email); // DB'den sil
-            } 
-            // Eğer favorilerimde yoksa (Ekleme İşlemi)
-            else {
-                kalpButonu.innerText = '❤️'; // Kırmızı yap
-                kalpButonu.classList.add('scale-125'); // Tıklayınca pıt diye büyüsün
-                benimFavorilerim.push(ilanId); // Hafızaya ekle
-                await _supabase.from('favoriler').insert([{ ilan_id: ilanId, kullanici_email: email }]); // DB'ye kaydet
+                kalpButonu.innerText = '🤍'; 
+                kalpButonu.classList.remove('scale-125'); 
+                benimFavorilerim = benimFavorilerim.filter(id => id !== ilanId); 
+                await _supabase.from('favoriler').delete().eq('ilan_id', ilanId).eq('kullanici_email', email); 
+            } else {
+                kalpButonu.innerText = '❤️'; 
+                kalpButonu.classList.add('scale-125'); 
+                benimFavorilerim.push(ilanId); 
+                await _supabase.from('favoriler').insert([{ ilan_id: ilanId, kullanici_email: email }]); 
             }
         }
 
@@ -256,10 +249,9 @@
                 const resimHtml = kapakResmi ? `<img src="${kapakResmi}" class="w-full h-full object-cover">` : '<span class="text-4xl">📸</span>';
                 const kategoriEtiketi = ilan.kategori ? ilan.kategori : 'Diğer';
 
-                // Bu ilan kullanıcının favorilerinde mi kontrol et
                 const kalpteMi = benimFavorilerim.includes(ilan.id);
                 const kalpSimgesi = kalpteMi ? '❤️' : '🤍';
-                const kalpBuyumesi = kalpteMi ? 'scale-125' : ''; // Kırmızıysa biraz daha büyük dursun
+                const kalpBuyumesi = kalpteMi ? 'scale-125' : ''; 
 
                 htmlBirlestirici += `
                 <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 flex flex-col md:flex-row gap-6 hover:shadow-lg transition-all">
@@ -267,7 +259,7 @@
                     <div class="w-full md:w-48 h-48 bg-gray-100 rounded-xl overflow-hidden flex-shrink-0 flex items-center justify-center cursor-pointer relative group" onclick="window.location.href='detay.html?id=${ilan.id}'">
                         ${resimHtml}
                         
-                        <button onclick="favoriDegistir(event, ${ilan.id})" id="fav-btn-${ilan.id}" class="absolute top-2 right-2 bg-white/80 backdrop-blur-sm text-lg p-1.5 rounded-full hover:scale-110 transition-all shadow-sm ${kalpBuyumesi}">
+                        <button onclick="favoriDegistir(event, ${ilan.id})" id="fav-btn-${ilan.id}" class="absolute top-2 right-2 bg-black/30 backdrop-blur-md text-lg p-2 rounded-full hover:bg-black/50 hover:scale-110 transition-all shadow-sm ${kalpBuyumesi}">
                             ${kalpSimgesi}
                         </button>
                     </div>
