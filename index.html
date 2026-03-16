@@ -118,12 +118,29 @@
 
         async function cikisYap() { await _supabase.auth.signOut(); window.location.reload(); }
 
+        // ==========================================
+        // SPAM KORUMALI TEKLİF VERME FONKSİYONU
+        // ==========================================
         async function teklifVer(id) {
             const { data: { session } } = await _supabase.auth.getSession();
             if (!session) { alert("Önce giriş yap!"); window.location.href = 'giris.html'; return; }
+            
+            // Veritabanına sor: "Bu kullanıcı bu ilana daha önce teklif atmış mı?"
+            const { data: mevcutTeklif } = await _supabase
+                .from('teklifler')
+                .select('id')
+                .eq('ilan_id', id)
+                .eq('teklif_veren_email', session.user.email);
+
+            if (mevcutTeklif && mevcutTeklif.length > 0) {
+                alert("⚠️ Dur bakalım! Bu ilana zaten bir teklif gönderdin. Karşı tarafın yanıtını beklemelisin.");
+                return; // Teklif varsa işlemi burada kes
+            }
+
+            // Teklif yoksa normal işleme devam et
             if (confirm("Bu ilan için takas teklifi göndermek istiyor musun?")) {
                 const { error } = await _supabase.from('teklifler').insert([{ ilan_id: id, teklif_veren_email: session.user.email }]);
-                alert(error ? "Hata: " + error.message : "🤝 Teklif iletildi!");
+                alert(error ? "Hata: " + error.message : "🤝 Teklif başarıyla iletildi!");
             }
         }
 
