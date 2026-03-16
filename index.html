@@ -17,8 +17,7 @@
             <div class="flex-grow mx-8 hidden md:block relative">
                 <input type="text" id="arama-desktop" autocomplete="off" onkeyup="canliArama(this.value)" onfocus="canliArama(this.value)" onblur="setTimeout(() => document.getElementById('oneri-kutusu').style.display='none', 200)" placeholder="Ürün, marka veya takas tercihi ara..." class="w-full p-2 rounded-lg bg-gray-800 border border-gray-700 text-white text-sm focus:border-yellow-500 outline-none transition-colors">
                 
-                <div id="oneri-kutusu" style="display: none;" class="absolute w-full bg-white border border-gray-200 shadow-2xl rounded-b-lg mt-1 z-50 max-h-60 overflow-y-auto">
-                    </div>
+                <div id="oneri-kutusu" style="display: none;" class="absolute w-full bg-white border border-gray-200 shadow-2xl rounded-b-lg mt-1 z-50 max-h-60 overflow-y-auto"></div>
             </div>
             
             <div class="flex gap-2 md:gap-4 items-center">
@@ -87,13 +86,10 @@
 
         let tumIlanlar = [];
         let seciliKategori = "";
+        let benimFavorilerim = []; // Kullanıcının kalp attığı ilanların ID listesi ❤️
 
-        // ==========================================
-        // 🛠️ KURŞUN GEÇİRMEZ HARF ÇEVİRİCİ
-        // ==========================================
         window.aramaMetniTemizle = function(metin) {
             if (!metin) return "";
-            // Bütün I, ı, İ harflerini acımasızca standart 'i' harfine dönüştürür
             return metin.replace(/İ/g, 'i').replace(/I/g, 'i').replace(/ı/g, 'i').toLowerCase().trim();
         };
 
@@ -104,6 +100,12 @@
                     document.getElementById('btn-giris').style.display = 'none';
                     document.getElementById('user-panel').style.display = 'flex';
                     document.getElementById('user-name').innerText = session.user.email.split('@')[0].toUpperCase();
+                    
+                    // Giriş yapmışsak, favori listemizi veritabanından çekelim!
+                    const { data: favData } = await _supabase.from('favoriler').select('ilan_id').eq('kullanici_email', session.user.email);
+                    if (favData) {
+                        benimFavorilerim = favData.map(f => f.ilan_id); // Örn: [3, 7, 12]
+                    }
                 }
             } catch (e) {}
 
@@ -150,7 +152,6 @@
                 const baslikTemiz = aramaMetniTemizle(baslikOrjinal);
                 
                 if (baslikTemiz.includes(arananTemiz)) {
-                    // Sadece eşleşen kelimeleri veya başlığın tamamını öner
                     baslikOrjinal.split(/\s+/).forEach(kelime => {
                         if (aramaMetniTemizle(kelime).includes(arananTemiz)) {
                             oneriler.add(kelime.toLowerCase());
@@ -210,6 +211,38 @@
             vitrineBas(filtrelenmisListe);
         }
 
+        // ==========================================
+        // ❤️ FAVORİ DEĞİŞTİRME MOTORU
+        // ==========================================
+        window.favoriDegistir = async function(event, ilanId) {
+            event.stopPropagation(); // Resme tıklamayı (detay sayfasına gitmeyi) durdur, sadece kalbe bassın.
+
+            const { data: { session } } = await _supabase.auth.getSession();
+            if (!session) { 
+                alert("Favorilere eklemek için önce giriş yapmalısın!"); 
+                window.location.href = 'giris.html'; 
+                return; 
+            }
+
+            const email = session.user.email;
+            const kalpButonu = document.getElementById(`fav-btn-${ilanId}`);
+            
+            // Eğer favorilerimde varsa (Kaldırma İşlemi)
+            if (benimFavorilerim.includes(ilanId)) {
+                kalpButonu.innerText = '🤍'; // Beyaz yap
+                kalpButonu.classList.remove('scale-125'); // Büyümeyi sıfırla
+                benimFavorilerim = benimFavorilerim.filter(id => id !== ilanId); // Hafızadan sil
+                await _supabase.from('favoriler').delete().eq('ilan_id', ilanId).eq('kullanici_email', email); // DB'den sil
+            } 
+            // Eğer favorilerimde yoksa (Ekleme İşlemi)
+            else {
+                kalpButonu.innerText = '❤️'; // Kırmızı yap
+                kalpButonu.classList.add('scale-125'); // Tıklayınca pıt diye büyüsün
+                benimFavorilerim.push(ilanId); // Hafızaya ekle
+                await _supabase.from('favoriler').insert([{ ilan_id: ilanId, kullanici_email: email }]); // DB'ye kaydet
+            }
+        }
+
         function vitrineBas(gosterilecekData) {
             if (gosterilecekData.length === 0) { 
                 vitrin.innerHTML = `<div class="text-center py-16 bg-white rounded-3xl border border-gray-100 shadow-sm"><span class="text-6xl mb-4 block">🏜️</span><p class="text-gray-500 font-bold text-lg">Aradığın kriterlere uygun ilan bulunamadı.</p><button onclick="kategoriSec(''); document.getElementById('arama-desktop').value=''; document.getElementById('arama-mobil').value=''; document.getElementById('oneri-kutusu').style.display='none'; ilanlariFiltrele();" class="mt-4 text-yellow-600 font-black text-sm uppercase hover:underline">Filtreleri Temizle</button></div>`; 
@@ -223,9 +256,22 @@
                 const resimHtml = kapakResmi ? `<img src="${kapakResmi}" class="w-full h-full object-cover">` : '<span class="text-4xl">📸</span>';
                 const kategoriEtiketi = ilan.kategori ? ilan.kategori : 'Diğer';
 
+                // Bu ilan kullanıcının favorilerinde mi kontrol et
+                const kalpteMi = benimFavorilerim.includes(ilan.id);
+                const kalpSimgesi = kalpteMi ? '❤️' : '🤍';
+                const kalpBuyumesi = kalpteMi ? 'scale-125' : ''; // Kırmızıysa biraz daha büyük dursun
+
                 htmlBirlestirici += `
                 <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 flex flex-col md:flex-row gap-6 hover:shadow-lg transition-all">
-                    <div class="w-full md:w-48 h-48 bg-gray-100 rounded-xl overflow-hidden flex-shrink-0 flex items-center justify-center cursor-pointer" onclick="window.location.href='detay.html?id=${ilan.id}'">${resimHtml}</div>
+                    
+                    <div class="w-full md:w-48 h-48 bg-gray-100 rounded-xl overflow-hidden flex-shrink-0 flex items-center justify-center cursor-pointer relative group" onclick="window.location.href='detay.html?id=${ilan.id}'">
+                        ${resimHtml}
+                        
+                        <button onclick="favoriDegistir(event, ${ilan.id})" id="fav-btn-${ilan.id}" class="absolute top-2 right-2 bg-white/80 backdrop-blur-sm text-lg p-1.5 rounded-full hover:scale-110 transition-all shadow-sm ${kalpBuyumesi}">
+                            ${kalpSimgesi}
+                        </button>
+                    </div>
+
                     <div class="flex-grow flex flex-col justify-between">
                         <div>
                             <div class="mb-2">
