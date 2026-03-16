@@ -157,14 +157,14 @@
 
                         // Bucket'a yükle (ilan_resimleri klasörüne)
                         const { data: yuklemeData, error: yuklemeHata } = await _supabase.storage
-                            .from('ilan_resimleri')
+                            .from('ilan-resimleri')
                             .upload(benzersizAd, dosya);
 
                         if (yuklemeHata) throw yuklemeHata;
 
                         // Yüklenen resmin HERKESE AÇIK (Public) linkini al
                         const { data: publicUrlData } = _supabase.storage
-                            .from('ilan_resimleri')
+                            .from('ilan-resimleri')
                             .getPublicUrl(benzersizAd);
                         
                         // Linki listeye ekle
