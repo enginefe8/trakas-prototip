@@ -46,13 +46,12 @@
             </div>
         </div>
 
-        <div class="mt-3 block md:hidden w-full">
+        <div class="mt-3 block md:hidden w-full relative">
             <input type="text" id="arama-mobil" onkeyup="canliArama(this.value)" placeholder="Takaslık ne arıyorsun?" class="w-full p-2 rounded-lg bg-gray-800 border border-gray-700 text-white text-xs focus:border-yellow-500 outline-none">
         </div>
     </nav>
 
     <div class="max-w-7xl mx-auto flex flex-col md:flex-row gap-6 p-6">
-        
         <aside class="w-full md:w-64 space-y-6 flex-shrink-0">
             <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-200">
                 <h3 class="font-black text-gray-800 mb-4 border-b pb-2 uppercase text-xs tracking-widest text-center">Kategoriler</h3>
@@ -89,6 +88,15 @@
         let tumIlanlar = [];
         let seciliKategori = "";
 
+        // ==========================================
+        // 🛠️ KURŞUN GEÇİRMEZ HARF ÇEVİRİCİ
+        // ==========================================
+        window.aramaMetniTemizle = function(metin) {
+            if (!metin) return "";
+            // Bütün I, ı, İ harflerini acımasızca standart 'i' harfine dönüştürür
+            return metin.replace(/İ/g, 'i').replace(/I/g, 'i').replace(/ı/g, 'i').toLowerCase().trim();
+        };
+
         async function sitemiCalistir() {
             try {
                 const { data: { session } } = await _supabase.auth.getSession();
@@ -122,46 +130,38 @@
             ilanlariFiltrele();
         }
 
-        // ==========================================
-        // 🔍 AÇILIR LİSTE (AUTOCOMPLETE) MOTORU
-        // ==========================================
         window.canliArama = function(metin) {
-            document.getElementById('arama-mobil').value = metin; // Mobili eşitle
-            document.getElementById('arama-desktop').value = metin; // Masaüstünü eşitle
+            document.getElementById('arama-mobil').value = metin;
+            document.getElementById('arama-desktop').value = metin;
             
-            const aranan = metin.toLocaleLowerCase('tr-TR').trim();
+            const arananTemiz = aramaMetniTemizle(metin);
             const oneriKutusu = document.getElementById('oneri-kutusu');
 
-            // Önce vitrini arka planda filtrele
             ilanlariFiltrele();
 
-            // Kutu boşsa açılır menüyü gizle
-            if (aranan.length === 0) {
+            if (arananTemiz.length === 0) {
                 oneriKutusu.style.display = 'none';
                 return;
             }
 
-            // Olan ilanlardan öneri kelimeleri bul
             let oneriler = new Set();
             tumIlanlar.forEach(ilan => {
-                const baslik = ilan.baslik;
-                const baslikKucuk = baslik.toLocaleLowerCase('tr-TR');
+                const baslikOrjinal = ilan.baslik;
+                const baslikTemiz = aramaMetniTemizle(baslikOrjinal);
                 
-                if (baslikKucuk.includes(aranan)) {
-                    // Kelimenin sadece kendisini ekleyelim (örn: "ipad")
-                    baslik.split(/\s+/).forEach(kelime => {
-                        if (kelime.toLocaleLowerCase('tr-TR').includes(aranan)) {
+                if (baslikTemiz.includes(arananTemiz)) {
+                    // Sadece eşleşen kelimeleri veya başlığın tamamını öner
+                    baslikOrjinal.split(/\s+/).forEach(kelime => {
+                        if (aramaMetniTemizle(kelime).includes(arananTemiz)) {
                             oneriler.add(kelime.toLowerCase());
                         }
                     });
-                    // Bir de başlığın tamamını ekleyelim (örn: "ipad tablet")
-                    oneriler.add(baslik.toLowerCase()); 
+                    oneriler.add(baslikOrjinal.toLowerCase()); 
                 }
             });
 
-            const oneriListesi = Array.from(oneriler).slice(0, 6); // İlk 6 öneriyi al
+            const oneriListesi = Array.from(oneriler).slice(0, 6);
             
-            // Eğer eşleşen kelime varsa kutuyu açıp içine diz (Senin resimdeki Mavi stil ile)
             if (oneriListesi.length > 0) {
                 let html = '';
                 oneriListesi.forEach(oneri => {
@@ -174,19 +174,17 @@
             }
         }
 
-        // Açılır menüden bir kelimeye tıklanınca
         window.oneriTikla = function(secilenKelime) {
             document.getElementById('arama-desktop').value = secilenKelime;
             document.getElementById('arama-mobil').value = secilenKelime;
             document.getElementById('oneri-kutusu').style.display = 'none';
             ilanlariFiltrele();
         }
-        // ==========================================
 
         window.ilanlariFiltrele = function() {
-            const masaustuArama = document.getElementById('arama-desktop').value.toLocaleLowerCase('tr-TR');
-            const mobilArama = document.getElementById('arama-mobil').value.toLocaleLowerCase('tr-TR');
-            const aramaMetni = (masaustuArama || mobilArama).trim();
+            const masaustuArama = document.getElementById('arama-desktop').value;
+            const mobilArama = document.getElementById('arama-mobil').value;
+            const aramaMetni = aramaMetniTemizle(masaustuArama || mobilArama);
 
             let filtrelenmisListe = tumIlanlar;
 
@@ -196,8 +194,8 @@
 
             if (aramaMetni !== "") {
                 filtrelenmisListe = filtrelenmisListe.filter(ilan => 
-                    ilan.baslik.toLocaleLowerCase('tr-TR').includes(aramaMetni) || 
-                    ilan.aciklama.toLocaleLowerCase('tr-TR').includes(aramaMetni)
+                    aramaMetniTemizle(ilan.baslik).includes(aramaMetni) || 
+                    aramaMetniTemizle(ilan.aciklama).includes(aramaMetni)
                 );
             }
 
@@ -213,7 +211,6 @@
         }
 
         function vitrineBas(gosterilecekData) {
-            // ÇÖL EMOJİSİ GERİ DÖNDÜ 🏜️
             if (gosterilecekData.length === 0) { 
                 vitrin.innerHTML = `<div class="text-center py-16 bg-white rounded-3xl border border-gray-100 shadow-sm"><span class="text-6xl mb-4 block">🏜️</span><p class="text-gray-500 font-bold text-lg">Aradığın kriterlere uygun ilan bulunamadı.</p><button onclick="kategoriSec(''); document.getElementById('arama-desktop').value=''; document.getElementById('arama-mobil').value=''; document.getElementById('oneri-kutusu').style.display='none'; ilanlariFiltrele();" class="mt-4 text-yellow-600 font-black text-sm uppercase hover:underline">Filtreleri Temizle</button></div>`; 
                 return; 
