@@ -7,93 +7,200 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
-<body class="bg-gray-50 font-sans min-h-screen">
+<body class="bg-gray-50 font-sans min-h-screen pb-20">
 
     <nav class="bg-gray-900 p-4 sticky top-0 z-50 shadow-xl">
         <div class="max-w-7xl mx-auto flex justify-between items-center">
-            <a href="index.html" class="text-3xl font-black text-white tracking-tighter italic hover:text-yellow-500 transition-colors">TRAKAS</a>
+            <h1 class="text-3xl font-black text-white tracking-tighter italic">TRAKAS</h1>
             <a href="index.html" class="text-white font-bold text-sm hover:text-yellow-500 uppercase tracking-widest transition-colors">← VİTRİNE DÖN</a>
         </div>
     </nav>
 
-    <main class="max-w-2xl mx-auto p-6 mt-10">
-        <div class="bg-white p-8 rounded-3xl shadow-xl border border-gray-100">
-            <h1 class="text-3xl font-black text-gray-900 uppercase italic tracking-tight mb-2">Yeni İlan Ver 📦</h1>
-            <p class="text-gray-500 font-medium text-sm mb-8 border-b-2 border-gray-100 pb-4">Eşyalarını takaslamak için harika bir gün!</p>
+    <main class="max-w-2xl mx-auto p-6 mt-8">
+        <div class="bg-white p-8 rounded-3xl shadow-sm border border-gray-100">
+            <h2 class="text-3xl font-black text-gray-900 uppercase italic tracking-tight mb-2">Takas İlanı Ver 📦</h2>
+            <p class="text-gray-500 font-medium text-sm mb-8 border-b-2 border-gray-100 pb-4">Ürününü ekle, teklifleri beklemeye başla.</p>
 
-            <div class="space-y-6">
+            <form id="ilanFormu" class="space-y-6" onsubmit="ilanYayinla(event)">
+                
                 <div>
                     <label class="block text-xs font-black text-gray-700 uppercase tracking-widest mb-2">İlan Başlığı</label>
-                    <input type="text" id="baslik" placeholder="Örn: Temiz iPhone 13" class="w-full p-4 rounded-xl bg-gray-50 border border-gray-200 focus:border-yellow-500 focus:ring-2 focus:ring-yellow-200 outline-none transition-all font-bold text-gray-800">
+                    <input type="text" id="baslik" required placeholder="Örn: Temiz iPhone 13, Üste Para Verilir" class="w-full p-4 rounded-xl bg-gray-50 border border-gray-200 focus:border-yellow-500 focus:ring-2 focus:ring-yellow-200 outline-none transition-all font-medium text-gray-800">
                 </div>
 
-                <div>
-                    <label class="block text-xs font-black text-gray-700 uppercase tracking-widest mb-2">Değer / Fiyat (TL)</label>
-                    <input type="number" id="deger" placeholder="Örn: 25000" class="w-full p-4 rounded-xl bg-gray-50 border border-gray-200 focus:border-yellow-500 focus:ring-2 focus:ring-yellow-200 outline-none transition-all font-bold text-green-600">
-                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-xs font-black text-gray-700 uppercase tracking-widest mb-2">Kategori</label>
+                        <select id="kategori" required class="w-full p-4 rounded-xl bg-gray-50 border border-gray-200 focus:border-yellow-500 focus:ring-2 focus:ring-yellow-200 outline-none transition-all font-medium text-gray-800 cursor-pointer">
+                            <option value="" disabled selected>Kategori Seçin...</option>
+                            <option value="Elektronik">📱 Elektronik</option>
+                            <option value="Vasıta">🚗 Vasıta</option>
+                            <option value="Emlak">🏠 Emlak</option>
+                            <option value="Moda">👕 Moda & Giyim</option>
+                            <option value="Diğer">📦 Diğer</option>
+                        </select>
+                    </div>
 
-                <div>
-                    <label class="block text-xs font-black text-gray-700 uppercase tracking-widest mb-2">Resim URL (Link olarak)</label>
-                    <input type="text" id="resim_url" placeholder="https://resim-linki.com/resim.jpg" class="w-full p-4 rounded-xl bg-gray-50 border border-gray-200 focus:border-yellow-500 focus:ring-2 focus:ring-yellow-200 outline-none transition-all text-sm">
+                    <div>
+                        <label class="block text-xs font-black text-gray-700 uppercase tracking-widest mb-2">Tahmini Değer (TL)</label>
+                        <input type="number" id="deger" required placeholder="Örn: 25000" class="w-full p-4 rounded-xl bg-gray-50 border border-gray-200 focus:border-yellow-500 focus:ring-2 focus:ring-yellow-200 outline-none transition-all font-medium text-gray-800 font-mono">
+                    </div>
                 </div>
 
                 <div>
                     <label class="block text-xs font-black text-gray-700 uppercase tracking-widest mb-2">Açıklama & Takas Tercihi</label>
-                    <textarea id="aciklama" rows="4" placeholder="Ne ile takaslamak istersin? Ürünün durumu nasıl?" class="w-full p-4 rounded-xl bg-gray-50 border border-gray-200 focus:border-yellow-500 focus:ring-2 focus:ring-yellow-200 outline-none transition-all text-sm font-medium text-gray-700"></textarea>
+                    <textarea id="aciklama" required rows="4" placeholder="Ürünün durumu nasıl? Ne ile takaslamak istersin?" class="w-full p-4 rounded-xl bg-gray-50 border border-gray-200 focus:border-yellow-500 focus:ring-2 focus:ring-yellow-200 outline-none transition-all font-medium text-gray-800 resize-none"></textarea>
                 </div>
 
-                <button onclick="ilanKaydet()" class="w-full bg-yellow-500 text-gray-900 py-4 rounded-xl font-black text-lg uppercase tracking-widest hover:bg-yellow-400 transition-all shadow-lg shadow-yellow-100 mt-4">
+                <div class="border-2 border-dashed border-gray-300 rounded-2xl p-6 bg-gray-50 text-center hover:bg-gray-100 transition-colors">
+                    <label class="block text-xs font-black text-gray-700 uppercase tracking-widest mb-4">Ürün Fotoğrafları (En fazla 4 adet)</label>
+                    
+                    <input type="file" id="resimSecici" multiple accept="image/*" class="hidden" onchange="resimleriOnizle(event)">
+                    
+                    <button type="button" onclick="document.getElementById('resimSecici').click()" class="bg-gray-900 text-white px-6 py-3 rounded-lg font-black text-sm uppercase tracking-widest hover:bg-gray-800 transition-all shadow-md">
+                        📸 Galeriden Seç
+                    </button>
+                    
+                    <p class="text-[10px] text-gray-400 font-bold mt-3 uppercase tracking-widest">JPG, PNG veya WEBP formatları</p>
+
+                    <div id="onizleme-kutusu" class="flex flex-wrap gap-3 mt-6 justify-center"></div>
+                </div>
+
+                <button type="submit" id="submitBtn" class="w-full bg-yellow-500 text-gray-900 p-5 rounded-xl font-black text-lg uppercase italic hover:bg-yellow-400 transition-all shadow-lg mt-4">
                     İLAN VER VE VİTRİNE ÇIK 🚀
                 </button>
-            </div>
+            </form>
         </div>
     </main>
+
+    <div id="yukleniyor" class="fixed inset-0 bg-gray-900/80 backdrop-blur-sm hidden flex-col items-center justify-center z-[100]">
+        <span class="text-6xl mb-4 animate-bounce">📦</span>
+        <h3 class="text-white font-black text-2xl uppercase italic tracking-widest mb-2">İlanın Hazırlanıyor...</h3>
+        <p class="text-yellow-400 font-bold text-sm" id="yukleme-durumu">Fotoğraflar sunucuya gönderiliyor (0/0)</p>
+    </div>
 
     <script>
         const supabaseUrl = 'https://ivnazhfahtjcdspclkis.supabase.co';
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml2bmF6aGZhaHRqY2RzcGNsa2lzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMyMTgxNzEsImV4cCI6MjA4ODc5NDE3MX0.Z2bKgccAQX8dgex99cQL-GLpTYU1vhb-0BqWiuIMhxU';
         const _supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
-        // Sayfa açıldığında giriş yapılmış mı kontrol et
-        async function kontrolEt() {
+        let secilenDosyalar = [];
+
+        // 1. KULLANICI GİRİŞ YAPMIŞ MI KONTROLÜ
+        async function oturumKontrol() {
             const { data: { session } } = await _supabase.auth.getSession();
             if (!session) {
-                alert("İlan vermek için önce giriş yapmalısın!");
+                alert("İlan vermek için giriş yapmalısın!");
                 window.location.href = 'giris.html';
             }
         }
-        kontrolEt();
+        oturumKontrol();
 
-        async function ilanKaydet() {
-            const baslik = document.getElementById('baslik').value;
-            const deger = document.getElementById('deger').value;
-            const resim_url = document.getElementById('resim_url').value;
-            const aciklama = document.getElementById('aciklama').value;
-
-            if (!baslik || !deger || !aciklama) {
-                alert("Lütfen başlık, değer ve açıklama alanlarını doldur!");
+        // 2. SEÇİLEN RESİMLERİ EKRANDA GÖSTERME (ÖNİZLEME)
+        function resimleriOnizle(event) {
+            const dosyalar = Array.from(event.target.files);
+            const onizlemeKutusu = document.getElementById('onizleme-kutusu');
+            
+            // Maksimum 4 fotoğraf sınırı
+            if (dosyalar.length > 4) {
+                alert("En fazla 4 adet fotoğraf seçebilirsin!");
+                event.target.value = ""; // Seçimi sıfırla
                 return;
             }
 
-            // Oturumu tekrar al (E-postayı kaydetmek için)
-            const { data: { session } } = await _supabase.auth.getSession();
+            secilenDosyalar = dosyalar; // Gönderirken kullanmak üzere hafızaya al
+            onizlemeKutusu.innerHTML = ''; // Önceki önizlemeleri temizle
 
-            // Veritabanına kaydet (YENİ: sahip_email eklendi!)
-            const { error } = await _supabase.from('ilanlar').insert([
-                { 
-                    baslik: baslik, 
-                    deger: deger, 
-                    resim_url: resim_url, 
-                    aciklama: aciklama,
-                    sahip_email: session.user.email 
+            dosyalar.forEach((dosya, index) => {
+                const okuyucu = new FileReader();
+                okuyucu.onload = function(e) {
+                    onizlemeKutusu.innerHTML += `
+                    <div class="relative w-24 h-24 rounded-xl overflow-hidden shadow-sm border border-gray-200">
+                        <img src="${e.target.result}" class="w-full h-full object-cover">
+                        <div class="absolute inset-0 bg-black/10"></div>
+                        <span class="absolute top-1 right-1 bg-gray-900 text-white text-[9px] font-black px-1.5 rounded-sm">${index + 1}</span>
+                    </div>`;
                 }
-            ]);
+                okuyucu.readAsDataURL(dosya);
+            });
+        }
 
-            if (error) {
-                alert("İlan verilirken hata oluştu: " + error.message);
-            } else {
-                alert("Tebrikler! İlanın vitrine eklendi. 🎉");
-                window.location.href = 'index.html'; // Başarılıysa vitrine yolla
+        // 3. İLANI VE FOTOĞRAFLARI YÜKLEME MOTORU
+        async function ilanYayinla(event) {
+            event.preventDefault(); // Sayfanın yenilenmesini durdur
+
+            const baslik = document.getElementById('baslik').value;
+            const kategori = document.getElementById('kategori').value;
+            const aciklama = document.getElementById('aciklama').value;
+            const deger = document.getElementById('deger').value;
+
+            // Giriş yapan kullanıcının emailini al
+            const { data: { session } } = await _supabase.auth.getSession();
+            const sahipEmail = session.user.email;
+
+            // Yükleme ekranını aç
+            document.getElementById('yukleniyor').style.display = 'flex';
+            const durumMetni = document.getElementById('yukleme-durumu');
+
+            let yuklenenResimUrlleri = [];
+
+            try {
+                // EĞER RESİM SEÇİLDİYSE ÖNCE ONLARI SUPABASE STORAGE'A YÜKLE
+                if (secilenDosyalar.length > 0) {
+                    for (let i = 0; i < secilenDosyalar.length; i++) {
+                        const dosya = secilenDosyalar[i];
+                        durumMetni.innerText = `Fotoğraflar sunucuya gönderiliyor (${i + 1}/${secilenDosyalar.length})`;
+                        
+                        // Dosya adını benzersiz yapalım (örnek: 17154234_resim.jpg)
+                        const dosyaUzantisi = dosya.name.split('.').pop();
+                        const benzersizAd = Date.now() + "_" + Math.random().toString(36).substring(7) + "." + dosyaUzantisi;
+
+                        // Bucket'a yükle (ilan_resimleri klasörüne)
+                        const { data: yuklemeData, error: yuklemeHata } = await _supabase.storage
+                            .from('ilan_resimleri')
+                            .upload(benzersizAd, dosya);
+
+                        if (yuklemeHata) throw yuklemeHata;
+
+                        // Yüklenen resmin HERKESE AÇIK (Public) linkini al
+                        const { data: publicUrlData } = _supabase.storage
+                            .from('ilan_resimleri')
+                            .getPublicUrl(benzersizAd);
+                        
+                        // Linki listeye ekle
+                        yuklenenResimUrlleri.push(publicUrlData.publicUrl);
+                    }
+                }
+
+                durumMetni.innerText = "İlan vitrine yerleştiriliyor...";
+
+                // Bütün resim linklerini aralarına virgül koyarak tek bir metin yap
+                // Örnek: "link1.jpg,link2.jpg,link3.jpg"
+                const birlesikResimMetni = yuklenenResimUrlleri.join(',');
+
+                // SON ADIM: BÜTÜN VERİLERİ 'ilanlar' TABLOSUNA KAYDET
+                const { data, error } = await _supabase
+                    .from('ilanlar')
+                    .insert([
+                        { 
+                            baslik: baslik, 
+                            kategori: kategori,
+                            aciklama: aciklama, 
+                            deger: deger, 
+                            sahip_email: sahipEmail,
+                            resim_url: birlesikResimMetni // Virgülle ayrılmış linkler
+                        }
+                    ]);
+
+                if (error) throw error;
+
+                // Başarılıysa vitrine dön
+                window.location.href = 'index.html';
+
+            } catch (hata) {
+                console.error("Yükleme Hatası:", hata);
+                alert("Bir hata oluştu: " + hata.message);
+                document.getElementById('yukleniyor').style.display = 'none';
             }
         }
     </script>
