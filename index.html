@@ -12,10 +12,10 @@
     <nav class="bg-gray-900 p-3 md:p-4 sticky top-0 z-50 shadow-xl">
         <div class="max-w-7xl mx-auto flex justify-between items-center gap-2">
             
-            <h1 class="text-2xl md:text-3xl font-black text-white tracking-tighter italic">TRAKAS</h1>
+            <h1 class="text-2xl md:text-3xl font-black text-white tracking-tighter italic hover:text-yellow-500 transition-colors cursor-pointer" onclick="kategoriSec('')">TRAKAS</h1>
             
             <div class="flex-grow mx-8 hidden md:block">
-                <input type="text" placeholder="Ürün, marka veya takas tercihi ara..." class="w-full p-2 rounded-lg bg-gray-800 border border-gray-700 text-white text-sm focus:border-yellow-500 outline-none transition-colors">
+                <input type="text" id="arama-desktop" onkeyup="ilanlariFiltrele()" placeholder="Ürün, marka veya takas tercihi ara..." class="w-full p-2 rounded-lg bg-gray-800 border border-gray-700 text-white text-sm focus:border-yellow-500 outline-none transition-colors">
             </div>
             
             <div class="flex gap-2 md:gap-4 items-center">
@@ -40,24 +40,29 @@
         </div>
 
         <div class="mt-3 block md:hidden w-full">
-            <input type="text" placeholder="Takaslık ne arıyorsun?" class="w-full p-2 rounded-lg bg-gray-800 border border-gray-700 text-white text-xs focus:border-yellow-500 outline-none">
+            <input type="text" id="arama-mobil" onkeyup="ilanlariFiltrele()" placeholder="Takaslık ne arıyorsun?" class="w-full p-2 rounded-lg bg-gray-800 border border-gray-700 text-white text-xs focus:border-yellow-500 outline-none">
         </div>
     </nav>
 
     <div class="max-w-7xl mx-auto flex flex-col md:flex-row gap-6 p-6">
-        <aside class="w-full md:w-64 space-y-6">
+        
+        <aside class="w-full md:w-64 space-y-6 flex-shrink-0">
             <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-200">
                 <h3 class="font-black text-gray-800 mb-4 border-b pb-2 uppercase text-xs tracking-widest text-center">Kategoriler</h3>
-                <div class="space-y-2 text-sm text-gray-600 font-medium">
-                    <p class="text-yellow-600 font-bold bg-yellow-50 p-2 rounded-lg italic">📱 Elektronik</p>
-                    <p class="p-2 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors">🚗 Vasıta</p>
-                    <p class="p-2 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors">🏠 Emlak</p>
-                    <p class="p-2 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors">👕 Moda</p>
+                <div class="space-y-2 text-sm text-gray-600 font-medium" id="kategori-listesi">
+                    <p onclick="kategoriSec('')" id="kat-Tumu" class="kategori-btn text-yellow-600 font-bold bg-yellow-50 p-2 rounded-lg cursor-pointer transition-colors italic">🌟 Tüm İlanlar</p>
+                    <p onclick="kategoriSec('Elektronik')" id="kat-Elektronik" class="kategori-btn p-2 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors">📱 Elektronik</p>
+                    <p onclick="kategoriSec('Vasıta')" id="kat-Vasıta" class="kategori-btn p-2 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors">🚗 Vasıta</p>
+                    <p onclick="kategoriSec('Emlak')" id="kat-Emlak" class="kategori-btn p-2 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors">🏠 Emlak</p>
+                    <p onclick="kategoriSec('Moda')" id="kat-Moda" class="kategori-btn p-2 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors">👕 Moda</p>
+                    <p onclick="kategoriSec('Diğer')" id="kat-Diğer" class="kategori-btn p-2 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors">📦 Diğer</p>
                 </div>
             </div>
         </aside>
 
         <main class="flex-grow">
+            <div id="sonuc-ozeti" class="hidden mb-4 text-sm font-bold text-gray-500 uppercase tracking-widest border-b border-gray-200 pb-2"></div>
+            
             <div id="ilan-vitrini" class="flex flex-col gap-4 mb-8">
                 <p class="text-center text-gray-400 italic py-10 font-bold tracking-widest uppercase">Motor çalıştırılıyor...</p>
             </div>
@@ -74,6 +79,10 @@
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml2bmF6aGZhaHRqY2RzcGNsa2lzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMyMTgxNzEsImV4cCI6MjA4ODc5NDE3MX0.Z2bKgccAQX8dgex99cQL-GLpTYU1vhb-0BqWiuIMhxU';
         const _supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
+        // GLOBAL HAFIZA (Arama yaparken her seferinde veritabanına sormayalım diye)
+        let tumIlanlar = [];
+        let seciliKategori = "";
+
         async function sitemiCalistir() {
             try {
                 const { data: { session } } = await _supabase.auth.getSession();
@@ -85,48 +94,110 @@
             } catch (e) {}
 
             try {
+                // Veritabanından tüm ilanları BİR KERE çekip hafızaya alıyoruz
                 const { data, error } = await _supabase.from('ilanlar').select('*').order('id', { ascending: false });
                 if (error) throw error;
-                if (!data || data.length === 0) { vitrin.innerHTML = '<p class="text-center text-gray-500 py-10 font-bold">📭 Henüz ilan yok.</p>'; return; }
+                
+                tumIlanlar = data || [];
+                
+                // Başlangıçta hepsini ekrana bas
+                ilanlariFiltrele();
 
-                let htmlBirlestirici = '';
-                data.forEach(ilan => {
-                    
-                    // KAPAK FOTOĞRAFINI AYARLAMA (Virgülle ayrılmışsa ilkini al)
-                    let kapakResmi = "";
-                    if (ilan.resim_url) {
-                        kapakResmi = ilan.resim_url.split(',')[0]; // Sıfırıncı (ilk) linki al
-                    }
-                    const resimHtml = kapakResmi ? `<img src="${kapakResmi}" class="w-full h-full object-cover">` : '<span class="text-4xl">📸</span>';
-                    
-                    // KATEGORİ ETİKETİ (Eskiden yoktu, boşsa 'Diğer' yazsın)
-                    const kategoriEtiketi = ilan.kategori ? ilan.kategori : 'Diğer';
-
-                    htmlBirlestirici += `
-                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 flex flex-col md:flex-row gap-6 hover:shadow-lg transition-all">
-                        <div class="w-full md:w-48 h-48 bg-gray-100 rounded-xl overflow-hidden flex-shrink-0 flex items-center justify-center">${resimHtml}</div>
-                        <div class="flex-grow flex flex-col justify-between">
-                            <div>
-                                <div class="mb-2">
-                                    <span class="bg-gray-200 text-gray-600 text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded-md inline-block">${kategoriEtiketi}</span>
-                                </div>
-                                <div class="flex justify-between items-start">
-                                    <h2 class="text-xl font-bold uppercase italic text-gray-800">${ilan.baslik}</h2>
-                                    <span class="text-green-600 font-black text-sm whitespace-nowrap">${ilan.deger} TL</span>
-                                </div>
-                                <div class="mt-4 bg-gray-50 p-3 rounded-xl border-l-4 border-yellow-500 text-sm italic font-semibold text-gray-700">${ilan.aciklama}</div>
-                            </div>
-                            <div class="flex gap-2 mt-4">
-                                <a href="detay.html?id=${ilan.id}" class="flex-grow bg-gray-900 text-white py-2.5 rounded-lg font-bold text-xs md:text-sm uppercase flex items-center justify-center hover:bg-gray-800 transition-colors">Detayları Gör</a>
-                                <button onclick="teklifVer(${ilan.id})" class="bg-yellow-500 px-4 md:px-8 py-2.5 rounded-lg font-black text-xs md:text-sm uppercase italic hover:bg-yellow-400 transition-all">TEKLİF VER 🤝</button>
-                            </div>
-                        </div>
-                    </div>`;
-                });
-                vitrin.innerHTML = htmlBirlestirici;
             } catch (err) {
                 vitrin.innerHTML = `<div class="bg-red-50 p-6 rounded-xl text-center"><p class="text-red-500 font-mono text-sm">${err.message}</p></div>`;
             }
+        }
+
+        // KATEGORİ SEÇME FONKSİYONU
+        window.kategoriSec = function(kategoriAdi) {
+            seciliKategori = kategoriAdi;
+            
+            // Tüm butonların rengini sıfırla
+            document.querySelectorAll('.kategori-btn').forEach(btn => {
+                btn.className = "kategori-btn p-2 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors text-sm font-medium text-gray-600";
+            });
+
+            // Seçileni sarıya boya
+            const seciliBtnId = kategoriAdi === "" ? "kat-Tumu" : "kat-" + kategoriAdi;
+            const seciliBtn = document.getElementById(seciliBtnId);
+            if (seciliBtn) {
+                seciliBtn.className = "kategori-btn text-yellow-600 font-bold bg-yellow-50 p-2 rounded-lg cursor-pointer transition-colors italic text-sm";
+            }
+
+            ilanlariFiltrele();
+        }
+
+        // FİLTRELEME VE ARAMA MOTORU
+        window.ilanlariFiltrele = function() {
+            // Masaüstü veya mobildeki arama metnini al (hangisine yazılmışsa)
+            const masaustuArama = document.getElementById('arama-desktop').value.toLowerCase();
+            const mobilArama = document.getElementById('arama-mobil').value.toLowerCase();
+            const aramaMetni = masaustuArama || mobilArama;
+
+            let filtrelenmisListe = tumIlanlar;
+
+            // 1. Aşama: Kategoriye göre süz
+            if (seciliKategori !== "") {
+                filtrelenmisListe = filtrelenmisListe.filter(ilan => ilan.kategori === seciliKategori);
+            }
+
+            // 2. Aşama: Yazıya göre süz (Başlık veya açıklamada arar)
+            if (aramaMetni !== "") {
+                filtrelenmisListe = filtrelenmisListe.filter(ilan => 
+                    ilan.baslik.toLowerCase().includes(aramaMetni) || 
+                    ilan.aciklama.toLowerCase().includes(aramaMetni)
+                );
+            }
+
+            // Sonuç Özetini Göster
+            const ozetYeri = document.getElementById('sonuc-ozeti');
+            if (seciliKategori !== "" || aramaMetni !== "") {
+                ozetYeri.style.display = "block";
+                ozetYeri.innerText = `🔍 ${filtrelenmisListe.length} İLAN BULUNDU`;
+            } else {
+                ozetYeri.style.display = "none";
+            }
+
+            vitrineBas(filtrelenmisListe);
+        }
+
+        // VİTRİNİ ÇİZEN FONKSİYON
+        function vitrineBas(gosterilecekData) {
+            if (gosterilecekData.length === 0) { 
+                vitrin.innerHTML = `<div class="text-center py-16 bg-white rounded-3xl border border-gray-100"><span class="text-6xl mb-4 block">🏜️</span><p class="text-gray-500 font-bold text-lg">Aradığın kriterlere uygun ilan bulunamadı.</p><button onclick="kategoriSec(''); document.getElementById('arama-desktop').value=''; document.getElementById('arama-mobil').value='';" class="mt-4 text-yellow-600 font-black text-sm uppercase hover:underline">Filtreleri Temizle</button></div>`; 
+                return; 
+            }
+
+            let htmlBirlestirici = '';
+            gosterilecekData.forEach(ilan => {
+                
+                let kapakResmi = "";
+                if (ilan.resim_url) { kapakResmi = ilan.resim_url.split(',')[0]; }
+                const resimHtml = kapakResmi ? `<img src="${kapakResmi}" class="w-full h-full object-cover">` : '<span class="text-4xl">📸</span>';
+                const kategoriEtiketi = ilan.kategori ? ilan.kategori : 'Diğer';
+
+                htmlBirlestirici += `
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 flex flex-col md:flex-row gap-6 hover:shadow-lg transition-all">
+                    <div class="w-full md:w-48 h-48 bg-gray-100 rounded-xl overflow-hidden flex-shrink-0 flex items-center justify-center cursor-pointer" onclick="window.location.href='detay.html?id=${ilan.id}'">${resimHtml}</div>
+                    <div class="flex-grow flex flex-col justify-between">
+                        <div>
+                            <div class="mb-2">
+                                <span onclick="kategoriSec('${kategoriEtiketi}')" class="bg-gray-200 text-gray-600 hover:bg-yellow-100 hover:text-yellow-800 cursor-pointer transition-colors text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded-md inline-block">${kategoriEtiketi}</span>
+                            </div>
+                            <div class="flex justify-between items-start">
+                                <h2 class="text-xl font-bold uppercase italic text-gray-800 cursor-pointer hover:text-yellow-600 transition-colors" onclick="window.location.href='detay.html?id=${ilan.id}'">${ilan.baslik}</h2>
+                                <span class="text-green-600 font-black text-sm whitespace-nowrap">${ilan.deger} TL</span>
+                            </div>
+                            <div class="mt-4 bg-gray-50 p-3 rounded-xl border-l-4 border-yellow-500 text-sm italic font-semibold text-gray-700">${ilan.aciklama}</div>
+                        </div>
+                        <div class="flex gap-2 mt-4">
+                            <a href="detay.html?id=${ilan.id}" class="flex-grow bg-gray-900 text-white py-2.5 rounded-lg font-bold text-xs md:text-sm uppercase flex items-center justify-center hover:bg-gray-800 transition-colors">Detayları Gör</a>
+                            <button onclick="teklifVer(${ilan.id})" class="bg-yellow-500 px-4 md:px-8 py-2.5 rounded-lg font-black text-xs md:text-sm uppercase italic hover:bg-yellow-400 transition-all">TEKLİF VER 🤝</button>
+                        </div>
+                    </div>
+                </div>`;
+            });
+            vitrin.innerHTML = htmlBirlestirici;
         }
 
         async function cikisYap() { await _supabase.auth.signOut(); window.location.reload(); }
@@ -136,16 +207,8 @@
             const { data: { session } } = await _supabase.auth.getSession();
             if (!session) { alert("Önce giriş yap!"); window.location.href = 'giris.html'; return; }
             
-            const { data: mevcutTeklif } = await _supabase
-                .from('teklifler')
-                .select('id')
-                .eq('ilan_id', id)
-                .eq('teklif_veren_email', session.user.email);
-
-            if (mevcutTeklif && mevcutTeklif.length > 0) {
-                alert("⚠️ Dur bakalım! Bu ilana zaten bir teklif gönderdin. Karşı tarafın yanıtını beklemelisin.");
-                return; 
-            }
+            const { data: mevcutTeklif } = await _supabase.from('teklifler').select('id').eq('ilan_id', id).eq('teklif_veren_email', session.user.email);
+            if (mevcutTeklif && mevcutTeklif.length > 0) { alert("⚠️ Dur bakalım! Bu ilana zaten bir teklif gönderdin."); return; }
 
             if (confirm("Bu ilan için takas teklifi göndermek istiyor musun?")) {
                 const { error } = await _supabase.from('teklifler').insert([{ ilan_id: id, teklif_veren_email: session.user.email }]);
