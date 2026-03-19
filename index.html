@@ -20,8 +20,8 @@
             </div>
             
             <div class="flex-grow mx-8 hidden md:block relative">
-                <input type="text" id="arama-desktop" autocomplete="off" onkeyup="canliArama(this.value)" onfocus="canliArama(this.value)" onblur="setTimeout(() => document.getElementById('oneri-kutusu').style.display='none', 200)" placeholder="Ürün, marka veya takas tercihi ara..." class="w-full p-2 rounded-lg bg-gray-800 border border-gray-700 text-white text-sm focus:border-yellow-500 outline-none transition-colors">
-                <div id="oneri-kutusu" style="display: none;" class="absolute w-full bg-white border border-gray-200 shadow-2xl rounded-b-lg mt-1 z-50 max-h-60 overflow-y-auto"></div>
+                <input type="text" id="arama-desktop" autocomplete="off" onkeyup="canliArama(this.value)" onfocus="canliArama(this.value)" onblur="setTimeout(() => document.getElementById('oneri-kutusu-desktop').style.display='none', 200)" placeholder="Ürün, marka veya takas tercihi ara..." class="w-full p-2 rounded-lg bg-gray-800 border border-gray-700 text-white text-sm focus:border-yellow-500 outline-none transition-colors">
+                <div id="oneri-kutusu-desktop" style="display: none;" class="absolute w-full bg-white border border-gray-200 shadow-2xl rounded-b-lg mt-1 z-50 max-h-60 overflow-y-auto"></div>
             </div>
             
             <div class="hidden md:flex gap-2 md:gap-4 items-center">
@@ -51,11 +51,12 @@
             <a href="ilan-ver.html" class="md:hidden bg-yellow-500 px-3 py-1.5 rounded-lg font-black text-[10px] hover:bg-yellow-400 uppercase transition-all shadow-md text-gray-900 whitespace-nowrap">İLAN VER +</a>
         </div>
 
-        <div class="mt-3 block md:hidden w-full relative">
-            <input type="text" id="arama-mobil" onkeyup="canliArama(this.value)" placeholder="Takaslık ne arıyorsun?" class="w-full p-2 rounded-lg bg-gray-800 border border-gray-700 text-white text-xs focus:border-yellow-500 outline-none">
+        <div class="mt-3 block md:hidden w-full relative px-3 pb-3">
+            <input type="text" id="arama-mobil" autocomplete="off" onkeyup="canliArama(this.value)" onfocus="canliArama(this.value)" onblur="setTimeout(() => document.getElementById('oneri-kutusu-mobil').style.display='none', 200)" placeholder="Takaslık ne arıyorsun?" class="w-full p-2 rounded-lg bg-gray-800 border border-gray-700 text-white text-xs focus:border-yellow-500 outline-none">
+            <div id="oneri-kutusu-mobil" style="display: none;" class="absolute w-[calc(100%-1.5rem)] left-3 bg-white border border-gray-200 shadow-2xl rounded-b-lg mt-1 z-50 max-h-48 overflow-y-auto"></div>
         </div>
 
-        <div id="mobil-menu" class="hidden md:hidden flex-col bg-gray-800 mt-3 p-4 rounded-xl border border-gray-700 shadow-2xl">
+        <div id="mobil-menu" class="hidden md:hidden flex-col bg-gray-800 mt-0 p-4 rounded-b-xl border border-gray-700 shadow-2xl absolute w-full z-40">
             <a href="giris.html" id="mobil-btn-giris" class="text-white font-bold text-sm hover:text-yellow-500 block border-b border-gray-700 pb-3">Giriş Yap</a>
             
             <div id="mobil-user-panel" style="display: none;" class="flex-col gap-3">
@@ -113,7 +114,6 @@
             return metin.replace(/İ/g, 'i').replace(/I/g, 'i').replace(/ı/g, 'i').toLowerCase().trim();
         };
 
-        // YENİ: Hamburger menü aç/kapat motoru
         window.mobilMenuAcKapat = function() {
             const menu = document.getElementById('mobil-menu');
             if (menu.classList.contains('hidden')) {
@@ -131,12 +131,10 @@
                 if (session) {
                     const userName = session.user.email.split('@')[0].toUpperCase();
                     
-                    // Masaüstü paneli güncelle
                     document.getElementById('btn-giris').style.display = 'none';
                     document.getElementById('user-panel').style.display = 'flex';
                     document.getElementById('user-name').innerText = userName;
 
-                    // Mobil paneli güncelle
                     document.getElementById('mobil-btn-giris').style.display = 'none';
                     document.getElementById('mobil-user-panel').style.display = 'flex';
                     document.getElementById('mobil-user-name').innerText = userName;
@@ -171,17 +169,22 @@
             ilanlariFiltrele();
         }
 
+        // ==========================================
+        // 🛠️ MASAÜSTÜ & MOBİL ORTAK ARAMA MOTORU
+        // ==========================================
         window.canliArama = function(metin) {
             document.getElementById('arama-mobil').value = metin;
             document.getElementById('arama-desktop').value = metin;
             
             const arananTemiz = aramaMetniTemizle(metin);
-            const oneriKutusu = document.getElementById('oneri-kutusu');
+            const oneriKutusuDesktop = document.getElementById('oneri-kutusu-desktop');
+            const oneriKutusuMobil = document.getElementById('oneri-kutusu-mobil');
 
             ilanlariFiltrele();
 
             if (arananTemiz.length === 0) {
-                oneriKutusu.style.display = 'none';
+                oneriKutusuDesktop.style.display = 'none';
+                oneriKutusuMobil.style.display = 'none';
                 return;
             }
 
@@ -207,17 +210,21 @@
                 oneriListesi.forEach(oneri => {
                     html += `<div onclick="oneriTikla('${oneri}')" class="px-4 py-2.5 text-sm font-semibold text-blue-700 hover:bg-gray-100 cursor-pointer border-b border-gray-100 last:border-0">${oneri}</div>`;
                 });
-                oneriKutusu.innerHTML = html;
-                oneriKutusu.style.display = 'block';
+                oneriKutusuDesktop.innerHTML = html;
+                oneriKutusuDesktop.style.display = 'block';
+                oneriKutusuMobil.innerHTML = html;
+                oneriKutusuMobil.style.display = 'block';
             } else {
-                oneriKutusu.style.display = 'none';
+                oneriKutusuDesktop.style.display = 'none';
+                oneriKutusuMobil.style.display = 'none';
             }
         }
 
         window.oneriTikla = function(secilenKelime) {
             document.getElementById('arama-desktop').value = secilenKelime;
             document.getElementById('arama-mobil').value = secilenKelime;
-            document.getElementById('oneri-kutusu').style.display = 'none';
+            document.getElementById('oneri-kutusu-desktop').style.display = 'none';
+            document.getElementById('oneri-kutusu-mobil').style.display = 'none';
             ilanlariFiltrele();
         }
 
@@ -278,7 +285,7 @@
 
         function vitrineBas(gosterilecekData) {
             if (gosterilecekData.length === 0) { 
-                vitrin.innerHTML = `<div class="text-center py-16 bg-white rounded-3xl border border-gray-100 shadow-sm"><span class="text-6xl mb-4 block">🏜️</span><p class="text-gray-500 font-bold text-lg">Aradığın kriterlere uygun ilan bulunamadı.</p><button onclick="kategoriSec(''); document.getElementById('arama-desktop').value=''; document.getElementById('arama-mobil').value=''; document.getElementById('oneri-kutusu').style.display='none'; ilanlariFiltrele();" class="mt-4 text-yellow-600 font-black text-sm uppercase hover:underline">Filtreleri Temizle</button></div>`; 
+                vitrin.innerHTML = `<div class="text-center py-16 bg-white rounded-3xl border border-gray-100 shadow-sm"><span class="text-6xl mb-4 block">🏜️</span><p class="text-gray-500 font-bold text-lg">Aradığın kriterlere uygun ilan bulunamadı.</p><button onclick="kategoriSec(''); document.getElementById('arama-desktop').value=''; document.getElementById('arama-mobil').value=''; document.getElementById('oneri-kutusu-desktop').style.display='none'; document.getElementById('oneri-kutusu-mobil').style.display='none'; ilanlariFiltrele();" class="mt-4 text-yellow-600 font-black text-sm uppercase hover:underline">Filtreleri Temizle</button></div>`; 
                 return; 
             }
 
