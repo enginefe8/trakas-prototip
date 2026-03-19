@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Favorilerim - Trakas</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="bg-gray-50 font-sans min-h-screen">
+
+    <nav class="bg-gray-900 p-4 sticky top-0 z-50 shadow-xl">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <a href="index.html" class="text-3xl font-black text-white tracking-tighter italic hover:text-yellow-500 transition-colors">TRAKAS</a>
+            <div class="flex gap-4 items-center">
+                <span id="user-name" class="text-yellow-500 font-black text-xs uppercase tracking-widest border-r border-gray-700 pr-3 hidden md:block"></span>
+                <a href="index.html" class="text-white font-bold text-sm hover:text-yellow-500 uppercase tracking-widest transition-colors">← VİTRİNE DÖN</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-4xl mx-auto p-6 mt-8">
+        <div class="bg-white p-6 md:p-10 rounded-3xl shadow-sm border border-gray-100">
+            <div class="mb-8 border-b-2 border-gray-100 pb-4">
+                <h1 class="text-3xl font-black text-gray-900 uppercase italic tracking-tight mb-1">Favorilerim ❤️</h1>
+                <p class="text-gray-500 font-medium text-sm">Gözüne kestirdiğin, kaydettiğin tüm ilanlar burada.</p>
+            </div>
+
+            <div id="favori-vitrini" class="space-y-4">
+                <p class="text-center text-gray-400 italic py-10 font-bold tracking-widest uppercase">Zulan kontrol ediliyor...</p>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const supabaseUrl = 'https://ivnazhfahtjcdspclkis.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml2bmF6aGZhaHRqY2RzcGNsa2lzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMyMTgxNzEsImV4cCI6MjA4ODc5NDE3MX0.Z2bKgccAQX8dgex99cQL-GLpTYU1vhb-0BqWiuIMhxU';
+        const _supabase = supabase.createClient(supabaseUrl, supabaseKey);
+
+        let benimEmailim = "";
+
+        async function favorileriGetir() {
+            const { data: { session } } = await _supabase.auth.getSession();
+            if (!session) { window.location.href = 'giris.html'; return; }
+
+            benimEmailim = session.user.email;
+            document.getElementById('user-name').innerText = benimEmailim.split('@')[0].toUpperCase();
+
+            const listeKutusu = document.getElementById('favori-vitrini');
+
+            // 1. Önce kullanıcının favori listesini (ilan_id'leri) çekiyoruz
+            const { data: favData, error: favError } = await _supabase.from('favoriler').select('ilan_id').eq('kullanici_email', benimEmailim);
+
+            if (favError || !favData || favData.length === 0) {
+                listeKutusu.innerHTML = `
+                    <div class="text-center py-10">
+                        <span class="text-6xl mb-4 block opacity-50">💔</span>
+                        <p class="text-gray-500 font-bold text-lg">Henüz hiç favori ilanın yok.</p>
+                        <p class="text-gray-400 text-sm mt-2">Vitrinde gezin ve beğendiğin ürünlere kalp at!</p>
+                        <button onclick="window.location.href='index.html'" class="mt-6 bg-yellow-500 text-gray-900 px-6 py-2 rounded-lg font-black text-xs uppercase hover:bg-yellow-400 transition-colors">Vitrine Git</button>
+                    </div>`;
+                return;
+            }
+
+            // Favori ilanların ID'lerini bir diziye al (Örn: [4, 12, 18])
+            const favIds = favData.map(f => f.ilan_id);
+
+            // 2. Şimdi bu ID'lere sahip olan ASIL ilanların detaylarını çekiyoruz
+            const { data: ilanlar, error: ilanError } = await _supabase.from('ilanlar').select('*').in('id', favIds).order('id', { ascending: false });
+
+            if (ilanError || !ilanlar || ilanlar.length === 0) {
+                listeKutusu.innerHTML = `<p class="text-center text-red-500 font-bold py-10">İlanlar yüklenirken bir hata oluştu.</p>`;
+                return;
+            }
+
+            let htmlCikti = '';
+            ilanlar.forEach(ilan => {
+                let kapakResmi = "";
+                if (ilan.resim_url) { kapakResmi = ilan.resim_url.split(',')[0]; }
+                const resimHtml = kapakResmi ? `<img src="${kapakResmi}" class="w-full h-full object-cover">` : '<span class="text-3xl">📸</span>';
+                const kategoriEtiketi = ilan.kategori ? ilan.kategori : 'Diğer';
+
+                htmlCikti += `
+                <div id="ilan-kart-${ilan.id}" class="bg-gray-50 p-4 rounded-2xl border border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-4 hover:border-yellow-300 transition-colors group">
+                    
+                    <div class="flex items-center gap-4 w-full sm:w-auto">
+                        <div class="w-20 h-20 bg-gray-200 rounded-xl overflow-hidden flex-shrink-0 flex items-center justify-center cursor-pointer" onclick="window.location.href='detay.html?id=${ilan.id}'">
+                            ${resimHtml}
+                        </div>
+                        
+                        <div>
+                            <div class="flex items-center gap-2 mb-1">
+                                <span class="bg-gray-200 text-gray-600 text-[9px] font-black uppercase px-2 py-0.5 rounded-md">${kategoriEtiketi}</span>
+                            </div>
+                            <h3 class="font-black text-gray-900 uppercase text-sm md:text-base cursor-pointer hover:text-yellow-600 transition-colors line-clamp-1" onclick="window.location.href='detay.html?id=${ilan.id}'">${ilan.baslik}</h3>
+                            <p class="text-green-600 font-black text-sm">${ilan.deger} TL</p>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-2 w-full sm:w-auto justify-end mt-2 sm:mt-0">
+                        <a href="detay.html?id=${ilan.id}" class="bg-white border border-gray-200 text-gray-600 hover:text-gray-900 font-bold text-[10px] uppercase px-4 py-2.5 rounded-lg transition-colors shadow-sm flex items-center">İncele</a>
+                        
+                        <button onclick="favoridenCikar(${ilan.id})" class="bg-red-50 hover:bg-red-100 text-red-500 hover:text-red-700 font-bold text-[10px] uppercase px-4 py-2.5 rounded-lg transition-colors border border-red-100 shadow-sm flex items-center gap-1">
+                            <span class="hidden sm:inline">Kaldır</span> 💔
+                        </button>
+                    </div>
+
+                </div>`;
+            });
+            
+            listeKutusu.innerHTML = htmlCikti;
+        }
+
+        // Tıklandığında ilanı anında ekrandan silen ve veritabanından kaldıran motor
+        window.favoridenCikar = async function(ilanId) {
+            // Ekrandaki kartı HTML'den anında sil (Kullanıcıya hızlı hissettirir)
+            const kart = document.getElementById(`ilan-kart-${ilanId}`);
+            if (kart) {
+                kart.style.opacity = '0';
+                setTimeout(() => kart.remove(), 300); // Havalı bir şekilde kaybolsun
+            }
+
+            // Arka planda veritabanından sil
+            await _supabase.from('favoriler').delete().eq('ilan_id', ilanId).eq('kullanici_email', benimEmailim);
+            
+            // Eğer ekranda hiç ilan kalmadıysa boş ekranı göster
+            const listeKutusu = document.getElementById('favori-vitrini');
+            if (listeKutusu.children.length === 0 || listeKutusu.innerText.trim() === '') {
+                favorileriGetir(); // Boş sayfayı yeniden yükler
+            }
+        }
+
+        favorileriGetir();
+    </script>
+</body>
+</html>
