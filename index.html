@@ -154,16 +154,14 @@
     </div>
 
     <script>
-        // Supabase Bağlantı Ayarları
+        const vitrin = document.getElementById('ilan-vitrini'); // Hatanın çözüldüğü satır
+        
         const supabaseUrl = 'https://ivnazhfahtjcdspclkis.supabase.co';
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml2bmF6aGZhaHRqY2RzcGNsa2lzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMyMTgxNzEsImV4cCI6MjA4ODc5NDE3MX0.Z2bKgccAQX8dgex99cQL-GLpTYU1vhb-0BqWiuIMhxU';
         const _supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
-        // Global Değişkenler
         let tumIlanlar = []; let seciliKategori = ""; let benimFavorilerim = []; 
 
-        // --- YARDIMCI FONKSİYONLAR ---
-        // Özel Modal (Popup) Açma
         window.modalAc = function(baslik, mesaj, ikon, isConfirm, onayFonk = null) {
             const modal = document.getElementById('ozel-modal');
             const kutu = document.getElementById('ozel-modal-kutu');
@@ -174,53 +172,38 @@
             modal.classList.remove('hidden'); setTimeout(() => { kutu.classList.remove('scale-95', 'opacity-0'); kutu.classList.add('scale-100', 'opacity-100'); }, 10);
         }
         
-        // Özel Modal (Popup) Kapatma
         window.modalKapat = function() {
             const modal = document.getElementById('ozel-modal'); const kutu = document.getElementById('ozel-modal-kutu');
             kutu.classList.remove('scale-100', 'opacity-100'); kutu.classList.add('scale-95', 'opacity-0');
             setTimeout(() => { modal.classList.add('hidden'); }, 300);
         }
 
-        // Genel Hata Yakalama
         window.onerror = function(msg) { document.getElementById('ilan-vitrini').innerHTML = `<div class="bg-red-100 p-6 rounded-lg text-center"><p class="text-red-600 font-mono text-sm font-bold">Hata: ${msg}</p></div>`; return true; };
-
-        // Türkçe Karakter Destekli Arama Metni Temizleme (ı/I -> i Dönüşümü Dahil)
         window.aramaMetniTemizle = function(metin) { if (!metin) return ""; return metin.replace(/İ/g, 'i').replace(/I/g, 'i').replace(/ı/g, 'i').toLowerCase().trim(); };
-        
-        // Hamburger Menü Aç/Kapat (Mobile)
         window.mobilMenuAcKapat = function() { const menu = document.getElementById('mobil-menu'); if (menu.classList.contains('hidden')) { menu.classList.remove('hidden'); menu.classList.add('flex'); } else { menu.classList.add('hidden'); menu.classList.remove('flex'); } };
 
-        // --- SİTE BAŞLATMA VE VERİ ÇEKME ---
         async function sitemiCalistir() {
             try {
-                // Giriş Durumunu Kontrol Et
                 const { data: { session } } = await _supabase.auth.getSession();
                 if (session) {
                     const userName = session.user.email.split('@')[0].toUpperCase();
-                    // Masaüstü Menü Güncelle
                     document.getElementById('btn-giris').style.display = 'none'; document.getElementById('user-panel').style.display = 'flex'; document.getElementById('user-name').innerText = userName;
-                    // Mobil Menü Güncelle
                     document.getElementById('mobil-btn-giris').style.display = 'none'; document.getElementById('mobil-user-panel').style.display = 'flex'; document.getElementById('mobil-user-name').innerText = userName;
-                    // Favori İlan ID'lerini Çek
                     const { data: favData } = await _supabase.from('favoriler').select('ilan_id').eq('kullanici_email', session.user.email);
                     if (favData) { benimFavorilerim = favData.map(f => f.ilan_id); }
                 }
             } catch (e) {}
 
             try {
-                // Tüm İlanları Çek (Skeleton'un Gürünmesi İçin Biraz Gecikme Ekliyoruz)
                 const { data, error } = await _supabase.from('ilanlar').select('*').order('id', { ascending: false });
                 if (error) throw error;
                 tumIlanlar = data || [];
-                // API hızlandı diye skeleton çok hızlı kaybolur, görsel efekti hissedin diye bilerek 0.5 saniye geciktiriyorum 😎
                 setTimeout(() => { ilanlariFiltrele(); }, 500); 
             } catch (err) {
                 vitrin.innerHTML = `<div class="bg-red-50 p-6 rounded-xl text-center"><p class="text-red-500 font-mono text-sm">${err.message}</p></div>`;
             }
         }
 
-        // --- FİLTRELEME VE ARAMA MANTIĞI ---
-        // Kategori Seçme
         window.kategoriSec = function(kategoriAdi) {
             seciliKategori = kategoriAdi;
             document.querySelectorAll('.kategori-btn').forEach(btn => { btn.className = "kategori-btn p-2 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors text-sm font-medium text-gray-600"; });
@@ -230,19 +213,14 @@
             ilanlariFiltrele();
         }
 
-        // Canlı Arama (Autocomplete Listesini Gösterir)
         window.canliArama = function(metin) {
-            // Masaüstü ve mobil girişleri eşitle
             document.getElementById('arama-mobil').value = metin; document.getElementById('arama-desktop').value = metin;
             const arananTemiz = aramaMetniTemizle(metin);
             const oneriKutusuDesktop = document.getElementById('oneri-kutusu-desktop'); const oneriKutusuMobil = document.getElementById('oneri-kutusu-mobil');
-            
-            // Vitrini Arka Planda Filtrele
             ilanlariFiltrele();
             
             if (arananTemiz.length === 0) { oneriKutusuDesktop.style.display = 'none'; oneriKutusuMobil.style.display = 'none'; return; }
             
-            // Öneri Kelimelerini Bul
             let oneriler = new Set();
             tumIlanlar.forEach(ilan => {
                 const baslikOrjinal = ilan.baslik; const baslikTemiz = aramaMetniTemizle(baslikOrjinal);
@@ -255,20 +233,17 @@
             const oneriListesi = Array.from(oneriler).slice(0, 6);
             if (oneriListesi.length > 0) {
                 let html = '';
-                // Mavi yazılı, şık autocomplete listesi (Resimdeki gibi)
                 oneriListesi.forEach(oneri => { html += `<div onclick="oneriTikla('${oneri}')" class="px-4 py-2.5 text-sm font-semibold text-blue-700 hover:bg-gray-100 cursor-pointer border-b border-gray-100 last:border-0">${oneri}</div>`; });
                 oneriKutusuDesktop.innerHTML = html; oneriKutusuDesktop.style.display = 'block'; oneriKutusuMobil.innerHTML = html; oneriKutusuMobil.style.display = 'block';
             } else { oneriKutusuDesktop.style.display = 'none'; oneriKutusuMobil.style.display = 'none'; }
         }
 
-        // Autocomplete Listesinden Tıklayınca
         window.oneriTikla = function(secilenKelime) {
             document.getElementById('arama-desktop').value = secilenKelime; document.getElementById('arama-mobil').value = secilenKelime;
             document.getElementById('oneri-kutusu-desktop').style.display = 'none'; document.getElementById('oneri-kutusu-mobil').style.display = 'none';
             ilanlariFiltrele();
         }
 
-        // Ana Filtreleme Motoru (Kategori + Arama)
         window.ilanlariFiltrele = function() {
             const masaustuArama = document.getElementById('arama-desktop').value; const mobilArama = document.getElementById('arama-mobil').value;
             const aramaMetni = aramaMetniTemizle(masaustuArama || mobilArama);
@@ -281,8 +256,6 @@
             vitrineBas(filtrelenmisListe);
         }
 
-        // --- FAVORİ VE TEKLİF SİSTEMİ ---
-        // Favori Değiştirme (🤍 <-> ❤️)
         window.favoriDegistir = async function(event, ilanId) {
             event.stopPropagation();
             const { data: { session } } = await _supabase.auth.getSession();
@@ -297,29 +270,23 @@
             }
         }
 
-        // Teklif Verme (🤝 Kendi İlanına ve Çifte Teklife Karşı Korumalı)
         async function teklifVer(id, ilanSahibiEmail) {
             const { data: { session } } = await _supabase.auth.getSession();
             if (!session) { modalAc("Giriş Yapmalısın", "Teklif göndermek için önce giriş yapman gerekiyor.", "🔒", false, () => { window.location.href = 'giris.html'; }); return; }
-            // Kendi ilanına teklif koruması
-            if (session.user.email === ilanSahibiEmail) { modalAc("Yok Artık!", "Kendi ilanına teklif verip kendi kendinle mi pazarlık yapacaksın usta? 😂", "🤦‍♂️", false); return; }
+            if (session.user.email === ilanSahibiEmail) { modalAc("Uyarı", "Kendi ilanınıza teklif veremezsiniz.", "⚠️", false); return; }
             const { data: mevcutTeklif } = await _supabase.from('teklifler').select('id').eq('ilan_id', id).eq('teklif_veren_email', session.user.email);
-            // Çifte teklif koruması
-            if (mevcutTeklif && mevcutTeklif.length > 0) { modalAc("Zaten Teklif Verdin", "Dur bakalım! Bu ilana zaten bir teklif gönderdin. Karşı tarafın yanıtını beklemelisin.", "⚠️", false); return; }
-            modalAc("Teklif Gönderilsin mi?", "Bu ilan için takas teklifi göndermek istediğine emin misin?", "🤝", true, async () => {
+            if (mevcutTeklif && mevcutTeklif.length > 0) { modalAc("Zaten Teklif Verdin", "Bu ilana zaten bir teklif gönderdiniz. İlan sahibinin yanıtını bekleyiniz.", "⏳", false); return; }
+            modalAc("Teklif Gönderilsin mi?", "Bu ilan için takas teklifi göndermek istediğinize emin misiniz?", "🤝", true, async () => {
                 const { error } = await _supabase.from('teklifler').insert([{ ilan_id: id, teklif_veren_email: session.user.email }]);
-                if (error) { modalAc("Hata", error.message, "❌", false); } else { modalAc("Başarılı", "Teklifin başarıyla karşı tarafa iletildi!", "✅", false); }
+                if (error) { modalAc("Hata", error.message, "❌", false); } else { modalAc("Başarılı", "Teklifiniz başarıyla karşı tarafa iletildi.", "✅", false); }
             });
         }
 
-        // --- GÖRÜNTÜLEME (RENDER) MOTORU ---
-        // Siteden Çıkış Yap
         async function cikisYap() { await _supabase.auth.signOut(); window.location.reload(); }
 
-        // Filtrelenmiş İlanları Vitrine Basar
         function vitrineBas(gosterilecekData) {
             if (gosterilecekData.length === 0) { 
-                vitrin.innerHTML = `<div class="text-center py-16 bg-white rounded-3xl border border-gray-100 shadow-sm"><span class="text-6xl mb-4 block">🏜️</span><p class="text-gray-500 font-bold text-lg">Aradığın kriterlere uygun ilan bulunamadı.</p><button onclick="kategoriSec(''); document.getElementById('arama-desktop').value=''; document.getElementById('arama-mobil').value=''; document.getElementById('oneri-kutusu-desktop').style.display='none'; document.getElementById('oneri-kutusu-mobil').style.display='none'; ilanlariFiltrele();" class="mt-4 text-yellow-600 font-black text-sm uppercase hover:underline">Filtreleri Temizle</button></div>`; return; 
+                vitrin.innerHTML = `<div class="text-center py-16 bg-white rounded-3xl border border-gray-100 shadow-sm"><span class="text-6xl mb-4 block">🏜️</span><p class="text-gray-500 font-bold text-lg">Aradığınız kriterlere uygun ilan bulunamadı.</p><button onclick="kategoriSec(''); document.getElementById('arama-desktop').value=''; document.getElementById('arama-mobil').value=''; document.getElementById('oneri-kutusu-desktop').style.display='none'; document.getElementById('oneri-kutusu-mobil').style.display='none'; ilanlariFiltrele();" class="mt-4 text-yellow-600 font-black text-sm uppercase hover:underline">Filtreleri Temizle</button></div>`; return; 
             }
             let htmlBirlestirici = '';
             gosterilecekData.forEach(ilan => {
@@ -327,8 +294,6 @@
                 const resimHtml = kapakResmi ? `<img src="${kapakResmi}" class="w-full h-full object-cover">` : '<span class="text-4xl">📸</span>';
                 const kategoriEtiketi = ilan.kategori ? ilan.kategori : 'Diğer';
                 const kalpteMi = benimFavorilerim.includes(ilan.id); const kalpSimgesi = kalpteMi ? '❤️' : '🤍'; const kalpBuyumesi = kalpteMi ? 'scale-125' : ''; 
-                
-                // Güvenli Email Kontrolü (Veritabanında null ise çökmesin diye)
                 const guvenliEmail = ilan.kullanici_email || "anonim@trakas.com";
 
                 htmlBirlestirici += `
@@ -356,7 +321,6 @@
             vitrin.innerHTML = htmlBirlestirici;
         }
 
-        // --- SİTEYİ ATEŞLE ---
         sitemiCalistir();
     </script>
 </body>
