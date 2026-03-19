@@ -44,7 +44,13 @@
     </div>
 
     <script>
-        // --- MODAL MOTORU ---
+        // Hata Yakalayıcı (Artık hataları gizlemeyecek, ekrana yazacak)
+        window.onerror = function(msg) {
+            document.getElementById('detay-kutusu').innerHTML = `<div class="w-full flex items-center justify-center p-10"><div class="bg-red-50 p-6 rounded-xl border border-red-200 text-center"><p class="text-red-600 font-mono text-sm font-bold">Sistemsel Hata: ${msg}</p></div></div>`; 
+            return true;
+        };
+
+        // Modal Motoru
         window.modalAc = function(baslik, mesaj, ikon, isConfirm, onayFonk = null) {
             const modal = document.getElementById('ozel-modal');
             const kutu = document.getElementById('ozel-modal-kutu');
@@ -78,40 +84,47 @@
             setTimeout(() => { modal.classList.add('hidden'); }, 300);
         }
 
-        // --- SUPABASE BAĞLANTISI ---
+        // Supabase Bağlantısı
         const supabaseUrl = 'https://ivnazhfahtjcdspclkis.supabase.co';
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml2bmF6aGZhaHRqY2RzcGNsa2lzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMyMTgxNzEsImV4cCI6MjA4ODc5NDE3MX0.Z2bKgccAQX8dgex99cQL-GLpTYU1vhb-0BqWiuIMhxU';
         const _supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
-        let guncelIlan = null;
-
-        // URL'den ID'yi al
         const urlParams = new URLSearchParams(window.location.search);
         const ilanId = urlParams.get('id');
 
         async function detayiGetir() {
-            if (!ilanId) {
-                document.getElementById('detay-kutusu').innerHTML = `<div class="w-full flex items-center justify-center p-10"><p class="text-red-500 font-bold text-xl">Hata: İlan ID bulunamadı!</p></div>`;
-                return;
+            try {
+                if (!ilanId) {
+                    document.getElementById('detay-kutusu').innerHTML = `<div class="w-full flex items-center justify-center p-10"><p class="text-red-500 font-bold text-xl">Hata: İlan ID bulunamadı!</p></div>`;
+                    return;
+                }
+
+                const { data, error } = await _supabase.from('ilanlar').select('*').eq('id', ilanId).single();
+
+                if (error || !data) {
+                    document.getElementById('detay-kutusu').innerHTML = `<div class="w-full flex items-center justify-center p-10"><p class="text-red-500 font-bold text-xl">İlan bulunamadı veya silinmiş olabilir.</p></div>`;
+                    return;
+                }
+
+                ekranaBas(data);
+            } catch (err) {
+                document.getElementById('detay-kutusu').innerHTML = `<div class="w-full flex items-center justify-center p-10"><p class="text-red-500 font-bold text-xl">Beklenmeyen bir hata oluştu: ${err.message}</p></div>`;
             }
-
-            const { data, error } = await _supabase.from('ilanlar').select('*').eq('id', ilanId).single();
-
-            if (error || !data) {
-                document.getElementById('detay-kutusu').innerHTML = `<div class="w-full flex items-center justify-center p-10"><p class="text-red-500 font-bold text-xl">İlan bulunamadı veya silinmiş olabilir.</p></div>`;
-                return;
-            }
-
-            guncelIlan = data;
-            ekranaBas(data);
         }
 
         function ekranaBas(ilan) {
-            // Resimleri parçala (virgülle ayrılmış url'ler)
-            let resimler = ilan.resim_url ? ilan.resim_url.split(',') : [];
-            let anaResim = resimler.length > 0 ? resimler[0] : "";
+            // ÇELİK YELEK: Veritabanından gelen eksik veriler kodumuzu çökertmesin diye default (varsayılan) değerler atıyoruz.
+            const resimler = ilan.resim_url ? String(ilan.resim_url).split(',') : [];
+            const anaResim = resimler.length > 0 ? resimler[0] : "";
+            const kategori = ilan.kategori || 'Diğer';
+            const aciklama = ilan.aciklama || 'Bu ilan için açıklama girilmemiş.';
+            const baslik = ilan.baslik || 'İsimsiz İlan';
+            const deger = ilan.deger || '0';
             
-            // Eğer resim yoksa ikon göster
+            // Kullanıcı emaili yoksa çökmek yerine 'anonim' olarak ayarla
+            const guvenliEmail = ilan.kullanici_email || "anonim@trakas.com";
+            const ilanSahibi = guvenliEmail.split('@')[0];
+
             let solTarafHTML = `
                 <div class="w-full md:w-1/2 bg-gray-100 flex flex-col border-b md:border-b-0 md:border-r border-gray-100">
                     <div class="w-full h-[300px] md:h-[500px] flex items-center justify-center relative bg-gray-900">
@@ -119,18 +132,14 @@
                     </div>
             `;
 
-            // Eğer 1'den fazla resim varsa galeri oluştur
             if (resimler.length > 1) {
                 solTarafHTML += `<div class="flex gap-2 p-4 overflow-x-auto bg-gray-50 border-t border-gray-200">`;
                 resimler.forEach(url => {
-                    solTarafHTML += `<img src="${url}" onclick="resimDegistir('${url}')" class="w-16 h-16 md:w-20 md:h-20 object-cover rounded-lg cursor-pointer border-2 border-transparent hover:border-yellow-500 transition-colors shadow-sm">`;
+                    solTarafHTML += `<img src="${url}" onclick="resimDegistir('${url}')" class="w-16 h-16 md:w-20 md:h-20 object-cover rounded-lg cursor-pointer border-2 border-transparent hover:border-yellow-500 transition-colors shadow-sm flex-shrink-0">`;
                 });
                 solTarafHTML += `</div>`;
             }
             solTarafHTML += `</div>`;
-
-            const kategori = ilan.kategori || 'Diğer';
-            const ilanSahibi = ilan.kullanici_email.split('@')[0];
 
             let sagTarafHTML = `
                 <div class="w-full md:w-1/2 p-6 md:p-10 flex flex-col justify-between bg-white">
@@ -140,12 +149,12 @@
                             <span class="text-gray-400 text-sm font-medium">İlan No: #${ilan.id}</span>
                         </div>
                         
-                        <h1 class="text-3xl md:text-4xl font-black text-gray-900 uppercase italic leading-tight mb-2">${ilan.baslik}</h1>
-                        <p class="text-3xl font-black text-green-600 mb-6">${ilan.deger} TL <span class="text-sm text-gray-400 font-medium tracking-normal">Tahmini Değer</span></p>
+                        <h1 class="text-3xl md:text-4xl font-black text-gray-900 uppercase italic leading-tight mb-2">${baslik}</h1>
+                        <p class="text-3xl font-black text-green-600 mb-6">${deger} TL <span class="text-sm text-gray-400 font-medium tracking-normal">Tahmini Değer</span></p>
                         
                         <div class="bg-gray-50 p-5 rounded-2xl border border-gray-100 mb-6">
                             <h3 class="text-xs font-black text-gray-400 uppercase tracking-widest mb-2 border-b border-gray-200 pb-2">İlan Açıklaması</h3>
-                            <p class="text-gray-700 font-medium leading-relaxed whitespace-pre-wrap">${ilan.aciklama}</p>
+                            <p class="text-gray-700 font-medium leading-relaxed whitespace-pre-wrap">${aciklama}</p>
                         </div>
                         
                         <div class="flex items-center gap-3 mb-8 bg-blue-50/50 p-4 rounded-xl border border-blue-100">
@@ -160,7 +169,7 @@
                     </div>
 
                     <div class="flex flex-col sm:flex-row gap-3 mt-4">
-                        <button onclick="teklifVer(${ilan.id}, '${ilan.kullanici_email}')" class="flex-grow bg-yellow-500 text-gray-900 py-4 rounded-xl font-black text-sm md:text-base uppercase tracking-wider shadow-lg hover:bg-yellow-400 hover:-translate-y-1 transition-all flex justify-center items-center gap-2">
+                        <button onclick="teklifVer(${ilan.id}, '${guvenliEmail}')" class="flex-grow bg-yellow-500 text-gray-900 py-4 rounded-xl font-black text-sm md:text-base uppercase tracking-wider shadow-lg hover:bg-yellow-400 hover:-translate-y-1 transition-all flex justify-center items-center gap-2">
                             <span>Teklif Gönder</span> 🤝
                         </button>
                     </div>
@@ -174,7 +183,6 @@
             document.getElementById('ana-gorsel').src = url;
         }
 
-        // --- TEKLİF SİSTEMİ (Özel Modallı ve Kendi İlanı Korumalı) ---
         async function teklifVer(id, ilanSahibiEmail) {
             const { data: { session } } = await _supabase.auth.getSession();
             
