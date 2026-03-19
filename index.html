@@ -7,34 +7,26 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        /* Tailwind animations extension */
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: .5; }
-        }
-        .animate-pulse {
-            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-        }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .5; } }
+        .animate-pulse { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
     </style>
 </head>
 <body class="bg-gray-50 font-sans min-h-screen flex flex-col">
 
     <nav class="bg-gray-900 p-3 md:p-4 sticky top-0 z-50 shadow-xl flex-shrink-0">
         <div class="max-w-7xl mx-auto flex justify-between items-center gap-2">
-            
             <div class="flex items-center gap-3">
                 <button onclick="mobilMenuAcKapat()" class="md:hidden text-white text-2xl focus:outline-none hover:text-yellow-500 transition-colors">☰</button>
                 <h1 class="text-2xl md:text-3xl font-black text-white tracking-tighter italic hover:text-yellow-500 transition-colors cursor-pointer" onclick="kategoriSec('')">TRAKAS</h1>
             </div>
             
             <div class="flex-grow mx-8 hidden md:block relative">
-                <input type="text" id="arama-desktop" autocomplete="off" onkeyup="canliArama(this.value)" onfocus="canliArama(this.value)" onblur="setTimeout(() => document.getElementById('oneri-kutusu-desktop').style.display='none', 200)" placeholder="Ürün, marka veya takas tercihi ara..." class="w-full p-2 rounded-lg bg-gray-800 border border-gray-700 text-white text-sm focus:border-yellow-500 outline-none transition-colors">
+                <input type="text" id="arama-desktop" autocomplete="new-password" onkeyup="canliArama(this.value)" onfocus="canliArama(this.value)" onblur="setTimeout(() => document.getElementById('oneri-kutusu-desktop').style.display='none', 200)" placeholder="Ürün, marka veya takas tercihi ara..." class="w-full p-2 rounded-lg bg-gray-800 border border-gray-700 text-white text-sm focus:border-yellow-500 outline-none transition-colors">
                 <div id="oneri-kutusu-desktop" style="display: none;" class="absolute w-full bg-white border border-gray-200 shadow-2xl rounded-b-lg mt-1 z-50 max-h-60 overflow-y-auto"></div>
             </div>
             
             <div class="hidden md:flex gap-2 md:gap-4 items-center">
                 <a href="giris.html" id="btn-giris" class="text-white font-bold text-xs md:text-sm hover:text-yellow-500 transition-colors whitespace-nowrap">Giriş Yap</a>
-                
                 <div id="user-panel" style="display: none;" class="items-center gap-1 md:gap-2 border-r border-gray-700 pr-2 md:pr-3">
                     <span id="user-name" class="text-yellow-500 font-black text-xs uppercase tracking-widest hidden sm:block mr-2"></span>
                     <a href="favorilerim.html" class="text-white font-bold text-[10px] md:text-xs uppercase hover:text-yellow-500 transition-colors bg-gray-800 px-2 py-1.5 md:px-3 rounded-lg border border-gray-700 shadow-sm flex items-center"><span class="hidden sm:inline mr-1">Favorilerim</span> ❤️</a>
@@ -43,7 +35,6 @@
                     <a href="teklifler.html" class="text-white font-bold text-[10px] md:text-xs uppercase hover:text-yellow-500 transition-colors bg-gray-800 px-2 py-1.5 md:px-3 rounded-lg border border-gray-700 shadow-sm flex items-center"><span class="hidden sm:inline mr-1">Tekliflerim</span> 🤝</a>
                     <button onclick="cikisYap()" class="text-red-400 font-bold text-[10px] uppercase ml-1 md:ml-2 hover:text-red-300 transition-colors">Çıkış</button>
                 </div>
-                
                 <a href="ilan-ver.html" class="bg-yellow-500 px-3 py-1.5 md:px-6 md:py-2 rounded-lg font-black text-[10px] md:text-sm hover:bg-yellow-400 uppercase transition-all shadow-md whitespace-nowrap text-gray-900">İLAN VER +</a>
             </div>
 
@@ -51,7 +42,7 @@
         </div>
 
         <div class="mt-3 block md:hidden w-full relative px-3 pb-3">
-            <input type="text" id="arama-mobil" autocomplete="off" onkeyup="canliArama(this.value)" onfocus="canliArama(this.value)" onblur="setTimeout(() => document.getElementById('oneri-kutusu-mobil').style.display='none', 200)" placeholder="Takaslık ne arıyorsun?" class="w-full p-2 rounded-lg bg-gray-800 border border-gray-700 text-white text-xs focus:border-yellow-500 outline-none">
+            <input type="text" id="arama-mobil" autocomplete="new-password" onkeyup="canliArama(this.value)" onfocus="canliArama(this.value)" onblur="setTimeout(() => document.getElementById('oneri-kutusu-mobil').style.display='none', 200)" placeholder="Takaslık ne arıyorsun?" class="w-full p-2 rounded-lg bg-gray-800 border border-gray-700 text-white text-xs focus:border-yellow-500 outline-none">
             <div id="oneri-kutusu-mobil" style="display: none;" class="absolute w-[calc(100%-1.5rem)] left-3 bg-white border border-gray-200 shadow-2xl rounded-b-lg mt-1 z-50 max-h-48 overflow-y-auto"></div>
         </div>
 
@@ -69,7 +60,6 @@
     </nav>
 
     <div class="max-w-7xl mx-auto flex flex-col md:flex-row gap-6 p-6 flex-grow w-full">
-        
         <aside class="w-full md:w-64 space-y-6 flex-shrink-0">
             <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-200 sticky top-24">
                 <h3 class="font-black text-gray-800 mb-4 border-b pb-2 uppercase text-xs tracking-widest text-center">Kategoriler</h3>
@@ -95,22 +85,6 @@
                             <div class="w-16 h-4 bg-gray-200 rounded mb-4"></div>
                             <div class="w-3/4 h-6 bg-gray-200 rounded mb-2"></div>
                             <div class="w-1/4 h-5 bg-gray-200 rounded mb-6"></div>
-                            <div class="w-full h-16 bg-gray-100 rounded-xl"></div>
-                        </div>
-                        <div class="flex gap-2 mt-4">
-                            <div class="flex-grow h-10 bg-gray-200 rounded-lg"></div>
-                            <div class="w-32 h-10 bg-gray-200 rounded-lg"></div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="skeleton-card bg-white rounded-2xl p-4 flex flex-col md:flex-row gap-6 border border-gray-100 animate-pulse">
-                    <div class="w-full md:w-48 h-48 bg-gray-200 rounded-xl"></div>
-                    <div class="flex-grow flex flex-col justify-between py-2">
-                        <div>
-                            <div class="w-16 h-4 bg-gray-200 rounded mb-4"></div>
-                            <div class="w-2/3 h-6 bg-gray-200 rounded mb-2"></div>
-                            <div class="w-1/3 h-5 bg-gray-200 rounded mb-6"></div>
                             <div class="w-full h-16 bg-gray-100 rounded-xl"></div>
                         </div>
                         <div class="flex gap-2 mt-4">
@@ -163,8 +137,7 @@
         let tumIlanlar = []; let seciliKategori = ""; let benimFavorilerim = []; 
 
         window.modalAc = function(baslik, mesaj, ikon, isConfirm, onayFonk = null) {
-            const modal = document.getElementById('ozel-modal');
-            const kutu = document.getElementById('ozel-modal-kutu');
+            const modal = document.getElementById('ozel-modal'); const kutu = document.getElementById('ozel-modal-kutu');
             document.getElementById('modal-baslik').innerText = baslik; document.getElementById('modal-mesaj').innerText = mesaj; document.getElementById('modal-ikon').innerHTML = `<span class="text-3xl">${ikon}</span>`;
             const btnIptal = document.getElementById('modal-btn-iptal'); const btnOnay = document.getElementById('modal-btn-onay');
             btnOnay.onclick = function() { modalKapat(); if (onayFonk) onayFonk(); };
@@ -174,8 +147,7 @@
         
         window.modalKapat = function() {
             const modal = document.getElementById('ozel-modal'); const kutu = document.getElementById('ozel-modal-kutu');
-            kutu.classList.remove('scale-100', 'opacity-100'); kutu.classList.add('scale-95', 'opacity-0');
-            setTimeout(() => { modal.classList.add('hidden'); }, 300);
+            kutu.classList.remove('scale-100', 'opacity-100'); kutu.classList.add('scale-95', 'opacity-0'); setTimeout(() => { modal.classList.add('hidden'); }, 300);
         }
 
         window.onerror = function(msg) { document.getElementById('ilan-vitrini').innerHTML = `<div class="bg-red-100 p-6 rounded-lg text-center"><p class="text-red-600 font-mono text-sm font-bold">Hata: ${msg}</p></div>`; return true; };
@@ -218,9 +190,7 @@
             const arananTemiz = aramaMetniTemizle(metin);
             const oneriKutusuDesktop = document.getElementById('oneri-kutusu-desktop'); const oneriKutusuMobil = document.getElementById('oneri-kutusu-mobil');
             ilanlariFiltrele();
-            
             if (arananTemiz.length === 0) { oneriKutusuDesktop.style.display = 'none'; oneriKutusuMobil.style.display = 'none'; return; }
-            
             let oneriler = new Set();
             tumIlanlar.forEach(ilan => {
                 const baslikOrjinal = ilan.baslik; const baslikTemiz = aramaMetniTemizle(baslikOrjinal);
@@ -229,7 +199,6 @@
                     oneriler.add(baslikOrjinal.toLowerCase()); 
                 }
             });
-            
             const oneriListesi = Array.from(oneriler).slice(0, 6);
             if (oneriListesi.length > 0) {
                 let html = '';
@@ -294,7 +263,9 @@
                 const resimHtml = kapakResmi ? `<img src="${kapakResmi}" class="w-full h-full object-cover">` : '<span class="text-4xl">📸</span>';
                 const kategoriEtiketi = ilan.kategori ? ilan.kategori : 'Diğer';
                 const kalpteMi = benimFavorilerim.includes(ilan.id); const kalpSimgesi = kalpteMi ? '❤️' : '🤍'; const kalpBuyumesi = kalpteMi ? 'scale-125' : ''; 
-                const guvenliEmail = ilan.kullanici_email || "anonim@trakas.com";
+                
+                // İŞTE SİHİRLİ DOKUNUŞ: kullanici_email YERİNE sahip_email
+                const guvenliEmail = ilan.sahip_email || "anonim@trakas.com";
 
                 htmlBirlestirici += `
                 <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 flex flex-col md:flex-row gap-6 hover:shadow-lg transition-all">
