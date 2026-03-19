@@ -95,9 +95,8 @@
     </div>
 
     <script>
-        // --- HATALARI ÇÖZÜLMÜŞ, GÜÇLÜ MODAL MOTORU ---
-        // Artık sadece 5 parametre alıyor, kafa karışıklığı sıfır!
-        window.modalAc = function(baslik, mesaj, ikon, isConfirm, onayFonk = null) {
+        // --- KESİN ÇÖZÜMLÜ MODAL MOTORU ---
+        window.modalAc = function(baslik, mesaj, ikon, isConfirm, onayFonk) {
             const modal = document.getElementById('ozel-modal'); 
             const kutu = document.getElementById('ozel-modal-kutu');
             
@@ -108,22 +107,24 @@
             const btnIptal = document.getElementById('modal-btn-iptal'); 
             const btnOnay = document.getElementById('modal-btn-onay');
             
-            btnOnay.onclick = function() { 
+            // JİLET GİBİ ÇÖZÜM: Butonu klonlayıp eski tıklamaları temizliyoruz!
+            const yeniBtnOnay = btnOnay.cloneNode(true);
+            btnOnay.parentNode.replaceChild(yeniBtnOnay, btnOnay);
+            
+            yeniBtnOnay.onclick = async function() { 
                 modalKapat(); 
-                // Gerçekten bir fonksiyon gönderildiyse çalıştır
-                if (typeof onayFonk === 'function') {
-                    onayFonk(); 
-                }
+                if (onayFonk) await onayFonk(); 
             };
             
             if (isConfirm) { 
                 btnIptal.classList.remove('hidden'); 
                 btnIptal.classList.add('block'); 
-                btnOnay.innerText = "Evet, Onayla"; 
+                // YENİ GÜNCELLEMEYİ BURADAN ANLAYACAKSIN:
+                yeniBtnOnay.innerText = "ONAYLA VE SİL 🗑️"; 
             } else { 
                 btnIptal.classList.remove('block'); 
                 btnIptal.classList.add('hidden'); 
-                btnOnay.innerText = "Tamam"; 
+                yeniBtnOnay.innerText = "Tamam"; 
             }
             
             modal.classList.remove('hidden'); 
@@ -188,6 +189,7 @@
                 const gidenTeklifler = tumTeklifler.filter(t => t.teklif_veren_email === benimEmailim);
 
                 setTimeout(() => {
+                    // GELEN TEKLİFLER
                     if (gelenTeklifler.length === 0) {
                         kutuGelen.innerHTML = `<div class="text-center py-12"><span class="text-5xl block mb-3 opacity-40">📥</span><p class="text-gray-500 font-bold">İlanlarına henüz bir teklif gelmemiş.</p></div>`;
                     } else {
@@ -218,6 +220,7 @@
                         kutuGelen.innerHTML = html;
                     }
 
+                    // GİDEN TEKLİFLER
                     if (gidenTeklifler.length === 0) {
                         kutuGiden.innerHTML = `<div class="text-center py-12"><span class="text-5xl block mb-3 opacity-40">📤</span><p class="text-gray-500 font-bold">Henüz kimseye takas teklifi göndermemişsin.</p></div>`;
                     } else {
@@ -254,37 +257,24 @@
             }
         }
 
-        // --- DÜZELTİLMİŞ AKSİYON MOTORLARI ---
-
+        // --- AKSİYONLAR ---
         window.teklifReddet = function(teklifId) {
-            // İmza: baslik, mesaj, ikon, isConfirm, onayFonk
             modalAc("Teklifi Reddet", "Bu takas teklifini reddetmek istediğine emin misin?", "❌", true, async () => {
                 const kutu = document.getElementById(`teklif-kutu-${teklifId}`);
-                if(kutu) kutu.style.display = 'none'; // Ekranda anında yok et
+                if(kutu) kutu.style.display = 'none'; // Görsel olarak anında sil
                 
-                const { error } = await _supabase.from('teklifler').delete().eq('id', teklifId);
-                if (error) {
-                    alert("Teklif silinemedi: " + error.message);
-                    teklifleriYukle(); // Hata varsa geri getir
-                } else {
-                    teklifleriYukle(); // Temiz bir şekilde listeyi yenile
-                }
+                await _supabase.from('teklifler').delete().eq('id', teklifId);
+                teklifleriYukle(); // Arka planı güncelle
             });
         }
 
         window.teklifGeriCek = function(teklifId) {
-            // İmza: baslik, mesaj, ikon, isConfirm, onayFonk
             modalAc("Teklifi Geri Çek", "Başkasına yaptığın bu teklifi iptal etmek istiyor musun?", "↩️", true, async () => {
                 const kutu = document.getElementById(`teklif-kutu-${teklifId}`);
                 if(kutu) kutu.style.display = 'none'; 
                 
-                const { error } = await _supabase.from('teklifler').delete().eq('id', teklifId);
-                if (error) {
-                    alert("Teklif silinemedi: " + error.message);
-                    teklifleriYukle(); 
-                } else {
-                    teklifleriYukle(); 
-                }
+                await _supabase.from('teklifler').delete().eq('id', teklifId);
+                teklifleriYukle();
             });
         }
 
