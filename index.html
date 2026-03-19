@@ -6,6 +6,16 @@
     <title>Trakas - Klasik Takas Pazarı</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        /* Tailwind animations extension */
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: .5; }
+        }
+        .animate-pulse {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+    </style>
 </head>
 <body class="bg-gray-50 font-sans min-h-screen flex flex-col">
 
@@ -78,7 +88,7 @@
             <div id="sonuc-ozeti" class="hidden mb-4 text-sm font-bold text-gray-500 uppercase tracking-widest border-b border-gray-200 pb-2"></div>
             
             <div id="ilan-vitrini" class="flex flex-col gap-4 mb-8">
-                <div class="bg-white rounded-2xl p-4 flex flex-col md:flex-row gap-6 border border-gray-100 animate-pulse">
+                <div class="skeleton-card bg-white rounded-2xl p-4 flex flex-col md:flex-row gap-6 border border-gray-100 animate-pulse">
                     <div class="w-full md:w-48 h-48 bg-gray-200 rounded-xl"></div>
                     <div class="flex-grow flex flex-col justify-between py-2">
                         <div>
@@ -94,7 +104,7 @@
                     </div>
                 </div>
                 
-                <div class="bg-white rounded-2xl p-4 flex flex-col md:flex-row gap-6 border border-gray-100 animate-pulse">
+                <div class="skeleton-card bg-white rounded-2xl p-4 flex flex-col md:flex-row gap-6 border border-gray-100 animate-pulse">
                     <div class="w-full md:w-48 h-48 bg-gray-200 rounded-xl"></div>
                     <div class="flex-grow flex flex-col justify-between py-2">
                         <div>
@@ -124,7 +134,7 @@
                 <span class="text-gray-700">•</span>
                 <a href="#" class="text-gray-400 hover:text-yellow-500 transition-colors">Gizlilik Politikası</a>
             </div>
-            <p class="text-xs font-bold text-gray-600 uppercase tracking-widest">© 2026 Trakas. Tüm hakları saklıdır. Arda & Kingo Ortak Yapımıdır.</p>
+            <p class="text-xs font-bold text-gray-600 uppercase tracking-widest">© 2026 Trakas Pazaryeri A.Ş. • İstanbul, Türkiye</p>
         </div>
     </footer>
 
@@ -144,6 +154,16 @@
     </div>
 
     <script>
+        // Supabase Bağlantı Ayarları
+        const supabaseUrl = 'https://ivnazhfahtjcdspclkis.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml2bmF6aGZhaHRqY2RzcGNsa2lzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMyMTgxNzEsImV4cCI6MjA4ODc5NDE3MX0.Z2bKgccAQX8dgex99cQL-GLpTYU1vhb-0BqWiuIMhxU';
+        const _supabase = supabase.createClient(supabaseUrl, supabaseKey);
+
+        // Global Değişkenler
+        let tumIlanlar = []; let seciliKategori = ""; let benimFavorilerim = []; 
+
+        // --- YARDIMCI FONKSİYONLAR ---
+        // Özel Modal (Popup) Açma
         window.modalAc = function(baslik, mesaj, ikon, isConfirm, onayFonk = null) {
             const modal = document.getElementById('ozel-modal');
             const kutu = document.getElementById('ozel-modal-kutu');
@@ -153,36 +173,42 @@
             if (isConfirm) { btnIptal.classList.remove('hidden'); btnIptal.classList.add('block'); btnOnay.innerText = "Evet, Gönder"; } else { btnIptal.classList.remove('block'); btnIptal.classList.add('hidden'); btnOnay.innerText = "Tamam"; }
             modal.classList.remove('hidden'); setTimeout(() => { kutu.classList.remove('scale-95', 'opacity-0'); kutu.classList.add('scale-100', 'opacity-100'); }, 10);
         }
+        
+        // Özel Modal (Popup) Kapatma
         window.modalKapat = function() {
             const modal = document.getElementById('ozel-modal'); const kutu = document.getElementById('ozel-modal-kutu');
             kutu.classList.remove('scale-100', 'opacity-100'); kutu.classList.add('scale-95', 'opacity-0');
             setTimeout(() => { modal.classList.add('hidden'); }, 300);
         }
-        window.onerror = function(msg) { document.getElementById('ilan-vitrini').innerHTML = `<div class="bg-red-100 p-6 rounded-lg"><p class="text-red-600 font-mono text-sm">Hata: ${msg}</p></div>`; return true; };
 
-        const vitrin = document.getElementById('ilan-vitrini');
-        const supabaseUrl = 'https://ivnazhfahtjcdspclkis.supabase.co';
-        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml2bmF6aGZhaHRqY2RzcGNsa2lzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMyMTgxNzEsImV4cCI6MjA4ODc5NDE3MX0.Z2bKgccAQX8dgex99cQL-GLpTYU1vhb-0BqWiuIMhxU';
-        const _supabase = supabase.createClient(supabaseUrl, supabaseKey);
+        // Genel Hata Yakalama
+        window.onerror = function(msg) { document.getElementById('ilan-vitrini').innerHTML = `<div class="bg-red-100 p-6 rounded-lg text-center"><p class="text-red-600 font-mono text-sm font-bold">Hata: ${msg}</p></div>`; return true; };
 
-        let tumIlanlar = []; let seciliKategori = ""; let benimFavorilerim = []; 
-
+        // Türkçe Karakter Destekli Arama Metni Temizleme (ı/I -> i Dönüşümü Dahil)
         window.aramaMetniTemizle = function(metin) { if (!metin) return ""; return metin.replace(/İ/g, 'i').replace(/I/g, 'i').replace(/ı/g, 'i').toLowerCase().trim(); };
+        
+        // Hamburger Menü Aç/Kapat (Mobile)
         window.mobilMenuAcKapat = function() { const menu = document.getElementById('mobil-menu'); if (menu.classList.contains('hidden')) { menu.classList.remove('hidden'); menu.classList.add('flex'); } else { menu.classList.add('hidden'); menu.classList.remove('flex'); } };
 
+        // --- SİTE BAŞLATMA VE VERİ ÇEKME ---
         async function sitemiCalistir() {
             try {
+                // Giriş Durumunu Kontrol Et
                 const { data: { session } } = await _supabase.auth.getSession();
                 if (session) {
                     const userName = session.user.email.split('@')[0].toUpperCase();
+                    // Masaüstü Menü Güncelle
                     document.getElementById('btn-giris').style.display = 'none'; document.getElementById('user-panel').style.display = 'flex'; document.getElementById('user-name').innerText = userName;
+                    // Mobil Menü Güncelle
                     document.getElementById('mobil-btn-giris').style.display = 'none'; document.getElementById('mobil-user-panel').style.display = 'flex'; document.getElementById('mobil-user-name').innerText = userName;
+                    // Favori İlan ID'lerini Çek
                     const { data: favData } = await _supabase.from('favoriler').select('ilan_id').eq('kullanici_email', session.user.email);
                     if (favData) { benimFavorilerim = favData.map(f => f.ilan_id); }
                 }
             } catch (e) {}
 
             try {
+                // Tüm İlanları Çek (Skeleton'un Gürünmesi İçin Biraz Gecikme Ekliyoruz)
                 const { data, error } = await _supabase.from('ilanlar').select('*').order('id', { ascending: false });
                 if (error) throw error;
                 tumIlanlar = data || [];
@@ -193,6 +219,8 @@
             }
         }
 
+        // --- FİLTRELEME VE ARAMA MANTIĞI ---
+        // Kategori Seçme
         window.kategoriSec = function(kategoriAdi) {
             seciliKategori = kategoriAdi;
             document.querySelectorAll('.kategori-btn').forEach(btn => { btn.className = "kategori-btn p-2 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors text-sm font-medium text-gray-600"; });
@@ -202,12 +230,19 @@
             ilanlariFiltrele();
         }
 
+        // Canlı Arama (Autocomplete Listesini Gösterir)
         window.canliArama = function(metin) {
+            // Masaüstü ve mobil girişleri eşitle
             document.getElementById('arama-mobil').value = metin; document.getElementById('arama-desktop').value = metin;
             const arananTemiz = aramaMetniTemizle(metin);
             const oneriKutusuDesktop = document.getElementById('oneri-kutusu-desktop'); const oneriKutusuMobil = document.getElementById('oneri-kutusu-mobil');
+            
+            // Vitrini Arka Planda Filtrele
             ilanlariFiltrele();
+            
             if (arananTemiz.length === 0) { oneriKutusuDesktop.style.display = 'none'; oneriKutusuMobil.style.display = 'none'; return; }
+            
+            // Öneri Kelimelerini Bul
             let oneriler = new Set();
             tumIlanlar.forEach(ilan => {
                 const baslikOrjinal = ilan.baslik; const baslikTemiz = aramaMetniTemizle(baslikOrjinal);
@@ -216,20 +251,24 @@
                     oneriler.add(baslikOrjinal.toLowerCase()); 
                 }
             });
+            
             const oneriListesi = Array.from(oneriler).slice(0, 6);
             if (oneriListesi.length > 0) {
                 let html = '';
+                // Mavi yazılı, şık autocomplete listesi (Resimdeki gibi)
                 oneriListesi.forEach(oneri => { html += `<div onclick="oneriTikla('${oneri}')" class="px-4 py-2.5 text-sm font-semibold text-blue-700 hover:bg-gray-100 cursor-pointer border-b border-gray-100 last:border-0">${oneri}</div>`; });
                 oneriKutusuDesktop.innerHTML = html; oneriKutusuDesktop.style.display = 'block'; oneriKutusuMobil.innerHTML = html; oneriKutusuMobil.style.display = 'block';
             } else { oneriKutusuDesktop.style.display = 'none'; oneriKutusuMobil.style.display = 'none'; }
         }
 
+        // Autocomplete Listesinden Tıklayınca
         window.oneriTikla = function(secilenKelime) {
             document.getElementById('arama-desktop').value = secilenKelime; document.getElementById('arama-mobil').value = secilenKelime;
             document.getElementById('oneri-kutusu-desktop').style.display = 'none'; document.getElementById('oneri-kutusu-mobil').style.display = 'none';
             ilanlariFiltrele();
         }
 
+        // Ana Filtreleme Motoru (Kategori + Arama)
         window.ilanlariFiltrele = function() {
             const masaustuArama = document.getElementById('arama-desktop').value; const mobilArama = document.getElementById('arama-mobil').value;
             const aramaMetni = aramaMetniTemizle(masaustuArama || mobilArama);
@@ -242,6 +281,8 @@
             vitrineBas(filtrelenmisListe);
         }
 
+        // --- FAVORİ VE TEKLİF SİSTEMİ ---
+        // Favori Değiştirme (🤍 <-> ❤️)
         window.favoriDegistir = async function(event, ilanId) {
             event.stopPropagation();
             const { data: { session } } = await _supabase.auth.getSession();
@@ -256,6 +297,26 @@
             }
         }
 
+        // Teklif Verme (🤝 Kendi İlanına ve Çifte Teklife Karşı Korumalı)
+        async function teklifVer(id, ilanSahibiEmail) {
+            const { data: { session } } = await _supabase.auth.getSession();
+            if (!session) { modalAc("Giriş Yapmalısın", "Teklif göndermek için önce giriş yapman gerekiyor.", "🔒", false, () => { window.location.href = 'giris.html'; }); return; }
+            // Kendi ilanına teklif koruması
+            if (session.user.email === ilanSahibiEmail) { modalAc("Yok Artık!", "Kendi ilanına teklif verip kendi kendinle mi pazarlık yapacaksın usta? 😂", "🤦‍♂️", false); return; }
+            const { data: mevcutTeklif } = await _supabase.from('teklifler').select('id').eq('ilan_id', id).eq('teklif_veren_email', session.user.email);
+            // Çifte teklif koruması
+            if (mevcutTeklif && mevcutTeklif.length > 0) { modalAc("Zaten Teklif Verdin", "Dur bakalım! Bu ilana zaten bir teklif gönderdin. Karşı tarafın yanıtını beklemelisin.", "⚠️", false); return; }
+            modalAc("Teklif Gönderilsin mi?", "Bu ilan için takas teklifi göndermek istediğine emin misin?", "🤝", true, async () => {
+                const { error } = await _supabase.from('teklifler').insert([{ ilan_id: id, teklif_veren_email: session.user.email }]);
+                if (error) { modalAc("Hata", error.message, "❌", false); } else { modalAc("Başarılı", "Teklifin başarıyla karşı tarafa iletildi!", "✅", false); }
+            });
+        }
+
+        // --- GÖRÜNTÜLEME (RENDER) MOTORU ---
+        // Siteden Çıkış Yap
+        async function cikisYap() { await _supabase.auth.signOut(); window.location.reload(); }
+
+        // Filtrelenmiş İlanları Vitrine Basar
         function vitrineBas(gosterilecekData) {
             if (gosterilecekData.length === 0) { 
                 vitrin.innerHTML = `<div class="text-center py-16 bg-white rounded-3xl border border-gray-100 shadow-sm"><span class="text-6xl mb-4 block">🏜️</span><p class="text-gray-500 font-bold text-lg">Aradığın kriterlere uygun ilan bulunamadı.</p><button onclick="kategoriSec(''); document.getElementById('arama-desktop').value=''; document.getElementById('arama-mobil').value=''; document.getElementById('oneri-kutusu-desktop').style.display='none'; document.getElementById('oneri-kutusu-mobil').style.display='none'; ilanlariFiltrele();" class="mt-4 text-yellow-600 font-black text-sm uppercase hover:underline">Filtreleri Temizle</button></div>`; return; 
@@ -267,7 +328,7 @@
                 const kategoriEtiketi = ilan.kategori ? ilan.kategori : 'Diğer';
                 const kalpteMi = benimFavorilerim.includes(ilan.id); const kalpSimgesi = kalpteMi ? '❤️' : '🤍'; const kalpBuyumesi = kalpteMi ? 'scale-125' : ''; 
                 
-                // Güvenli Email Kontrolü
+                // Güvenli Email Kontrolü (Veritabanında null ise çökmesin diye)
                 const guvenliEmail = ilan.kullanici_email || "anonim@trakas.com";
 
                 htmlBirlestirici += `
@@ -283,11 +344,11 @@
                                 <h2 class="text-xl font-bold uppercase italic text-gray-800 cursor-pointer hover:text-yellow-600 transition-colors" onclick="window.location.href='detay.html?id=${ilan.id}'">${ilan.baslik}</h2>
                                 <span class="text-green-600 font-black text-sm whitespace-nowrap">${ilan.deger} TL</span>
                             </div>
-                            <div class="mt-4 bg-gray-50 p-3 rounded-xl border-l-4 border-yellow-500 text-sm italic font-semibold text-gray-700">${ilan.aciklama}</div>
+                            <div class="mt-4 bg-gray-50 p-3 rounded-xl border-l-4 border-yellow-500 text-sm italic font-semibold text-gray-700 line-clamp-2">${ilan.aciklama}</div>
                         </div>
                         <div class="flex gap-2 mt-4">
-                            <a href="detay.html?id=${ilan.id}" class="flex-grow bg-gray-900 text-white py-2.5 rounded-lg font-bold text-xs md:text-sm uppercase flex items-center justify-center hover:bg-gray-800 transition-colors">Detayları Gör</a>
-                            <button onclick="teklifVer(${ilan.id}, '${guvenliEmail}')" class="bg-yellow-500 px-4 md:px-8 py-2.5 rounded-lg font-black text-xs md:text-sm uppercase italic hover:bg-yellow-400 transition-all">TEKLİF VER 🤝</button>
+                            <a href="detay.html?id=${ilan.id}" class="flex-grow bg-gray-900 text-white py-2.5 rounded-lg font-bold text-xs md:text-sm uppercase flex items-center justify-center hover:bg-gray-800 transition-colors whitespace-nowrap">Detayları Gör</a>
+                            <button onclick="teklifVer(${ilan.id}, '${guvenliEmail}')" class="bg-yellow-500 px-4 md:px-8 py-2.5 rounded-lg font-black text-xs md:text-sm uppercase italic hover:bg-yellow-400 transition-all whitespace-nowrap">TEKLİF VER 🤝</button>
                         </div>
                     </div>
                 </div>`;
@@ -295,20 +356,7 @@
             vitrin.innerHTML = htmlBirlestirici;
         }
 
-        async function cikisYap() { await _supabase.auth.signOut(); window.location.reload(); }
-
-        async function teklifVer(id, ilanSahibiEmail) {
-            const { data: { session } } = await _supabase.auth.getSession();
-            if (!session) { modalAc("Giriş Yapmalısın", "Teklif göndermek için önce giriş yapman gerekiyor.", "🔒", false, () => { window.location.href = 'giris.html'; }); return; }
-            if (session.user.email === ilanSahibiEmail) { modalAc("Yok Artık!", "Kendi ilanına teklif verip kendi kendinle mi pazarlık yapacaksın usta? 😂", "🤦‍♂️", false); return; }
-            const { data: mevcutTeklif } = await _supabase.from('teklifler').select('id').eq('ilan_id', id).eq('teklif_veren_email', session.user.email);
-            if (mevcutTeklif && mevcutTeklif.length > 0) { modalAc("Zaten Teklif Verdin", "Dur bakalım! Bu ilana zaten bir teklif gönderdin. Karşı tarafın yanıtını beklemelisin.", "⚠️", false); return; }
-            modalAc("Teklif Gönderilsin mi?", "Bu ilan için takas teklifi göndermek istediğine emin misin?", "🤝", true, async () => {
-                const { error } = await _supabase.from('teklifler').insert([{ ilan_id: id, teklif_veren_email: session.user.email }]);
-                if (error) { modalAc("Hata", error.message, "❌", false); } else { modalAc("Başarılı", "Teklifin başarıyla karşı tarafa iletildi!", "✅", false); }
-            });
-        }
-
+        // --- SİTEYİ ATEŞLE ---
         sitemiCalistir();
     </script>
 </body>
