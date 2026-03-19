@@ -44,47 +44,25 @@
     </div>
 
     <script>
-        // Hata Yakalayıcı (Artık hataları gizlemeyecek, ekrana yazacak)
         window.onerror = function(msg) {
             document.getElementById('detay-kutusu').innerHTML = `<div class="w-full flex items-center justify-center p-10"><div class="bg-red-50 p-6 rounded-xl border border-red-200 text-center"><p class="text-red-600 font-mono text-sm font-bold">Sistemsel Hata: ${msg}</p></div></div>`; 
             return true;
         };
 
-        // Modal Motoru
         window.modalAc = function(baslik, mesaj, ikon, isConfirm, onayFonk = null) {
-            const modal = document.getElementById('ozel-modal');
-            const kutu = document.getElementById('ozel-modal-kutu');
-            document.getElementById('modal-baslik').innerText = baslik;
-            document.getElementById('modal-mesaj').innerText = mesaj;
-            document.getElementById('modal-ikon').innerHTML = `<span class="text-3xl">${ikon}</span>`;
-            const btnIptal = document.getElementById('modal-btn-iptal');
-            const btnOnay = document.getElementById('modal-btn-onay');
-
-            btnOnay.onclick = function() {
-                modalKapat();
-                if (onayFonk) onayFonk();
-            };
-
-            if (isConfirm) {
-                btnIptal.classList.remove('hidden'); btnIptal.classList.add('block');
-                btnOnay.innerText = "Evet, Gönder";
-            } else {
-                btnIptal.classList.remove('block'); btnIptal.classList.add('hidden');
-                btnOnay.innerText = "Tamam";
-            }
-
-            modal.classList.remove('hidden');
-            setTimeout(() => { kutu.classList.remove('scale-95', 'opacity-0'); kutu.classList.add('scale-100', 'opacity-100'); }, 10);
+            const modal = document.getElementById('ozel-modal'); const kutu = document.getElementById('ozel-modal-kutu');
+            document.getElementById('modal-baslik').innerText = baslik; document.getElementById('modal-mesaj').innerText = mesaj; document.getElementById('modal-ikon').innerHTML = `<span class="text-3xl">${ikon}</span>`;
+            const btnIptal = document.getElementById('modal-btn-iptal'); const btnOnay = document.getElementById('modal-btn-onay');
+            btnOnay.onclick = function() { modalKapat(); if (onayFonk) onayFonk(); };
+            if (isConfirm) { btnIptal.classList.remove('hidden'); btnIptal.classList.add('block'); btnOnay.innerText = "Evet, Gönder"; } else { btnIptal.classList.remove('block'); btnIptal.classList.add('hidden'); btnOnay.innerText = "Tamam"; }
+            modal.classList.remove('hidden'); setTimeout(() => { kutu.classList.remove('scale-95', 'opacity-0'); kutu.classList.add('scale-100', 'opacity-100'); }, 10);
         }
 
         window.modalKapat = function() {
-            const modal = document.getElementById('ozel-modal');
-            const kutu = document.getElementById('ozel-modal-kutu');
-            kutu.classList.remove('scale-100', 'opacity-100'); kutu.classList.add('scale-95', 'opacity-0');
-            setTimeout(() => { modal.classList.add('hidden'); }, 300);
+            const modal = document.getElementById('ozel-modal'); const kutu = document.getElementById('ozel-modal-kutu');
+            kutu.classList.remove('scale-100', 'opacity-100'); kutu.classList.add('scale-95', 'opacity-0'); setTimeout(() => { modal.classList.add('hidden'); }, 300);
         }
 
-        // Supabase Bağlantısı
         const supabaseUrl = 'https://ivnazhfahtjcdspclkis.supabase.co';
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml2bmF6aGZhaHRqY2RzcGNsa2lzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMyMTgxNzEsImV4cCI6MjA4ODc5NDE3MX0.Z2bKgccAQX8dgex99cQL-GLpTYU1vhb-0BqWiuIMhxU';
         const _supabase = supabase.createClient(supabaseUrl, supabaseKey);
@@ -94,18 +72,9 @@
 
         async function detayiGetir() {
             try {
-                if (!ilanId) {
-                    document.getElementById('detay-kutusu').innerHTML = `<div class="w-full flex items-center justify-center p-10"><p class="text-red-500 font-bold text-xl">Hata: İlan ID bulunamadı!</p></div>`;
-                    return;
-                }
-
+                if (!ilanId) { document.getElementById('detay-kutusu').innerHTML = `<div class="w-full flex items-center justify-center p-10"><p class="text-red-500 font-bold text-xl">Hata: İlan ID bulunamadı!</p></div>`; return; }
                 const { data, error } = await _supabase.from('ilanlar').select('*').eq('id', ilanId).single();
-
-                if (error || !data) {
-                    document.getElementById('detay-kutusu').innerHTML = `<div class="w-full flex items-center justify-center p-10"><p class="text-red-500 font-bold text-xl">İlan bulunamadı veya silinmiş olabilir.</p></div>`;
-                    return;
-                }
-
+                if (error || !data) { document.getElementById('detay-kutusu').innerHTML = `<div class="w-full flex items-center justify-center p-10"><p class="text-red-500 font-bold text-xl">İlan bulunamadı veya silinmiş olabilir.</p></div>`; return; }
                 ekranaBas(data);
             } catch (err) {
                 document.getElementById('detay-kutusu').innerHTML = `<div class="w-full flex items-center justify-center p-10"><p class="text-red-500 font-bold text-xl">Beklenmeyen bir hata oluştu: ${err.message}</p></div>`;
@@ -113,7 +82,6 @@
         }
 
         function ekranaBas(ilan) {
-            // ÇELİK YELEK: Veritabanından gelen eksik veriler kodumuzu çökertmesin diye default (varsayılan) değerler atıyoruz.
             const resimler = ilan.resim_url ? String(ilan.resim_url).split(',') : [];
             const anaResim = resimler.length > 0 ? resimler[0] : "";
             const kategori = ilan.kategori || 'Diğer';
@@ -121,8 +89,8 @@
             const baslik = ilan.baslik || 'İsimsiz İlan';
             const deger = ilan.deger || '0';
             
-            // Kullanıcı emaili yoksa çökmek yerine 'anonim' olarak ayarla
-            const guvenliEmail = ilan.kullanici_email || "anonim@trakas.com";
+            // İŞTE SİHİRLİ DOKUNUŞ: kullanici_email YERİNE sahip_email
+            const guvenliEmail = ilan.sahip_email || "anonim@trakas.com";
             const ilanSahibi = guvenliEmail.split('@')[0];
 
             let solTarafHTML = `
@@ -179,38 +147,18 @@
             document.getElementById('detay-kutusu').innerHTML = solTarafHTML + sagTarafHTML;
         }
 
-        window.resimDegistir = function(url) {
-            document.getElementById('ana-gorsel').src = url;
-        }
+        window.resimDegistir = function(url) { document.getElementById('ana-gorsel').src = url; }
 
         async function teklifVer(id, ilanSahibiEmail) {
             const { data: { session } } = await _supabase.auth.getSession();
-            
-            if (!session) { 
-                modalAc("Giriş Yapmalısın", "Bu ilana teklif göndermek için önce giriş yapman gerekiyor.", "🔒", false, () => {
-                    window.location.href = 'giris.html';
-                });
-                return; 
-            }
-
-            if (session.user.email === ilanSahibiEmail) {
-                modalAc("Yok Artık!", "Kendi ilanına teklif verip kendi kendinle mi pazarlık yapacaksın usta? 😂", "🤦‍♂️", false);
-                return;
-            }
-            
+            if (!session) { modalAc("Giriş Yapmalısın", "Bu ilana teklif göndermek için önce giriş yapman gerekiyor.", "🔒", false, () => { window.location.href = 'giris.html'; }); return; }
+            if (session.user.email === ilanSahibiEmail) { modalAc("Uyarı!", "Kendi ilanına teklif veremezsin.", "⚠️", false); return; }
             const { data: mevcutTeklif } = await _supabase.from('teklifler').select('id').eq('ilan_id', id).eq('teklif_veren_email', session.user.email);
-            if (mevcutTeklif && mevcutTeklif.length > 0) { 
-                modalAc("Zaten Teklif Verdin", "Bu ilana zaten bir teklif gönderdin. İlan sahibinin yanıtını beklemelisin.", "⏳", false);
-                return; 
-            }
+            if (mevcutTeklif && mevcutTeklif.length > 0) { modalAc("Zaten Teklif Verdin", "Bu ilana zaten bir teklif gönderdin. İlan sahibinin yanıtını beklemelisin.", "⏳", false); return; }
             
             modalAc("Teklif Gönderilsin mi?", "Bu ilan için takas teklifi göndermek istediğine emin misin?", "🤝", true, async () => {
                 const { error } = await _supabase.from('teklifler').insert([{ ilan_id: id, teklif_veren_email: session.user.email }]);
-                if (error) {
-                    modalAc("Hata", error.message, "❌", false);
-                } else {
-                    modalAc("Başarılı", "Teklifin başarıyla karşı tarafa iletildi! Mesajlarım ve Tekliflerim bölümünden takip edebilirsin.", "✅", false);
-                }
+                if (error) { modalAc("Hata", error.message, "❌", false); } else { modalAc("Başarılı", "Teklifin başarıyla karşı tarafa iletildi! Mesajlarım ve Tekliflerim bölümünden takip edebilirsin.", "✅", false); }
             });
         }
 
