@@ -3,65 +3,82 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>İlanlarım - Trakas</title>
+    <title>İlanlarım - Trakas Pazaryeri</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .5; } }
         .animate-pulse { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+        
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
     </style>
 </head>
 <body class="bg-gray-50 font-sans min-h-screen flex flex-col">
 
-    <nav class="bg-gray-900 p-4 sticky top-0 z-50 shadow-xl flex-shrink-0">
-        <div class="max-w-7xl mx-auto flex justify-between items-center gap-2">
+    <nav class="bg-gray-900 p-3 md:p-4 sticky top-0 z-50 shadow-xl flex-shrink-0 relative">
+        <div class="max-w-7xl mx-auto flex justify-between items-center gap-4">
+            
             <div class="flex items-center gap-3">
-                <button onclick="mobilMenuAcKapat()" class="md:hidden text-white text-2xl focus:outline-none hover:text-yellow-500 transition-colors">☰</button>
-                <a href="index.html" class="text-3xl font-black text-white tracking-tighter italic hover:text-yellow-500 transition-colors">TRAKAS</a>
+                <button onclick="mobilMenuAcKapat()" class="md:hidden text-white focus:outline-none hover:text-yellow-500 transition-colors">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                </button>
+                <a href="index.html" class="text-2xl md:text-3xl font-black text-white tracking-tighter italic hover:text-yellow-500 transition-colors">TRAKAS</a>
             </div>
-
-            <div class="flex-grow mx-8 hidden md:block relative">
-                <input type="text" id="arama-desktop" autocomplete="new-password" onkeyup="canliArama(this.value)" onfocus="canliArama(this.value)" onblur="setTimeout(() => document.getElementById('oneri-kutusu-desktop').style.display='none', 200)" placeholder="Ürün, marka veya takas tercihi ara..." class="w-full p-2 rounded-lg bg-gray-800 border border-gray-700 text-white text-sm focus:border-yellow-500 outline-none transition-colors">
-                <div id="oneri-kutusu-desktop" style="display: none;" class="absolute w-full bg-white border border-gray-200 shadow-2xl rounded-b-lg mt-1 z-50 max-h-60 overflow-y-auto"></div>
-            </div>
-
-            <div class="flex gap-4 items-center">
-                <span id="user-name" class="text-yellow-500 font-black text-xs uppercase tracking-widest border-r border-gray-700 pr-3 hidden md:block"></span>
-                <a href="index.html" class="text-white font-bold text-sm hover:text-yellow-500 uppercase tracking-widest transition-colors flex items-center gap-2">
-                    <span class="hidden md:inline">← Vitrine Dön</span>
-                    <span class="md:hidden">← Geri</span>
-                </a>
+            
+            <div class="hidden md:flex gap-4 lg:gap-6 items-center flex-shrink-0 ml-auto">
+                <div id="user-panel" style="display: none;" class="items-center gap-4 lg:gap-6 border-r border-gray-700 pr-5">
+                    <span id="user-name" class="text-yellow-500 font-black text-xs uppercase tracking-widest hidden xl:block mr-2"></span>
+                    <a href="favorilerim.html" class="text-gray-300 font-bold text-[11px] lg:text-xs uppercase tracking-wide hover:text-white transition-colors">Favorilerim</a>
+                    <a href="ilanlarim.html" class="text-white font-bold text-[11px] lg:text-xs uppercase tracking-wide transition-colors">İlanlarım</a>
+                    <a href="sohbetler.html" class="text-gray-300 font-bold text-[11px] lg:text-xs uppercase tracking-wide hover:text-white transition-colors">Mesajlarım</a>
+                    <a href="teklifler.html" class="text-gray-300 font-bold text-[11px] lg:text-xs uppercase tracking-wide hover:text-white transition-colors">Tekliflerim</a>
+                    <button onclick="cikisYap()" class="text-red-400 font-bold text-[11px] lg:text-xs uppercase tracking-wide hover:text-red-300 transition-colors ml-2">Çıkış</button>
+                </div>
+                
+                <a href="ilan-ver.html" class="bg-yellow-500 px-5 py-2.5 rounded-lg font-black text-xs hover:bg-yellow-400 uppercase transition-all shadow-md whitespace-nowrap text-gray-900">İlan Ver</a>
             </div>
         </div>
 
-        <div class="mt-3 block md:hidden w-full relative px-3 pb-1">
-            <input type="text" id="arama-mobil" autocomplete="new-password" onkeyup="canliArama(this.value)" onfocus="canliArama(this.value)" onblur="setTimeout(() => document.getElementById('oneri-kutusu-mobil').style.display='none', 200)" placeholder="Takaslık ne arıyorsun?" class="w-full p-2 rounded-lg bg-gray-800 border border-gray-700 text-white text-xs focus:border-yellow-500 outline-none">
-            <div id="oneri-kutusu-mobil" style="display: none;" class="absolute w-[calc(100%-1.5rem)] left-3 bg-white border border-gray-200 shadow-2xl rounded-b-lg mt-1 z-50 max-h-48 overflow-y-auto"></div>
+        <div id="mobil-menu" class="hidden md:hidden flex-col bg-gray-800 p-5 rounded-b-3xl border-t border-gray-700 shadow-2xl absolute left-0 top-full w-full z-50">
+            <div id="mobil-user-panel" style="display: none;" class="flex-col gap-2">
+                <span id="mobil-user-name" class="text-yellow-500 font-black text-sm uppercase tracking-widest block border-b border-gray-700 pb-3 mb-2"></span>
+                <a href="favorilerim.html" class="text-gray-300 font-bold text-sm uppercase hover:text-white block p-3 rounded-lg hover:bg-gray-700 transition-colors">Favorilerim</a>
+                <a href="ilanlarim.html" class="text-white font-bold text-sm uppercase block p-3 rounded-lg bg-gray-700 transition-colors">İlanlarım</a>
+                <a href="sohbetler.html" class="text-gray-300 font-bold text-sm uppercase hover:text-white block p-3 rounded-lg hover:bg-gray-700 transition-colors">Mesajlarım</a>
+                <a href="teklifler.html" class="text-gray-300 font-bold text-sm uppercase hover:text-white block p-3 rounded-lg hover:bg-gray-700 transition-colors">Tekliflerim</a>
+                <button onclick="cikisYap()" class="text-red-400 font-bold text-sm uppercase text-left p-3 hover:bg-gray-700 rounded-lg mt-2 transition-colors">Çıkış Yap</button>
+            </div>
         </div>
     </nav>
 
     <main class="max-w-5xl mx-auto p-4 md:p-8 mt-4 flex-grow w-full">
-        <div class="bg-white p-6 md:p-10 rounded-3xl shadow-sm border border-gray-100">
+        <div class="bg-white p-6 md:p-10 rounded-2xl shadow-sm border border-gray-100 min-h-[500px]">
+            
             <div class="mb-8 border-b-2 border-gray-100 pb-4 flex justify-between items-end">
                 <div>
-                    <h1 class="text-3xl font-black text-gray-900 uppercase italic tracking-tight mb-1">İlanlarım 📦</h1>
-                    <p class="text-gray-500 font-medium text-sm">Sisteme yüklediğin tüm takaslık eşyaların burada.</p>
+                    <h1 class="text-2xl md:text-3xl font-black text-gray-900 uppercase italic tracking-tight mb-1">İlanlarım</h1>
+                    <p class="text-gray-500 font-medium text-sm">Sisteme yüklediğiniz ilanları buradan yönetebilirsiniz.</p>
                 </div>
-                <a href="ilan-ver.html" class="hidden md:block bg-yellow-500 text-gray-900 px-6 py-2 rounded-xl font-black text-sm uppercase shadow-md hover:bg-yellow-400 transition-colors">Yeni İlan Ekle +</a>
+                <a href="ilan-ver.html" class="hidden md:flex bg-yellow-500 text-gray-900 px-5 py-2.5 rounded-lg font-black text-xs uppercase hover:bg-yellow-400 transition-colors items-center gap-2 shadow-sm hover:-translate-y-0.5">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path></svg>
+                    Yeni İlan
+                </a>
             </div>
 
-            <a href="ilan-ver.html" class="block md:hidden bg-yellow-500 text-center text-gray-900 px-6 py-3 mb-6 rounded-xl font-black text-sm uppercase shadow-md hover:bg-yellow-400 transition-colors">Yeni İlan Ekle +</a>
-
             <div id="benim-ilanlarim-vitrini" class="space-y-4">
-                <div class="bg-gray-50 p-4 rounded-2xl border border-gray-100 flex flex-col sm:flex-row gap-4 animate-pulse">
-                    <div class="w-24 h-24 bg-gray-200 rounded-xl flex-shrink-0"></div>
-                    <div class="flex-grow flex flex-col justify-center">
-                        <div class="w-16 h-4 bg-gray-200 rounded mb-2"></div>
-                        <div class="w-3/4 h-5 bg-gray-200 rounded mb-2"></div>
-                        <div class="w-1/4 h-4 bg-gray-200 rounded"></div>
+                <div class="animate-pulse flex gap-4 bg-gray-50 p-4 rounded-xl border border-gray-100">
+                    <div class="w-24 h-24 bg-gray-200 rounded-lg"></div>
+                    <div class="flex-grow py-2">
+                        <div class="h-4 bg-gray-200 rounded w-1/4 mb-4"></div>
+                        <div class="h-5 bg-gray-200 rounded w-3/4 mb-2"></div>
+                        <div class="h-4 bg-gray-200 rounded w-1/2"></div>
                     </div>
                 </div>
             </div>
+
         </div>
     </main>
 
@@ -69,127 +86,180 @@
         <div class="max-w-7xl mx-auto px-6 flex flex-col items-center">
             <h2 class="text-4xl font-black text-white tracking-tighter italic mb-2 opacity-90">TRAKAS</h2>
             <p class="text-sm font-medium tracking-wide mb-6">Türkiye'nin Yeni Nesil Klasik Takas Pazarı</p>
-            <p class="text-xs font-bold text-gray-600 uppercase tracking-widest">© 2026 Trakas Pazaryeri A.Ş. • Bursa, Türkiye</p>
+            <p class="text-[10px] font-bold text-gray-600 uppercase tracking-widest">© 2026 Trakas Pazaryeri A.Ş. • Bursa, Türkiye</p>
         </div>
     </footer>
 
     <div id="ozel-modal" class="hidden fixed inset-0 z-[999] flex items-center justify-center px-4">
-        <div class="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity" onclick="modalKapat()"></div>
-        <div id="ozel-modal-kutu" class="relative bg-white p-6 md:p-8 rounded-3xl shadow-2xl w-full max-w-sm transform scale-95 opacity-0 transition-all duration-300">
+        <div class="absolute inset-0 bg-gray-900/70 backdrop-blur-sm transition-opacity" onclick="modalKapat()"></div>
+        <div id="ozel-modal-kutu" class="relative bg-white p-8 rounded-2xl shadow-2xl w-full max-w-sm transform scale-95 opacity-0 transition-all duration-300">
             <div class="text-center">
-                <div id="modal-ikon" class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-yellow-50 mb-4 border-4 border-white shadow-sm">
-                    <span class="text-3xl">🤔</span>
-                </div>
-                <h3 id="modal-baslik" class="text-2xl font-black text-gray-900 mb-2 italic uppercase tracking-tight">Uyarı</h3>
+                <div id="modal-ikon" class="mx-auto flex items-center justify-center h-12 w-12 rounded-full mb-4"></div>
+                <h3 id="modal-baslik" class="text-lg font-black text-gray-900 mb-2 uppercase tracking-wide">Uyarı</h3>
                 <p id="modal-mesaj" class="text-gray-600 font-medium text-sm mb-8 leading-relaxed"></p>
                 <div class="flex justify-center gap-3">
-                    <button id="modal-btn-iptal" onclick="modalKapat()" class="hidden flex-1 bg-gray-100 text-gray-700 font-bold px-4 py-3 rounded-xl hover:bg-gray-200 transition-colors uppercase text-xs tracking-wide">İptal</button>
-                    <button id="modal-btn-onay" class="flex-1 bg-yellow-500 text-gray-900 font-black px-4 py-3 rounded-xl hover:bg-yellow-400 transition-colors uppercase text-xs tracking-wide shadow-md">Tamam</button>
+                    <button id="modal-btn-iptal" onclick="modalKapat()" class="hidden flex-1 bg-gray-100 text-gray-700 font-bold px-4 py-3 rounded-lg hover:bg-gray-200 transition-colors uppercase text-xs tracking-wide">İptal</button>
+                    <button id="modal-btn-onay" onclick="modalOnayCalistir()" class="flex-1 bg-gray-900 text-white font-bold px-4 py-3 rounded-lg hover:bg-gray-800 transition-colors uppercase text-xs tracking-wide shadow-md">Tamam</button>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        window.modalAc = function(baslik, mesaj, ikon, isConfirm, onayFonk = null) {
-            const modal = document.getElementById('ozel-modal'); const kutu = document.getElementById('ozel-modal-kutu');
-            document.getElementById('modal-baslik').innerText = baslik; document.getElementById('modal-mesaj').innerText = mesaj; document.getElementById('modal-ikon').innerHTML = `<span class="text-3xl">${ikon}</span>`;
-            const btnIptal = document.getElementById('modal-btn-iptal'); const btnOnay = document.getElementById('modal-btn-onay');
-            btnOnay.onclick = function() { modalKapat(); if (onayFonk) onayFonk(); };
-            if (isConfirm) { btnIptal.classList.remove('hidden'); btnIptal.classList.add('block'); btnOnay.innerText = "Evet, Sil"; } else { btnIptal.classList.remove('block'); btnIptal.classList.add('hidden'); btnOnay.innerText = "Tamam"; }
-            modal.classList.remove('hidden'); setTimeout(() => { kutu.classList.remove('scale-95', 'opacity-0'); kutu.classList.add('scale-100', 'opacity-100'); }, 10);
-        }
-        window.modalKapat = function() {
-            const modal = document.getElementById('ozel-modal'); const kutu = document.getElementById('ozel-modal-kutu');
-            kutu.classList.remove('scale-100', 'opacity-100'); kutu.classList.add('scale-95', 'opacity-0'); setTimeout(() => { modal.classList.add('hidden'); }, 300);
-        }
-
         const supabaseUrl = 'https://ivnazhfahtjcdspclkis.supabase.co';
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml2bmF6aGZhaHRqY2RzcGNsa2lzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMyMTgxNzEsImV4cCI6MjA4ODc5NDE3MX0.Z2bKgccAQX8dgex99cQL-GLpTYU1vhb-0BqWiuIMhxU';
         const _supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
         let benimEmailim = "";
+        let hafizadakiIslem = null;
 
-        async function ilanlarimiGetir() {
-            const listeKutusu = document.getElementById('benim-ilanlarim-vitrini');
+        // Modal Motoru
+        window.modalAc = function(baslik, mesaj, tip, isConfirm, onayFonk = null) {
+            document.getElementById('modal-baslik').innerText = baslik; 
+            document.getElementById('modal-mesaj').innerText = mesaj; 
             
+            hafizadakiIslem = onayFonk;
+            const ikonKutusu = document.getElementById('modal-ikon');
+            const btnIptal = document.getElementById('modal-btn-iptal'); 
+            const btnOnay = document.getElementById('modal-btn-onay');
+
+            if (tip === 'hata') {
+                ikonKutusu.className = "mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4";
+                ikonKutusu.innerHTML = `<svg class="h-6 w-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>`;
+            } else if (tip === 'uyari') {
+                ikonKutusu.className = "mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-yellow-100 mb-4";
+                ikonKutusu.innerHTML = `<svg class="h-6 w-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>`;
+            } else {
+                ikonKutusu.className = "mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100 mb-4";
+                ikonKutusu.innerHTML = `<svg class="h-6 w-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>`;
+            }
+            
+            if (isConfirm) { 
+                btnIptal.classList.remove('hidden'); btnIptal.classList.add('block'); 
+                btnOnay.innerText = "Kalıcı Olarak Sil"; 
+                btnOnay.className = "flex-1 bg-red-600 text-white font-bold px-4 py-3 rounded-lg hover:bg-red-700 transition-colors uppercase text-xs tracking-wide shadow-md";
+            } else { 
+                btnIptal.classList.remove('block'); btnIptal.classList.add('hidden'); 
+                btnOnay.innerText = "Tamam"; 
+                btnOnay.className = "flex-1 bg-gray-900 text-white font-bold px-4 py-3 rounded-lg hover:bg-gray-800 transition-colors uppercase text-xs tracking-wide shadow-md";
+            }
+            
+            document.getElementById('ozel-modal').classList.remove('hidden'); 
+            setTimeout(() => { document.getElementById('ozel-modal-kutu').classList.remove('scale-95', 'opacity-0'); document.getElementById('ozel-modal-kutu').classList.add('scale-100', 'opacity-100'); }, 10);
+        }
+
+        window.modalOnayCalistir = async function() {
+            modalKapat();
+            if (hafizadakiIslem) { await hafizadakiIslem(); hafizadakiIslem = null; }
+        }
+
+        window.modalKapat = function() {
+            const kutu = document.getElementById('ozel-modal-kutu');
+            kutu.classList.remove('scale-100', 'opacity-100'); kutu.classList.add('scale-95', 'opacity-0'); setTimeout(() => { document.getElementById('ozel-modal').classList.add('hidden'); }, 300);
+        }
+
+        window.mobilMenuAcKapat = function() { 
+            const menu = document.getElementById('mobil-menu'); 
+            if (menu.classList.contains('hidden')) { menu.classList.remove('hidden'); menu.classList.add('flex'); } 
+            else { menu.classList.add('hidden'); menu.classList.remove('flex'); } 
+        };
+
+        async function sitemiCalistir() {
             const { data: { session } } = await _supabase.auth.getSession();
             if (!session) { window.location.href = 'giris.html'; return; }
 
             benimEmailim = session.user.email;
+            document.getElementById('user-panel').style.display = 'flex';
+            document.getElementById('mobil-user-panel').style.display = 'flex';
             document.getElementById('user-name').innerText = benimEmailim.split('@')[0].toUpperCase();
+            document.getElementById('mobil-user-name').innerText = benimEmailim.split('@')[0].toUpperCase();
 
-            setTimeout(async () => {
-                // İŞTE BÜYÜK ÇÖZÜM BURADA: kullanici_email YERİNE sahip_email YAZDIK!
-                const { data: ilanlar, error } = await _supabase.from('ilanlar')
-                    .select('*')
-                    .eq('sahip_email', benimEmailim) 
-                    .order('id', { ascending: false });
-
-                if (error) {
-                    listeKutusu.innerHTML = `<p class="text-center text-red-500 font-bold py-10">İlanların yüklenirken hata oluştu: ${error.message}</p>`;
-                    return;
-                }
-
-                if (!ilanlar || ilanlar.length === 0) {
-                    listeKutusu.innerHTML = `
-                        <div class="text-center py-16">
-                            <span class="text-6xl mb-4 block opacity-50">🕸️</span>
-                            <p class="text-gray-500 font-bold text-lg">Burası çok ıssız... Henüz hiç ilan vermemişsin.</p>
-                            <p class="text-gray-400 text-sm mt-2">Evde kullanmadığın eşyaları hemen takasa çıkar!</p>
-                        </div>`;
-                    return;
-                }
-
-                let htmlCikti = '';
-                ilanlar.forEach(ilan => {
-                    let kapakResmi = ""; if (ilan.resim_url) { kapakResmi = ilan.resim_url.split(',')[0]; }
-                    const resimHtml = kapakResmi ? `<img src="${kapakResmi}" class="w-full h-full object-cover">` : '<span class="text-3xl">📸</span>';
-                    const kategoriEtiketi = ilan.kategori || 'Diğer';
-
-                    htmlCikti += `
-                    <div id="ilan-kart-${ilan.id}" class="bg-gray-50 p-4 rounded-2xl border border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-4 hover:border-yellow-300 transition-colors group">
-                        <div class="flex items-center gap-4 w-full sm:w-auto">
-                            <div class="w-20 h-20 md:w-24 md:h-24 bg-gray-200 rounded-xl overflow-hidden flex-shrink-0 flex items-center justify-center cursor-pointer" onclick="window.location.href='detay.html?id=${ilan.id}'">
-                                ${resimHtml}
-                            </div>
-                            <div>
-                                <div class="flex items-center gap-2 mb-1">
-                                    <span class="bg-gray-200 text-gray-600 text-[9px] font-black uppercase px-2 py-0.5 rounded-md">${kategoriEtiketi}</span>
-                                </div>
-                                <h3 class="font-black text-gray-900 uppercase text-sm md:text-base cursor-pointer hover:text-yellow-600 transition-colors line-clamp-1" onclick="window.location.href='detay.html?id=${ilan.id}'">${ilan.baslik}</h3>
-                                <p class="text-green-600 font-black text-sm">${ilan.deger} TL</p>
-                            </div>
-                        </div>
-
-                        <div class="flex gap-2 w-full sm:w-auto justify-end mt-2 sm:mt-0">
-                            <a href="detay.html?id=${ilan.id}" class="bg-white border border-gray-200 text-gray-600 hover:text-gray-900 font-bold text-[10px] uppercase px-4 py-2.5 rounded-lg transition-colors shadow-sm flex items-center">İncele</a>
-                            <button onclick="ilanSilOnay(${ilan.id})" class="bg-red-50 hover:bg-red-100 text-red-500 hover:text-red-700 font-bold text-[10px] uppercase px-4 py-2.5 rounded-lg transition-colors border border-red-100 shadow-sm flex items-center gap-1">
-                                İlanı Kaldır 🗑️
-                            </button>
-                        </div>
-                    </div>`;
-                });
-                listeKutusu.innerHTML = htmlCikti;
-            }, 500);
+            ilanlariGetir();
         }
 
-        window.ilanSilOnay = function(ilanId) {
-            modalAc("İlanı Siliyorsun", "Bu ilanı vitrinden tamamen kaldırmak istediğine emin misin? Bu işlem geri alınamaz.", "🗑️", true, async () => {
+        async function ilanlariGetir() {
+            const vitrin = document.getElementById('benim-ilanlarim-vitrini');
+            try {
+                const { data, error } = await _supabase.from('ilanlar').select('*').eq('sahip_email', benimEmailim).order('id', { ascending: false });
+                if (error) throw error;
+
+                setTimeout(() => {
+                    if (!data || data.length === 0) {
+                        vitrin.innerHTML = `
+                        <div class="text-center py-16">
+                            <svg class="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path></svg>
+                            <p class="text-gray-400 font-medium text-lg mb-2">Henüz sisteme yüklediğiniz bir ilan bulunmuyor.</p>
+                            <a href="ilan-ver.html" class="inline-block mt-4 bg-gray-900 text-white px-6 py-2.5 rounded-lg font-bold text-xs uppercase hover:bg-gray-800 transition-colors">İlk İlanını Ver</a>
+                        </div>`;
+                        return;
+                    }
+
+                    let htmlCikti = '';
+                    data.forEach(ilan => {
+                        let kapakResmi = ""; 
+                        if (ilan.resim_url) { kapakResmi = ilan.resim_url.split(',')[0]; }
+                        const resimHtml = kapakResmi ? `<img src="${kapakResmi}" class="w-full h-full object-cover">` : '<div class="w-full h-full bg-gray-200 flex items-center justify-center text-gray-400 text-[10px] font-bold uppercase tracking-widest">Görsel Yok</div>';
+                        const kategori = ilan.kategori || 'Diğer';
+
+                        htmlCikti += `
+                        <div id="ilan-kart-${ilan.id}" class="bg-white p-4 rounded-xl border border-gray-200 flex flex-col sm:flex-row items-center justify-between gap-6 hover:border-yellow-500 transition-colors shadow-sm">
+                            <div class="flex items-center gap-5 w-full sm:w-auto">
+                                <div class="w-24 h-24 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0 cursor-pointer" onclick="window.location.href='detay.html?id=${ilan.id}'">
+                                    ${resimHtml}
+                                </div>
+                                <div class="flex flex-col justify-center">
+                                    <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">${kategori}</span>
+                                    <h3 class="font-black text-gray-900 uppercase text-sm md:text-base cursor-pointer hover:text-yellow-600 transition-colors line-clamp-1 mb-1" onclick="window.location.href='detay.html?id=${ilan.id}'">${ilan.baslik}</h3>
+                                    <p class="text-gray-800 font-bold text-sm">${ilan.deger} ₺</p>
+                                </div>
+                            </div>
+
+                            <div class="flex gap-3 w-full sm:w-auto justify-end mt-2 sm:mt-0">
+                                <button onclick="ilanDuzenle(${ilan.id})" class="bg-gray-50 border border-gray-200 text-gray-700 hover:bg-gray-100 hover:text-gray-900 font-bold text-xs uppercase px-5 py-2.5 rounded-lg transition-colors text-center flex items-center gap-2"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg> Düzenle</button>
+                                <button onclick="ilanSil(${ilan.id})" class="bg-white border border-red-200 text-red-600 hover:bg-red-50 font-bold text-xs uppercase px-5 py-2.5 rounded-lg transition-colors flex items-center gap-2"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg> Sil</button>
+                            </div>
+                        </div>`;
+                    });
+                    vitrin.innerHTML = htmlCikti;
+                }, 300);
+
+            } catch (err) {
+                vitrin.innerHTML = `<p class="text-center text-red-600 font-medium py-10">Sistem Hatası: ${err.message}</p>`;
+            }
+        }
+
+        window.ilanDuzenle = function(ilanId) {
+            modalAc("Bilgi", "İlan düzenleme modülü şu anda bakımda. Yakında aktif edilecektir.", "uyari", false);
+            // İleride burası: window.location.href = `ilan-duzenle.html?id=${ilanId}`; olacak.
+        }
+
+        window.ilanSil = function(ilanId) {
+            modalAc("İlanı Sil", "Bu ilanı kalıcı olarak silmek istediğinize emin misiniz? Bu işlem geri alınamaz.", "hata", true, async () => {
                 const kart = document.getElementById(`ilan-kart-${ilanId}`);
-                if (kart) { kart.style.opacity = '0'; setTimeout(() => kart.remove(), 300); }
-                const { error } = await _supabase.from('ilanlar').delete().eq('id', ilanId);
+                if (kart) {
+                    kart.style.opacity = '0';
+                    setTimeout(() => kart.remove(), 300);
+                }
+                
+                const { error } = await _supabase.from('ilanlar').delete().eq('id', ilanId).eq('sahip_email', benimEmailim);
+                
                 if (error) {
-                    modalAc("Hata", "İlan silinirken bir hata oluştu.", "❌", false);
-                    ilanlarimiGetir(); 
+                    modalAc("Hata", "Silme işlemi sırasında bir hata oluştu: " + error.message, "hata", false);
+                    ilanlariGetir(); 
                 } else {
-                    const listeKutusu = document.getElementById('benim-ilanlarim-vitrini');
-                    setTimeout(() => { if (listeKutusu.children.length === 0 || listeKutusu.innerText.trim() === '') { ilanlarimiGetir(); } }, 350);
+                    const vitrin = document.getElementById('benim-ilanlarim-vitrini');
+                    setTimeout(() => {
+                        if (vitrin.children.length === 0 || vitrin.innerText.trim() === '') {
+                            ilanlariGetir(); 
+                        }
+                    }, 350);
                 }
             });
         }
 
-        ilanlarimiGetir();
+        async function cikisYap() { await _supabase.auth.signOut(); window.location.href = 'index.html'; }
+
+        sitemiCalistir();
     </script>
 </body>
 </html>
