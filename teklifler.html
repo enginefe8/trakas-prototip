@@ -32,7 +32,7 @@
             <p class="text-gray-500 font-medium text-sm">Gelen ve giden takas tekliflerinizi buradan yönetin.</p>
         </div>
 
-        <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden min-h-[500px]">
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden min-h-[500px] flex flex-col">
             
             <div class="flex border-b border-gray-100 px-4 md:px-8 pt-4">
                 <button onclick="sekmeDegistir('gelen')" id="tab-gelen" class="pb-4 px-4 text-xs tracking-widest uppercase transition-all tab-aktif">
@@ -43,21 +43,21 @@
                 </button>
             </div>
 
-            <div class="p-4 md:p-8 bg-gray-50/50 min-h-[400px]">
+            <div class="p-4 md:p-8 bg-gray-50/50 flex-grow relative">
                 
-                <div id="yukleniyor" class="flex flex-col items-center justify-center py-20">
+                <div id="yukleniyor" style="display: flex;" class="flex-col items-center justify-center py-20 w-full">
                     <svg class="animate-spin h-8 w-8 text-[#111827] mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                     <span class="text-xs font-bold text-gray-500 uppercase tracking-widest">Veriler Çekiliyor...</span>
                 </div>
 
-                <div id="teklif-listesi" class="grid grid-cols-1 md:grid-cols-2 gap-4 hidden">
+                <div id="teklif-listesi" style="display: none;" class="grid-cols-1 md:grid-cols-2 gap-4 w-full">
                     </div>
 
-                <div id="bos-durum" class="hidden flex-col items-center justify-center py-20 text-center">
+                <div id="bos-durum" style="display: none;" class="flex-col items-center justify-center py-20 text-center w-full">
                     <div class="w-16 h-16 bg-white border border-gray-200 rounded-full flex items-center justify-center mb-4 shadow-sm">
                         <svg class="w-8 h-8 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path></svg>
                     </div>
-                    <p class="text-gray-400 font-bold uppercase text-[10px] tracking-widest">BU ALANDA TEKLİF BULUNMUYOR</p>
+                    <p id="bos-durum-yazi" class="text-gray-400 font-bold uppercase text-[10px] tracking-widest">BU ALANDA TEKLİF BULUNMUYOR</p>
                 </div>
             </div>
         </div>
@@ -99,15 +99,16 @@
                 ekraniCiz();
             } catch (error) {
                 console.error("Başlatma hatası:", error);
-                document.getElementById('yukleniyor').classList.add('hidden');
+                document.getElementById('yukleniyor').style.display = 'none';
                 modalAc("Sistem Hatası", "Sayfa yüklenirken bir sorun oluştu.", "hata");
             }
         }
 
         async function verileriCek() {
-            document.getElementById('yukleniyor').classList.remove('hidden');
-            document.getElementById('teklif-listesi').classList.add('hidden');
-            document.getElementById('bos-durum').classList.add('hidden');
+            // Yükleniyor ekranını aç, diğerlerini tamamen kapat
+            document.getElementById('yukleniyor').style.display = 'flex';
+            document.getElementById('teklif-listesi').style.display = 'none';
+            document.getElementById('bos-durum').style.display = 'none';
 
             try {
                 // İlanları çek
@@ -123,8 +124,6 @@
             } catch (err) {
                 console.error("Veri çekme hatası:", err);
                 modalAc("Bağlantı Hatası", "Veritabanına bağlanılamadı.", "hata");
-            } finally {
-                document.getElementById('yukleniyor').classList.add('hidden');
             }
         }
 
@@ -138,6 +137,10 @@
         function ekraniCiz() {
             const listeDiv = document.getElementById('teklif-listesi');
             const bosDiv = document.getElementById('bos-durum');
+            const yukleniyorDiv = document.getElementById('yukleniyor');
+            
+            // Tüm alanları sıfırla
+            yukleniyorDiv.style.display = 'none';
             listeDiv.innerHTML = "";
 
             // BENİM İLANLARIMIN ID'LERİNİ BUL
@@ -146,38 +149,36 @@
             // SEKMEYE GÖRE FİLTRELE
             let gosterilecekTeklifler = [];
             if(aktifSekme === 'gelen') {
-                // İlanı bana ait olanlara gelen teklifler
                 gosterilecekTeklifler = tumTeklifler.filter(t => benimIlanIdlerim.includes(t.ilan_id));
             } else {
-                // Benim yaptığım teklifler
                 gosterilecekTeklifler = tumTeklifler.filter(t => t.teklif_veren_email === benimEmailim);
             }
 
+            // EĞER TEKLİF YOKSA BOŞ EKRANI GÖSTER
             if(gosterilecekTeklifler.length === 0) {
-                listeDiv.classList.add('hidden');
-                bosDiv.classList.remove('hidden');
-                bosDiv.classList.add('flex');
+                listeDiv.style.display = 'none';
+                bosDiv.style.display = 'flex';
+                // Yazıyı dinamik değiştir
+                document.getElementById('bos-durum-yazi').innerText = aktifSekme === 'gelen' ? "HENÜZ BİR TAKAS TEKLİFİ ALMADINIZ" : "HENÜZ KİMSEYE TEKLİF GÖNDERMEDİNİZ";
                 return;
             }
 
-            bosDiv.classList.add('hidden');
-            listeDiv.classList.remove('hidden');
+            // TEKLİF VARSA LİSTEYİ GÖSTER
+            bosDiv.style.display = 'none';
+            listeDiv.style.display = 'grid'; // Grid display ile açıyoruz
 
             let htmlCikti = '';
             gosterilecekTeklifler.forEach(t => {
                 const ilgiliIlan = tumIlanlar.find(i => i.id === t.ilan_id);
-                if(!ilgiliIlan) return; // İlan silinmişse kartı basma
+                if(!ilgiliIlan) return;
 
-                // Durum Rozeti Renkleri
                 let durumRenk = "bg-yellow-50 text-yellow-600 border-yellow-200";
                 if(t.durum === 'Kabul Edildi') durumRenk = "bg-green-50 text-green-600 border-green-200";
                 if(t.durum === 'Reddedildi' || t.durum === 'İptal Edildi') durumRenk = "bg-red-50 text-red-600 border-red-200";
 
-                // İlk resmi al (Eğer çokluysa virgülden böl)
                 let ilkResim = "";
                 if(ilgiliIlan.resim_url) ilkResim = ilgiliIlan.resim_url.split(',')[0];
 
-                // Kart Yapısı (MOBİL UYUMLU VE TIRNAK İŞARETLERİ EKLENDİ!)
                 htmlCikti += `
                 <div class="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between">
                     <div class="flex gap-4 items-start mb-4">
@@ -223,29 +224,25 @@
 
         async function durumGuncelle(teklifId, yeniDurum) {
             try {
-                // Ekranda loading efekti yarat
-                document.getElementById('yukleniyor').classList.remove('hidden');
-                document.getElementById('teklif-listesi').classList.add('hidden');
+                document.getElementById('yukleniyor').style.display = 'flex';
+                document.getElementById('teklif-listesi').style.display = 'none';
+                document.getElementById('bos-durum').style.display = 'none';
 
                 const { error } = await _supabase.from('teklifler').update({ durum: yeniDurum }).eq('id', teklifId);
                 if (error) throw error;
                 
-                // Lokal veriyi güncelle
                 const index = tumTeklifler.findIndex(t => t.id == teklifId);
                 if(index > -1) tumTeklifler[index].durum = yeniDurum;
                 
-                ekraniCiz(); // Ekranı tekrar çiz ve loading'i kapat
+                ekraniCiz(); 
 
                 if(yeniDurum === 'Kabul Edildi') {
                     modalAc("Harika!", "Teklifi kabul ettiniz. Karşı tarafla sohbet başlatarak detayları konuşabilirsiniz.", "basarili");
                 }
 
             } catch (err) {
-                document.getElementById('yukleniyor').classList.add('hidden');
-                document.getElementById('teklif-listesi').classList.remove('hidden');
+                ekraniCiz();
                 modalAc("Hata", "Durum güncellenemedi: " + err.message, "hata");
-            } finally {
-                document.getElementById('yukleniyor').classList.add('hidden');
             }
         }
 
@@ -253,7 +250,6 @@
             window.location.href = `sohbetler.html`;
         }
 
-        // Modal Fonksiyonları
         let modalOnayFonk = null;
         function modalAc(baslik, mesaj, tip, onayFonk = null) {
             document.getElementById('modal-baslik').innerText = baslik;
@@ -272,10 +268,8 @@
         function modalKapat() {
             document.getElementById('ozel-modal-kutu').classList.add('scale-95', 'opacity-0');
             setTimeout(() => { document.getElementById('ozel-modal').classList.add('hidden'); }, 300);
-            if(modalOnayFonk) { modalOnayFonk(); modalOnayFonk = null; }
+            if(modalOnayFonk && (document.getElementById('modal-ikon').innerText === '!' || document.getElementById('modal-ikon').innerText === '?')) modalOnayFonk = null;
         }
-
-        async function cikisYap() { await _supabase.auth.signOut(); window.location.href = 'index.html'; }
 
         sitemiCalistir();
     </script>
