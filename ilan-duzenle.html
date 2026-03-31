@@ -72,7 +72,7 @@
                 <div>
                     <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest mb-3">ÜRÜN GÖRSELLERİ <span class="text-red-500">*</span></label>
                     
-                    <div class="relative w-full bg-white border-2 border-dashed border-gray-300 rounded-2xl p-6 transition-all hover:border-gray-400 hover:bg-gray-50 mb-6">
+                    <div class="relative w-full bg-white border-2 border-dashed border-gray-300 rounded-2xl p-6 transition-all hover:border-gray-400 hover:bg-gray-50 mb-6 cursor-pointer">
                         <input type="file" id="resim_dosyalar" multiple accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" onchange="resimOnizleme(this)">
                         
                         <div id="resim-secici-icerik" class="flex flex-col items-center justify-center text-center pointer-events-none min-h-[80px]">
@@ -153,8 +153,11 @@
             document.getElementById('deger').value = ilanVerisi.deger;
             document.getElementById('aciklama').value = ilanVerisi.aciklama;
 
+            // FİLTRELEME: Boşlukları ayıkla, bozuk linkleri temizle (SORUNUN ÇÖZÜLDÜĞÜ YER)
             if(ilanVerisi.resim_url && ilanVerisi.resim_url.trim() !== "") {
-                mevcutResimler = ilanVerisi.resim_url.split(',');
+                mevcutResimler = ilanVerisi.resim_url.split(',')
+                    .map(url => url.trim()) // Boşlukları sil
+                    .filter(url => url !== ""); // Boş olanları çöpe at
             }
 
             renderPreviews();
@@ -253,10 +256,10 @@
                 const kategori = document.getElementById('kategori').value;
                 const deger = document.getElementById('deger').value;
                 
-                let finalResimDizisi = [...mevcutResimler]; // Eskileri koru
+                let finalResimDizisi = [...mevcutResimler]; 
                 const storageBucket = _supabase.storage.from('ilan-resimleri');
 
-                // Sadece YENİ seçilenleri Storage'a yükle
+                // Yeni seçilenleri Storage'a yükle
                 for(const dosya of yeniSecilenDosyalar) {
                     const dosyaUzantisi = dosya.name.split('.').pop();
                     const dosyaAdi = `${Date.now()}-${Math.random().toString(36).substring(7)}.${dosyaUzantisi}`;
@@ -265,12 +268,13 @@
                     if (uploadError) throw new Error(`${dosya.name} yüklenemedi: ${uploadError.message}`);
 
                     const { data: urlData } = storageBucket.getPublicUrl(dosyaAdi);
-                    finalResimDizisi.push(urlData.publicUrl); // Yeni linkleri diziye ekle
+                    finalResimDizisi.push(urlData.publicUrl); 
                 }
 
+                // Hatasız virgüllü birleştirme
                 const finalResimMetni = finalResimDizisi.join(',');
 
-                // Veritabanını UPDATE et (INSERT değil)
+                // Veritabanını güncelle
                 const { error: dbError } = await _supabase
                     .from('ilanlar')
                     .update({
@@ -284,7 +288,9 @@
 
                 if (dbError) throw dbError;
 
-                modalAc("Başarılı", "İlanınız başarıyla güncellendi.", "basarili", () => window.location.href = 'ilanlarim.html');
+                modalAc("Başarılı", "İlanınız başarıyla güncellendi.", "basarili", () => {
+                    window.location.href = `detay.html?id=${ilanId}`; // Başarılı olunca direkt Detay sayfasına at!
+                });
                 
             } catch (err) {
                 btn.disabled = false;
