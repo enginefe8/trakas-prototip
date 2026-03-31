@@ -45,15 +45,15 @@
 
             <div class="p-4 md:p-8 bg-gray-50/50 flex-grow relative">
                 
-                <div id="yukleniyor" style="display: flex;" class="flex-col items-center justify-center py-20 w-full">
+                <div id="yukleniyor" class="flex flex-col items-center justify-center py-20 w-full">
                     <svg class="animate-spin h-8 w-8 text-[#111827] mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                     <span class="text-xs font-bold text-gray-500 uppercase tracking-widest">Veriler Çekiliyor...</span>
                 </div>
 
-                <div id="teklif-listesi" style="display: none;" class="grid-cols-1 md:grid-cols-2 gap-4 w-full">
+                <div id="teklif-listesi" class="hidden grid-cols-1 md:grid-cols-2 gap-4 w-full">
                     </div>
 
-                <div id="bos-durum" style="display: none;" class="flex-col items-center justify-center py-20 text-center w-full">
+                <div id="bos-durum" class="hidden flex-col items-center justify-center py-20 text-center w-full">
                     <div class="w-16 h-16 bg-white border border-gray-200 rounded-full flex items-center justify-center mb-4 shadow-sm">
                         <svg class="w-8 h-8 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path></svg>
                     </div>
@@ -99,24 +99,24 @@
                 ekraniCiz();
             } catch (error) {
                 console.error("Başlatma hatası:", error);
-                document.getElementById('yukleniyor').style.display = 'none';
+                document.getElementById('yukleniyor').classList.add('hidden');
                 modalAc("Sistem Hatası", "Sayfa yüklenirken bir sorun oluştu.", "hata");
             }
         }
 
         async function verileriCek() {
-            // Yükleniyor ekranını aç, diğerlerini tamamen kapat
-            document.getElementById('yukleniyor').style.display = 'flex';
-            document.getElementById('teklif-listesi').style.display = 'none';
-            document.getElementById('bos-durum').style.display = 'none';
+            document.getElementById('yukleniyor').classList.remove('hidden');
+            document.getElementById('yukleniyor').classList.add('flex');
+            document.getElementById('teklif-listesi').classList.add('hidden');
+            document.getElementById('teklif-listesi').classList.remove('grid');
+            document.getElementById('bos-durum').classList.add('hidden');
+            document.getElementById('bos-durum').classList.remove('flex');
 
             try {
-                // İlanları çek
                 const { data: ilanlar, error: ilanErr } = await _supabase.from('ilanlar').select('id, baslik, sahip_email, resim_url');
                 if (ilanErr) throw ilanErr;
                 tumIlanlar = ilanlar || [];
 
-                // Teklifleri çek
                 const { data: teklifler, error: tekErr } = await _supabase.from('teklifler').select('*').order('created_at', { ascending: false });
                 if (tekErr) throw tekErr;
                 tumTeklifler = teklifler || [];
@@ -139,14 +139,12 @@
             const bosDiv = document.getElementById('bos-durum');
             const yukleniyorDiv = document.getElementById('yukleniyor');
             
-            // Tüm alanları sıfırla
-            yukleniyorDiv.style.display = 'none';
+            yukleniyorDiv.classList.add('hidden');
+            yukleniyorDiv.classList.remove('flex');
             listeDiv.innerHTML = "";
 
-            // BENİM İLANLARIMIN ID'LERİNİ BUL
             const benimIlanIdlerim = tumIlanlar.filter(i => i.sahip_email === benimEmailim).map(i => i.id);
 
-            // SEKMEYE GÖRE FİLTRELE
             let gosterilecekTeklifler = [];
             if(aktifSekme === 'gelen') {
                 gosterilecekTeklifler = tumTeklifler.filter(t => benimIlanIdlerim.includes(t.ilan_id));
@@ -154,23 +152,30 @@
                 gosterilecekTeklifler = tumTeklifler.filter(t => t.teklif_veren_email === benimEmailim);
             }
 
-            // EĞER TEKLİF YOKSA BOŞ EKRANI GÖSTER
-            if(gosterilecekTeklifler.length === 0) {
-                listeDiv.style.display = 'none';
-                bosDiv.style.display = 'flex';
-                // Yazıyı dinamik değiştir
+            // 🔥 HAYALET KORUMASI: İlanı gerçekten veritabanında olan teklifleri süz 🔥
+            let gecerliTeklifler = gosterilecekTeklifler.filter(t => tumIlanlar.some(i => i.id === t.ilan_id));
+
+            // EĞER GEÇERLİ TEKLİF YOKSA
+            if(gecerliTeklifler.length === 0) {
+                listeDiv.classList.add('hidden');
+                listeDiv.classList.remove('grid');
+                
+                bosDiv.classList.remove('hidden');
+                bosDiv.classList.add('flex');
                 document.getElementById('bos-durum-yazi').innerText = aktifSekme === 'gelen' ? "HENÜZ BİR TAKAS TEKLİFİ ALMADINIZ" : "HENÜZ KİMSEYE TEKLİF GÖNDERMEDİNİZ";
                 return;
             }
 
-            // TEKLİF VARSA LİSTEYİ GÖSTER
-            bosDiv.style.display = 'none';
-            listeDiv.style.display = 'grid'; // Grid display ile açıyoruz
+            // TEKLİF VARSA
+            bosDiv.classList.add('hidden');
+            bosDiv.classList.remove('flex');
+            
+            listeDiv.classList.remove('hidden');
+            listeDiv.classList.add('grid');
 
             let htmlCikti = '';
-            gosterilecekTeklifler.forEach(t => {
+            gecerliTeklifler.forEach(t => {
                 const ilgiliIlan = tumIlanlar.find(i => i.id === t.ilan_id);
-                if(!ilgiliIlan) return;
 
                 let durumRenk = "bg-yellow-50 text-yellow-600 border-yellow-200";
                 if(t.durum === 'Kabul Edildi') durumRenk = "bg-green-50 text-green-600 border-green-200";
@@ -187,7 +192,7 @@
                         </div>
                         <div class="flex-grow min-w-0 flex flex-col items-start">
                             <span class="inline-block px-3 py-1 rounded-md text-[9px] font-black uppercase tracking-widest border mb-2 ${durumRenk}">${t.durum}</span>
-                            <h3 class="font-bold text-gray-900 text-sm truncate uppercase tracking-tight w-full"><a href="detay.html?id=${t.ilan_id}" class="hover:text-yellow-500">${ilgiliIlan.baslik}</a></h3>
+                            <h3 class="font-bold text-gray-900 text-sm truncate uppercase tracking-tight w-full"><a href="detay.html?id=${t.ilan_id}" class="hover:text-yellow-500 transition-colors">${ilgiliIlan.baslik}</a></h3>
                             <p class="text-[10px] text-gray-500 mt-1 truncate w-full">
                                 ${aktifSekme === 'gelen' ? `Teklif Veren: <span class="font-bold text-gray-700">${t.teklif_veren_email.split('@')[0]}</span>` : `İlan Sahibi: <span class="font-bold text-gray-700">${ilgiliIlan.sahip_email.split('@')[0]}</span>`}
                             </p>
@@ -224,9 +229,12 @@
 
         async function durumGuncelle(teklifId, yeniDurum) {
             try {
-                document.getElementById('yukleniyor').style.display = 'flex';
-                document.getElementById('teklif-listesi').style.display = 'none';
-                document.getElementById('bos-durum').style.display = 'none';
+                document.getElementById('yukleniyor').classList.remove('hidden');
+                document.getElementById('yukleniyor').classList.add('flex');
+                document.getElementById('teklif-listesi').classList.add('hidden');
+                document.getElementById('teklif-listesi').classList.remove('grid');
+                document.getElementById('bos-durum').classList.add('hidden');
+                document.getElementById('bos-durum').classList.remove('flex');
 
                 const { error } = await _supabase.from('teklifler').update({ durum: yeniDurum }).eq('id', teklifId);
                 if (error) throw error;
