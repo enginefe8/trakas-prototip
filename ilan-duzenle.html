@@ -75,7 +75,7 @@
                     <div class="relative w-full bg-white border-2 border-dashed border-gray-300 rounded-2xl p-6 transition-all hover:border-gray-400 hover:bg-gray-50 mb-6 cursor-pointer">
                         <input type="file" id="resim_dosyalar" multiple accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" onchange="resimOnizleme(this)">
                         
-                        <div id="resim-secici-icerik" class="flex flex-col items-center justify-center text-center pointer-events-none min-h-[80px]">
+                        <div class="flex flex-col items-center justify-center text-center pointer-events-none min-h-[80px]">
                             <svg class="w-8 h-8 text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
                             <p class="text-xs font-bold text-gray-500 uppercase tracking-widest">Yeni Görsel Ekle (Sürükle veya Tıkla)</p>
                             <p class="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-1">Maksimum toplam 8 görsel</p>
@@ -93,13 +93,6 @@
             </form>
         </div>
     </main>
-
-    <footer class="bg-[#0f172a] border-t-4 border-[#facc15] pt-12 pb-8 w-full mt-auto">
-        <div class="max-w-7xl mx-auto flex flex-col items-center justify-center">
-            <h2 class="text-4xl font-black text-white italic tracking-tighter uppercase mb-2">TRAKAS</h2>
-            <p class="text-gray-500 text-xs font-bold tracking-widest uppercase">Takas Pazaryeri Platformu</p>
-        </div>
-    </footer>
 
     <div id="ozel-modal" class="hidden fixed inset-0 z-[999] flex items-center justify-center px-4">
         <div class="absolute inset-0 bg-gray-900/80 backdrop-blur-sm transition-opacity" onclick="modalKapat()"></div>
@@ -122,8 +115,8 @@
         const ilanId = urlParams.get('id');
 
         let benimEmailim = "";
-        let mevcutResimler = []; // Veritabanından gelen URL'ler
-        let yeniSecilenDosyalar = []; // Kullanıcının yeni eklediği dosyalar
+        let mevcutResimler = []; 
+        let yeniSecilenDosyalar = []; 
 
         async function sayfaYukle() {
             if (!ilanId) { window.location.href = 'ilanlarim.html'; return; }
@@ -133,7 +126,6 @@
             benimEmailim = session.user.email;
             document.getElementById('user-name').innerText = benimEmailim.split('@')[0].toUpperCase();
 
-            // İlanı Çek
             const { data: ilanVerisi, error } = await _supabase.from('ilanlar').select('*').eq('id', ilanId).single();
             
             if (error || !ilanVerisi) {
@@ -141,23 +133,20 @@
                 return;
             }
 
-            // Güvenlik: Bu ilan benim mi?
             if(ilanVerisi.sahip_email !== benimEmailim) {
                 modalAc("Yetkisiz Erişim", "Bu ilanı düzenleme yetkiniz yok.", "hata", () => window.location.href = 'ilanlarim.html');
                 return;
             }
 
-            // Formu Doldur
             document.getElementById('baslik').value = ilanVerisi.baslik;
             document.getElementById('kategori').value = ilanVerisi.kategori;
             document.getElementById('deger').value = ilanVerisi.deger;
             document.getElementById('aciklama').value = ilanVerisi.aciklama;
 
-            // FİLTRELEME: Boşlukları ayıkla, bozuk linkleri temizle (SORUNUN ÇÖZÜLDÜĞÜ YER)
             if(ilanVerisi.resim_url && ilanVerisi.resim_url.trim() !== "") {
                 mevcutResimler = ilanVerisi.resim_url.split(',')
-                    .map(url => url.trim()) // Boşlukları sil
-                    .filter(url => url !== ""); // Boş olanları çöpe at
+                    .map(url => url.trim())
+                    .filter(url => url !== "");
             }
 
             renderPreviews();
@@ -204,29 +193,29 @@
                 grid.classList.remove('hidden');
             }
 
-            // 1. Mevcut Resimleri Çiz (Buluttan gelenler)
+            // MEVCUT RESİMLER (Etiketler artık her zaman görünür)
             mevcutResimler.forEach((url, index) => {
                 grid.insertAdjacentHTML('beforeend', `
-                    <div class="relative group aspect-square bg-gray-50 border border-gray-200 rounded-xl overflow-hidden shadow-sm">
-                        <img src="${url}" class="w-full h-full object-cover">
-                        <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-between p-2">
-                            <span class="bg-[#0f172a] text-white text-[8px] font-black uppercase px-2 py-1 rounded w-max">Mevcut</span>
-                            <button type="button" onclick="eskiResimSil(${index})" class="self-end bg-red-500 text-white w-6 h-6 rounded-full flex items-center justify-center font-bold text-sm shadow-md hover:scale-110 transition-transform">×</button>
+                    <div class="relative aspect-square bg-gray-50 border border-gray-200 rounded-xl overflow-hidden shadow-sm">
+                        <img src="${url}" class="w-full h-full object-cover opacity-90">
+                        <div class="absolute inset-0 flex flex-col justify-between p-2 pointer-events-none">
+                            <span class="bg-[#0f172a] text-white text-[9px] font-black uppercase px-2 py-1 rounded w-max shadow-sm">✅ Mevcut</span>
+                            <button type="button" onclick="eskiResimSil(${index})" class="pointer-events-auto self-end bg-red-500 text-white w-7 h-7 rounded-full flex items-center justify-center font-black text-sm shadow-lg hover:bg-red-600 hover:scale-110 transition-all">X</button>
                         </div>
                     </div>
                 `);
             });
 
-            // 2. Yeni Eklenen Dosyaları Çiz
+            // YENİ SEÇİLEN RESİMLER (Etiketler her zaman görünür)
             yeniSecilenDosyalar.forEach((dosya, index) => {
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     grid.insertAdjacentHTML('beforeend', `
-                        <div class="relative group aspect-square bg-yellow-50 border-2 border-yellow-200 rounded-xl overflow-hidden shadow-sm">
+                        <div class="relative aspect-square bg-yellow-50 border-2 border-yellow-400 rounded-xl overflow-hidden shadow-sm">
                             <img src="${e.target.result}" class="w-full h-full object-cover opacity-80">
-                            <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-between p-2">
-                                <span class="bg-yellow-500 text-[#0f172a] text-[8px] font-black uppercase px-2 py-1 rounded w-max">Yeni Yüklenecek</span>
-                                <button type="button" onclick="yeniResimSil(${index})" class="self-end bg-red-500 text-white w-6 h-6 rounded-full flex items-center justify-center font-bold text-sm shadow-md hover:scale-110 transition-transform">×</button>
+                            <div class="absolute inset-0 flex flex-col justify-between p-2 pointer-events-none">
+                                <span class="bg-yellow-500 text-[#0f172a] text-[9px] font-black uppercase px-2 py-1 rounded w-max shadow-sm">Yeni Yüklenecek</span>
+                                <button type="button" onclick="yeniResimSil(${index})" class="pointer-events-auto self-end bg-red-500 text-white w-7 h-7 rounded-full flex items-center justify-center font-black text-sm shadow-lg hover:bg-red-600 hover:scale-110 transition-all">X</button>
                             </div>
                         </div>
                     `);
@@ -240,7 +229,7 @@
             
             const toplamResim = mevcutResimler.length + yeniSecilenDosyalar.length;
             if(toplamResim === 0) {
-                modalAc("Eksik Bilgi", "Lütfen ilanınızda en az bir görsel bırakın veya yeni görsel yükleyin.", "uyari");
+                modalAc("Eksik Bilgi", "Lütfen ilanınızda en az bir görsel bırakın.", "uyari");
                 return;
             }
 
@@ -259,7 +248,7 @@
                 let finalResimDizisi = [...mevcutResimler]; 
                 const storageBucket = _supabase.storage.from('ilan-resimleri');
 
-                // Yeni seçilenleri Storage'a yükle
+                // Yeni seçilenleri sırayla yükle
                 for(const dosya of yeniSecilenDosyalar) {
                     const dosyaUzantisi = dosya.name.split('.').pop();
                     const dosyaAdi = `${Date.now()}-${Math.random().toString(36).substring(7)}.${dosyaUzantisi}`;
@@ -271,10 +260,8 @@
                     finalResimDizisi.push(urlData.publicUrl); 
                 }
 
-                // Hatasız virgüllü birleştirme
                 const finalResimMetni = finalResimDizisi.join(',');
 
-                // Veritabanını güncelle
                 const { error: dbError } = await _supabase
                     .from('ilanlar')
                     .update({
@@ -288,8 +275,9 @@
 
                 if (dbError) throw dbError;
 
+                // ÖNBELLEK KIRICI: Yönlendirme linkinin sonuna rastgele rakam (?v=...) ekliyoruz ki tarayıcı eski sayfayı vermesin!
                 modalAc("Başarılı", "İlanınız başarıyla güncellendi.", "basarili", () => {
-                    window.location.href = `detay.html?id=${ilanId}`; // Başarılı olunca direkt Detay sayfasına at!
+                    window.location.href = `detay.html?id=${ilanId}&v=${Date.now()}`; 
                 });
                 
             } catch (err) {
@@ -300,7 +288,6 @@
             }
         }
 
-        // Modal Fonksiyonları
         let modalOnayFonk = null;
         function modalAc(baslik, mesaj, tip, onayFonk = null) {
             document.getElementById('modal-baslik').innerText = baslik;
@@ -323,8 +310,6 @@
             setTimeout(() => { document.getElementById('ozel-modal').classList.add('hidden'); }, 300);
             if(modalOnayFonk && document.getElementById('modal-ikon').innerText !== '✓') modalOnayFonk = null;
         }
-
-        async function cikisYap() { await _supabase.auth.signOut(); window.location.href = 'index.html'; }
 
         sayfaYukle();
     </script>
