@@ -3,39 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mesajlarım - Trakas Pazaryeri</title>
+    <title>Mesajlarım - Trakas</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <style>
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .5; } }
-        .animate-pulse { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
-        ::-webkit-scrollbar { width: 5px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 10px; }
-        ::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
-    </style>
 </head>
-<body class="bg-gray-50 font-sans min-h-screen flex flex-col h-screen overflow-hidden">
+<body class="bg-gray-50 font-sans min-h-screen flex flex-col h-screen overflow-hidden text-gray-900">
 
-    <nav class="bg-gray-900 p-3 md:p-4 shadow-xl flex-shrink-0 relative z-50">
-        <div class="max-w-7xl mx-auto flex justify-between items-center gap-4">
-            <div class="flex items-center gap-3">
-                <button onclick="mobilMenuAcKapat()" class="md:hidden text-white hover:text-yellow-500 transition-colors">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
-                </button>
-                <a href="index.html" class="text-2xl md:text-3xl font-black text-white tracking-tighter italic hover:text-yellow-500 transition-colors">TRAKAS</a>
-            </div>
-            
-            <div class="hidden md:flex gap-4 lg:gap-6 items-center flex-shrink-0 ml-auto">
-                <div id="user-panel" style="display: none;" class="items-center gap-4 lg:gap-6 border-r border-gray-700 pr-5">
-                    <span id="user-name" class="text-yellow-500 font-black text-xs uppercase tracking-widest hidden xl:block mr-2"></span>
-                    <a href="favorilerim.html" class="text-gray-300 font-bold text-[11px] lg:text-xs uppercase hover:text-white transition-colors">Favorilerim</a>
-                    <a href="ilanlarim.html" class="text-gray-300 font-bold text-[11px] lg:text-xs uppercase hover:text-white transition-colors">İlanlarım</a>
-                    <a href="sohbetler.html" class="text-white font-bold text-[11px] lg:text-xs uppercase transition-colors">Mesajlarım</a>
-                    <a href="teklifler.html" class="text-gray-300 font-bold text-[11px] lg:text-xs uppercase hover:text-white transition-colors">Tekliflerim</a>
-                    <button onclick="cikisYap()" class="text-red-400 font-bold text-[11px] lg:text-xs uppercase hover:text-red-300 ml-2 transition-colors">Çıkış</button>
-                </div>
-                <a href="ilan-ver.html" class="bg-yellow-500 px-5 py-2.5 rounded-lg font-black text-xs hover:bg-yellow-400 uppercase transition-all shadow-md text-gray-900">İlan Ver</a>
+    <nav class="bg-gray-900 p-4 shadow-xl z-50">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <a href="index.html" class="text-2xl font-black text-white italic tracking-tighter">TRAKAS</a>
+            <div id="user-panel" class="hidden items-center gap-6">
+                <span id="user-name" class="text-yellow-500 font-black text-xs uppercase tracking-widest"></span>
+                <a href="index.html" class="text-gray-300 font-bold text-xs uppercase hover:text-white transition-colors">Vitrin</a>
+                <button onclick="cikisYap()" class="text-red-400 font-bold text-xs uppercase hover:text-red-300">Çıkış</button>
             </div>
         </div>
     </nav>
@@ -43,47 +23,29 @@
     <main class="max-w-7xl mx-auto p-4 md:p-6 flex-grow w-full flex overflow-hidden">
         <div class="bg-white rounded-2xl shadow-sm border border-gray-200 flex flex-col md:flex-row w-full overflow-hidden">
             
-            <div class="w-full md:w-1/3 lg:w-1/4 border-r border-gray-200 flex flex-col h-[calc(100vh-140px)] md:h-auto">
-                <div class="p-5 border-b border-gray-100 bg-gray-50/50">
-                    <h2 class="text-lg font-black text-gray-900 uppercase italic tracking-tight">Gelen Kutusu</h2>
-                    <p class="text-xs font-bold text-gray-500 uppercase tracking-widest mt-1">Aktif Görüşmeler</p>
-                </div>
-                <div id="sohbet-listesi" class="flex-grow overflow-y-auto">
-                    <div class="p-4 animate-pulse"><div class="h-16 bg-gray-50 rounded-xl mb-2"></div><div class="h-16 bg-gray-50 rounded-xl mb-2"></div></div>
-                </div>
+            <div class="w-full md:w-1/3 lg:w-1/4 border-r border-gray-200 flex flex-col overflow-y-auto bg-gray-50/30" id="liste-paneli">
+                <div class="p-5 border-b border-gray-100"><h2 class="text-lg font-black uppercase italic italic">Gelen Kutusu</h2></div>
+                <div id="sohbet-listesi" class="flex-grow"></div>
             </div>
 
-            <div class="w-full md:w-2/3 lg:w-3/4 flex flex-col h-[calc(100vh-140px)] md:h-auto hidden md:flex" id="sag-panel">
-                <div id="bos-sohbet-ekrani" class="flex flex-col items-center justify-center h-full bg-gray-50 p-8 text-center">
-                    <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mb-6 border-4 border-white shadow-sm">
-                        <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
-                    </div>
-                    <h3 class="text-xl font-black text-gray-800 uppercase tracking-wide mb-2">Sohbet Seçilmedi</h3>
-                    <p class="text-sm font-medium text-gray-500 max-w-sm">Sol taraftan bir görüşme seçerek mesajlaşmaya başlayabilirsiniz.</p>
+            <div class="w-full md:w-2/3 lg:w-3/4 flex flex-col hidden md:flex" id="mesaj-paneli">
+                <div id="bos-ekran" class="flex flex-col items-center justify-center h-full bg-gray-50 p-8 text-center">
+                    <p class="text-gray-400 font-bold uppercase text-xs tracking-widest">Bir sohbet seçin</p>
                 </div>
 
-                <div id="aktif-sohbet-alani" class="flex-col h-full hidden">
-                    <div class="p-4 md:p-5 border-b border-gray-100 flex items-center gap-4 bg-white shadow-sm z-10">
-                        <button onclick="mobileGeriDon()" class="md:hidden text-gray-500 hover:text-gray-900 transition-colors">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
-                        </button>
-                        <div class="w-10 h-10 rounded-full bg-gray-900 flex items-center justify-center text-yellow-500 font-black text-sm uppercase flex-shrink-0">
-                            <span id="chat-header-harf"></span>
-                        </div>
-                        <div>
-                            <h3 id="chat-header-isim" class="font-bold text-gray-900 text-sm md:text-base"></h3>
-                            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-0.5" id="chat-header-email"></p>
-                        </div>
+                <div id="sohbet-ekrani" class="hidden flex-col h-full">
+                    <div class="p-4 border-b border-gray-100 flex items-center gap-4 bg-white shadow-sm">
+                        <button onclick="mobileGeri()" class="md:hidden text-gray-500">←</button>
+                        <div class="w-10 h-10 rounded-full bg-gray-900 flex items-center justify-center text-yellow-500 font-black" id="header-harf"></div>
+                        <h3 id="header-isim" class="font-bold text-sm uppercase"></h3>
                     </div>
 
-                    <div id="mesaj-kutusu" class="flex-grow p-4 md:p-6 overflow-y-auto bg-gray-50 flex flex-col gap-4"></div>
+                    <div id="mesaj-kutusu" class="flex-grow p-6 overflow-y-auto bg-gray-50 flex flex-col gap-4"></div>
 
                     <div class="p-4 bg-white border-t border-gray-200">
-                        <form id="mesaj-formu" onsubmit="mesajGonder(event)" class="flex gap-2">
-                            <input type="text" id="mesaj-input" autocomplete="off" placeholder="Bir mesaj yazın..." required class="flex-grow bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-2 focus:ring-yellow-500 outline-none p-3.5 transition-all">
-                            <button type="submit" id="btn-gonder" class="bg-gray-900 text-yellow-500 hover:bg-gray-800 font-bold p-3.5 rounded-xl transition-colors flex-shrink-0">
-                                <svg class="w-5 h-5 transform rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>
-                            </button>
+                        <form onsubmit="mesajGonder(event)" class="flex gap-2">
+                            <input type="text" id="mesaj-input" placeholder="Yazın..." class="flex-grow bg-gray-50 border border-gray-200 p-3 rounded-xl outline-none focus:ring-1 focus:ring-yellow-500 text-sm">
+                            <button type="submit" class="bg-gray-900 text-yellow-500 font-black px-6 py-3 rounded-xl hover:bg-gray-800 transition-all uppercase text-xs tracking-widest">Gönder</button>
                         </form>
                     </div>
                 </div>
@@ -97,152 +59,99 @@
         const _supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
         let benimEmailim = "";
-        let aktifSohbetKullanicisi = "";
-        let tumMesajlarim = [];
+        let aktifKisi = "";
+        let tumMesajlar = [];
 
-        async function sitemiCalistir() {
+        async function baslat() {
             const { data: { session } } = await _supabase.auth.getSession();
             if (!session) { window.location.href = 'giris.html'; return; }
-
             benimEmailim = session.user.email;
             document.getElementById('user-panel').style.display = 'flex';
             document.getElementById('user-name').innerText = benimEmailim.split('@')[0].toUpperCase();
+            
+            verileriCek();
 
-            verileriGetir();
-
-            // 🔥 REALTIME MOTORU 🔥
-            _supabase
-                .channel('mesaj-akisi')
-                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'mesajlar' }, (payload) => {
-                    const yeniMsg = payload.new;
-                    if (yeniMsg.gonderen_email === benimEmailim || yeniMsg.alici_email === benimEmailim) {
-                        tumMesajlarim.push(yeniMsg);
-                        sohbetListesiniOlustur();
-                        if (aktifSohbetKullanicisi === yeniMsg.gonderen_email || aktifSohbetKullanicisi === yeniMsg.alici_email) {
-                            mesajlariEkranaBas(aktifSohbetKullanicisi);
-                        }
-                    }
-                })
-                .subscribe();
+            // 🔥 GERÇEK ANLIK MOTOR (REALTIME) 🔥
+            _supabase.channel('any').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'mesajlar' }, payload => {
+                tumMesajlar.push(payload.new);
+                sohbetListesiYap();
+                if (aktifKisi === payload.new.gonderen_email || aktifKisi === payload.new.alici_email) {
+                    mesajlariBas(aktifKisi);
+                }
+            }).subscribe();
         }
 
-        async function verileriGetir() {
-            try {
-                const { data, error } = await _supabase.from('mesajlar').select('*').or(`gonderen_email.eq.${benimEmailim},alici_email.eq.${benimEmailim}`).order('created_at', { ascending: true });
-                if (error) throw error;
-                tumMesajlarim = data || [];
-                sohbetListesiniOlustur();
-            } catch (err) { console.error(err); }
+        async function verileriCek() {
+            const { data } = await _supabase.from('mesajlar').select('*').or(`gonderen_email.eq.${benimEmailim},alici_email.eq.${benimEmailim}`).order('created_at', { ascending: true });
+            tumMesajlar = data || [];
+            sohbetListesiYap();
         }
 
-        function sohbetListesiniOlustur() {
-            const listeDiv = document.getElementById('sohbet-listesi');
-            let sohbetEttigimKisiler = new Map();
-            tumMesajlarim.forEach(msg => {
-                const karsiTaraf = msg.gonderen_email === benimEmailim ? msg.alici_email : msg.gonderen_email;
-                if(karsiTaraf) sohbetEttigimKisiler.set(karsiTaraf, msg);
+        function sohbetListesiYap() {
+            const liste = document.getElementById('sohbet-listesi');
+            let kisiler = new Set();
+            tumMesajlar.forEach(m => kisiler.add(m.gonderen_email === benimEmailim ? m.alici_email : m.gonderen_email));
+            
+            let html = "";
+            Array.from(kisiler).reverse().forEach(email => {
+                const aktifMi = email === aktifKisi ? "bg-gray-100 border-l-4 border-yellow-500" : "";
+                html += `<div onclick="sohbetAc('${email}')" class="p-4 border-b border-gray-100 cursor-pointer flex items-center gap-3 ${aktifMi}">
+                    <div class="w-8 h-8 rounded-full bg-gray-900 text-yellow-500 flex items-center justify-center text-xs font-black">${email.charAt(0).toUpperCase()}</div>
+                    <div class="truncate text-sm font-bold text-gray-700">${email.split('@')[0].toUpperCase()}</div>
+                </div>`;
             });
+            liste.innerHTML = html || '<p class="p-5 text-gray-400 text-xs">Mesaj yok.</p>';
+        }
 
-            if (sohbetEttigimKisiler.size === 0) {
-                listeDiv.innerHTML = `<p class="text-center py-10 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Görüşmeniz Yok</p>`;
-                return;
-            }
+        window.sohbetAc = function(email) {
+            aktifKisi = email;
+            document.getElementById('bos-ekran').classList.add('hidden');
+            document.getElementById('sohbet-ekrani').classList.remove('hidden');
+            document.getElementById('header-isim').innerText = email.split('@')[0];
+            document.getElementById('header-harf').innerText = email.charAt(0).toUpperCase();
+            if(window.innerWidth < 768) { document.getElementById('liste-paneli').classList.add('hidden'); document.getElementById('mesaj-paneli').classList.remove('hidden'); }
+            sohbetListesiYap();
+            mesajlariBas(email);
+        }
 
-            let htmlCikti = '';
-            Array.from(sohbetEttigimKisiler.entries()).reverse().forEach(([email, sonMesajObj]) => {
-                const isim = email.split('@')[0];
-                const basHarf = isim.charAt(0).toUpperCase();
-                const aktifClass = email === aktifSohbetKullanicisi ? "bg-gray-100 border-l-4 border-yellow-500" : "hover:bg-gray-50 border-l-4 border-transparent";
-                htmlCikti += `
-                <div onclick="sohbetAc('${email}')" class="p-4 border-b border-gray-100 cursor-pointer flex items-center gap-4 ${aktifClass}">
-                    <div class="w-10 h-10 rounded-full bg-white text-gray-800 border border-gray-200 flex items-center justify-center font-black text-sm uppercase flex-shrink-0">${basHarf}</div>
-                    <div class="flex-grow min-w-0">
-                        <div class="flex justify-between items-baseline mb-0.5"><h4 class="font-bold text-gray-900 text-sm truncate uppercase tracking-tight">${isim}</h4></div>
-                        <p class="text-xs truncate font-medium text-gray-500">${sonMesajObj.mesaj_metni}</p>
+        function mesajlariBas(email) {
+            const kutu = document.getElementById('mesaj-kutusu');
+            const filtreli = tumMesajlar.filter(m => (m.gonderen_email === benimEmailim && m.alici_email === email) || (m.gonderen_email === email && m.alici_email === benimEmailim));
+            
+            let html = "";
+            let sonTarih = "";
+            filtreli.forEach(m => {
+                const gun = new Date(m.created_at).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long' });
+                if(gun !== sonTarih) {
+                    html += `<div class="text-center my-4"><span class="text-[10px] font-bold text-gray-400 uppercase bg-white px-3 py-1 rounded-full border border-gray-100">${gun}</span></div>`;
+                    sonTarih = gun;
+                }
+                const isBen = m.gonderen_email === benimEmailim;
+                const saat = new Date(m.created_at).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+                
+                html += `<div class="flex ${isBen ? 'justify-end' : 'justify-start'}">
+                    <div class="${isBen ? 'bg-gray-900 text-white rounded-tr-sm' : 'bg-white text-gray-800 rounded-tl-sm'} p-3 rounded-xl max-w-[80%] shadow-sm border border-gray-100">
+                        <p class="text-sm font-medium">${m.mesaj_metni}</p>
+                        <p class="text-[9px] mt-1 text-right font-bold ${isBen ? 'text-yellow-500' : 'text-gray-400'}">${saat}</p>
                     </div>
                 </div>`;
             });
-            listeDiv.innerHTML = htmlCikti;
+            kutu.innerHTML = html;
+            kutu.scrollTop = kutu.scrollHeight;
         }
 
-        window.sohbetAc = function(karsiEmail) {
-            aktifSohbetKullanicisi = karsiEmail;
-            const isim = karsiEmail.split('@')[0];
-            document.getElementById('chat-header-isim').innerText = isim.toUpperCase();
-            document.getElementById('chat-header-email').innerText = karsiEmail;
-            document.getElementById('chat-header-harf').innerText = isim.charAt(0).toUpperCase();
-            document.getElementById('bos-sohbet-ekrani').classList.add('hidden');
-            document.getElementById('aktif-sohbet-alani').classList.remove('hidden');
-            document.getElementById('aktif-sohbet-alani').classList.add('flex');
-            if(window.innerWidth < 768) { document.querySelector('.w-full.md\\:w-1\\/3').classList.add('hidden'); document.getElementById('sag-panel').classList.remove('hidden'); }
-            sohbetListesiniOlustur();
-            mesajlariEkranaBas(karsiEmail);
+        window.mesajGonder = async function(e) {
+            e.preventDefault();
+            const inp = document.getElementById('mesaj-input');
+            const txt = inp.value.trim();
+            if(!txt || !aktifKisi) return;
+            inp.value = "";
+            const { data, error } = await _supabase.from('mesajlar').insert([{ gonderen_email: benimEmailim, alici_email: aktifKisi, mesaj_metni: txt }]).select();
         }
 
-        function mesajlariEkranaBas(karsiEmail) {
-            const mesajKutusu = document.getElementById('mesaj-kutusu');
-            const buSohbet = tumMesajlarim.filter(m => (m.gonderen_email === benimEmailim && m.alici_email === karsiEmail) || (m.gonderen_email === karsiEmail && m.alici_email === benimEmailim));
-            
-            let html = '<div class="flex flex-col gap-3">';
-            let sonTarih = "";
-
-            buSohbet.forEach(msg => {
-                const isBen = msg.gonderen_email === benimEmailim;
-                const msjTarihi = new Date(msg.created_at);
-                const gun = msjTarihi.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long' });
-
-                if (gun !== sonTarih) {
-                    html += `<div class="text-center my-4"><span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest bg-white border border-gray-100 px-4 py-1.5 rounded-full shadow-sm">${gun}</span></div>`;
-                    sonTarih = gun;
-                }
-
-                const saatStr = msjTarihi.getHours().toString().padStart(2, '0') + ':' + msjTarihi.getMinutes().toString().padStart(2, '0');
-
-                if (isBen) {
-                    html += `
-                    <div class="flex justify-end">
-                        <div class="bg-gray-900 text-white rounded-2xl rounded-tr-sm px-5 py-3 max-w-[85%] md:max-w-md shadow-md border border-gray-800">
-                            <p class="text-sm font-medium leading-relaxed text-gray-100">${msg.mesaj_metni}</p>
-                            <div class="text-[10px] text-yellow-500 text-right mt-1 font-bold flex items-center justify-end gap-1">
-                                ${saatStr} 
-                                <svg class="w-3 h-3 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                            </div>
-                        </div>
-                    </div>`;
-                } else {
-                    html += `
-                    <div class="flex justify-start">
-                        <div class="bg-white border border-gray-200 text-gray-800 rounded-2xl rounded-tl-sm px-5 py-3 max-w-[85%] md:max-w-md shadow-sm">
-                            <p class="text-sm font-medium leading-relaxed">${msg.mesaj_metni}</p>
-                            <div class="text-[10px] text-gray-400 text-right mt-1 font-bold">${saatStr}</div>
-                        </div>
-                    </div>`;
-                }
-            });
-
-            html += '</div>';
-            mesajKutusu.innerHTML = html;
-            mesajKutusu.scrollTop = mesajKutusu.scrollHeight;
-        }
-
-        window.mesajGonder = async function(event) {
-            event.preventDefault();
-            const input = document.getElementById('mesaj-input');
-            const btn = document.getElementById('btn-gonder');
-            const gidenMesaj = input.value.trim();
-            if (!gidenMesaj || !aktifSohbetKullanicisi) return;
-            input.disabled = true; btn.disabled = true;
-            try {
-                const { error } = await _supabase.from('mesajlar').insert([{ gonderen_email: benimEmailim, alici_email: aktifSohbetKullanicisi, mesaj_metni: gidenMesaj }]);
-                if (error) throw error;
-                input.value = '';
-            } catch (err) { console.error(err); } finally { input.disabled = false; btn.disabled = false; input.focus(); }
-        }
-
-        window.mobileGeriDon = function() { document.getElementById('sag-panel').classList.add('hidden'); document.querySelector('.w-full.md\\:w-1\\/3').classList.remove('hidden'); aktifSohbetKullanicisi = ""; sohbetListesiniOlustur(); }
+        window.mobileGeri = function() { document.getElementById('liste-paneli').classList.remove('hidden'); document.getElementById('mesaj-paneli').classList.add('hidden'); }
         async function cikisYap() { await _supabase.auth.signOut(); window.location.href = 'index.html'; }
-        window.mobilMenuAcKapat = function() { const menu = document.getElementById('mobil-menu'); menu.classList.toggle('hidden'); }
-        sitemiCalistir();
+        baslat();
     </script>
 </body>
 </html>
