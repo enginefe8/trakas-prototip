@@ -181,7 +181,7 @@
                     finalResimUrl = urlData.publicUrl;
                 }
 
-                // VERİTABANINA KAYIT İŞLEMİ
+                // VERİTABANINA KAYIT İŞLEMİ (DURUM SÜTUNU ÇIKARTILDI)
                 const { error: dbError } = await _supabase.from('ilanlar').insert([
                     {
                         sahip_email: benimEmailim,
@@ -189,8 +189,7 @@
                         aciklama: aciklama,
                         kategori: kategori,
                         deger: deger,
-                        resim_url: finalResimUrl,
-                        durum: 'Aktif'
+                        resim_url: finalResimUrl
                     }
                 ]);
 
