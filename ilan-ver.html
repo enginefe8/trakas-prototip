@@ -79,24 +79,21 @@
                         ÜRÜN GÖRSELLERİ <span class="text-red-500">*</span>
                     </label>
                     
-                    <div class="relative w-full bg-white border-2 border-dashed border-gray-300 rounded-2xl p-6 transition-all hover:border-gray-400">
+                    <div class="relative w-full bg-white border-2 border-dashed border-gray-300 rounded-2xl p-6 transition-all hover:border-gray-400 hover:bg-gray-50">
                         
                         <input type="file" id="resim_dosyalar" multiple accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" onchange="resimOnizleme(this)">
                         
-                        <div id="resim-secici-icerik" class="flex flex-col items-center justify-center py-6 text-center transition-all duration-300 pointer-events-none">
-                            <svg class="w-10 h-10 text-gray-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
-                            <p class="text-sm font-bold text-gray-600">Resim Seç / Sürükle Bırak (Çoklu)</p>
-                            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">Maksimum 8 Resim Yükleyebilirsiniz</p>
-                        </div>
+                        <div id="resim-secici-icerik" class="flex flex-col items-center justify-center text-center transition-all duration-300 pointer-events-none min-h-[80px]">
+                            </div>
                     </div>
 
-                    <div id="resim-grid-alani" class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
+                    <div id="resim-grid-alani" class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6 hidden">
                         </div>
                 </div>
 
                 <div class="pt-6 border-t border-gray-100">
                     <button type="submit" id="submit-btn" class="w-full md:w-auto md:px-12 bg-[#111827] text-white py-4 rounded-xl font-black text-sm uppercase tracking-widest shadow-lg hover:bg-black hover:-translate-y-0.5 transition-all flex justify-center items-center gap-2">
-                        İlanı Yayına Al (Çoklu Resim)
+                        İlanı Yayına Al
                     </button>
                 </div>
             </form>
@@ -121,63 +118,68 @@
         const _supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
         let benimEmailim = "";
-        let secilenDosyalar = []; // Seçilen dosyaların state'i
+        let secilenDosyalar = [];
 
         async function yetkiKontrol() {
             const { data: { session } } = await _supabase.auth.getSession();
             if (!session) { window.location.href = 'giris.html'; return; }
             benimEmailim = session.user.email;
             document.getElementById('user-name').innerText = benimEmailim.split('@')[0].toUpperCase();
+            
+            // Sayfa yüklendiğinde kutunun ilk halini çiz
+            renderPreviews();
         }
 
-        // Seçilen çoklu resimleri state'e ekle ve önizle
         function resimOnizleme(input) {
             if (input.files) {
                 const newFiles = Array.from(input.files);
-                
-                // Toplamda maks 8 resim sınırı
                 if(secilenDosyalar.length + newFiles.length > 8) {
                     modalAc("Sınır Aşıldı", "Maksimum 8 resim yükleyebilirsiniz.", "uyari");
-                    // Inputu temizle ki aynı resimleri tekrar seçebilsin
                     input.value = "";
                     return;
                 }
-
                 secilenDosyalar = [...secilenDosyalar, ...newFiles];
-                input.value = ""; // Inputu temizle ki aynı dosyayı tekrar ekleyebilsin
+                input.value = ""; 
                 renderPreviews();
             }
         }
 
-        // Seçilen resmi state'den sil ve grid'i güncelle
         function resimSil(index) {
             secilenDosyalar.splice(index, 1);
             renderPreviews();
         }
 
-        // State'deki resimleri grid'e bas
         function renderPreviews() {
             const grid = document.getElementById('resim-grid-alani');
             const seciciIcerik = document.getElementById('resim-secici-icerik');
             
             grid.innerHTML = "";
             
+            // KUTU TASARIMINI DURUMA GÖRE GÜNCELLE
             if(secilenDosyalar.length === 0) {
                 grid.classList.add('hidden');
-                seciciIcerik.classList.remove('hidden');
+                seciciIcerik.innerHTML = `
+                    <svg class="w-10 h-10 text-gray-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                    <p class="text-sm font-bold text-gray-600">Görsel Seç / Sürükle Bırak</p>
+                    <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">Maksimum 8 Görsel Yükleyebilirsiniz</p>
+                `;
                 return;
             } else {
                 grid.classList.remove('hidden');
-                seciciIcerik.classList.add('hidden');
+                seciciIcerik.innerHTML = `
+                    <svg class="w-8 h-8 text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                    <p class="text-xs font-bold text-gray-500 uppercase tracking-widest">Daha Fazla Görsel Ekle</p>
+                `;
             }
 
+            // SEÇİLEN RESİMLERİ ÇİZ
             secilenDosyalar.forEach((dosya, index) => {
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     const thumbnailHtml = `
-                    <div class="relative group aspect-square bg-gray-50 border border-gray-100 rounded-xl overflow-hidden shadow-sm">
-                        <img src="${e.target.result}" class="w-full h-full object-contain p-1">
-                        <button type="button" onclick="resimSil(${index})" class="absolute top-1.5 right-1.5 bg-red-500 text-white w-5 h-5 rounded-full flex items-center justify-center font-bold text-xs opacity-0 group-hover:opacity-100 transition-opacity z-20">×</button>
+                    <div class="relative group aspect-square bg-gray-50 border border-gray-200 rounded-xl overflow-hidden shadow-sm">
+                        <img src="${e.target.result}" class="w-full h-full object-cover">
+                        <button type="button" onclick="resimSil(${index})" class="absolute top-2 right-2 bg-red-500 text-white w-6 h-6 rounded-full flex items-center justify-center font-bold text-sm opacity-0 group-hover:opacity-100 transition-opacity z-20 shadow-md">×</button>
                     </div>`;
                     grid.insertAdjacentHTML('beforeend', thumbnailHtml);
                 }
@@ -189,16 +191,15 @@
             event.preventDefault();
             
             if(secilenDosyalar.length === 0) {
-                modalAc("Hata", "Lütfen en az bir resim yükleyin.", "uyari");
+                modalAc("Eksik Bilgi", "Lütfen en az bir adet ürün görseli ekleyin.", "uyari");
                 return;
             }
 
             const btn = document.getElementById('submit-btn');
             const orijinalHTML = btn.innerHTML;
             
-            // Yükleniyor Animasyonu
             btn.disabled = true;
-            btn.innerHTML = `<svg class="animate-spin h-5 w-5 text-white mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> YÜKLENİYOR...`;
+            btn.innerHTML = `<svg class="animate-spin h-5 w-5 text-white mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> İŞLENİYOR...`;
             btn.classList.add('cursor-not-allowed', 'opacity-90');
 
             try {
@@ -208,8 +209,6 @@
                 const deger = document.getElementById('deger').value;
                 
                 let yuklenenUrlDizisi = [];
-
-                // ÇOKLU DOSYA YÜKLEME İŞLEMİ (Döngü!)
                 const storageBucket = _supabase.storage.from('ilan-resimleri');
 
                 for(const dosya of secilenDosyalar) {
@@ -224,10 +223,8 @@
                     yuklenenUrlDizisi.push(urlData.publicUrl);
                 }
 
-                // URL'leri VIRGÜLLE AYIRIP TEK METİN YAPMA (Mevcut Şema Uyumlu)
                 const finalResimMetni = yuklenenUrlDizisi.join(',');
 
-                // VERİTABANINA KAYIT İŞLEMİ (Mevcut şemayı bozmadan url'leri metin olarak yazıyoruz)
                 const { error: dbError } = await _supabase.from('ilanlar').insert([
                     {
                         sahip_email: benimEmailim,
@@ -260,7 +257,6 @@
             }
         }
 
-        // Modal Fonksiyonları
         let modalOnayFonk = null;
         function modalAc(baslik, mesaj, tip, onayFonk = null) {
             document.getElementById('modal-baslik').innerText = baslik;
@@ -274,7 +270,7 @@
             } else if (tip === 'hata') { 
                 ikon.className = "mx-auto h-16 w-16 rounded-full bg-red-50 flex items-center justify-center text-red-500 font-bold text-2xl border border-red-100"; 
                 ikon.innerHTML = "!"; 
-            } else { // uyari
+            } else { 
                  ikon.className = "mx-auto h-16 w-16 rounded-full bg-yellow-50 flex items-center justify-center text-yellow-500 font-bold text-2xl border border-yellow-100"; 
                 ikon.innerHTML = "?"; 
             }
