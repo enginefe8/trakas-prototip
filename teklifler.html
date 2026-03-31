@@ -43,23 +43,9 @@
                 </button>
             </div>
 
-            <div class="p-4 md:p-8 bg-gray-50/50 flex-grow relative">
-                
-                <div id="yukleniyor" class="flex flex-col items-center justify-center py-20 w-full">
-                    <svg class="animate-spin h-8 w-8 text-[#111827] mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                    <span class="text-xs font-bold text-gray-500 uppercase tracking-widest">Veriler Çekiliyor...</span>
+            <div id="dinamik-alan" class="p-4 md:p-8 bg-gray-50/50 flex-grow relative">
                 </div>
-
-                <div id="teklif-listesi" class="hidden grid-cols-1 md:grid-cols-2 gap-4 w-full">
-                    </div>
-
-                <div id="bos-durum" class="hidden flex-col items-center justify-center py-20 text-center w-full">
-                    <div class="w-16 h-16 bg-white border border-gray-200 rounded-full flex items-center justify-center mb-4 shadow-sm">
-                        <svg class="w-8 h-8 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path></svg>
-                    </div>
-                    <p id="bos-durum-yazi" class="text-gray-400 font-bold uppercase text-[10px] tracking-widest">BU ALANDA TEKLİF BULUNMUYOR</p>
-                </div>
-            </div>
+            
         </div>
     </main>
 
@@ -86,6 +72,7 @@
         let tumTeklifler = [];
 
         async function sitemiCalistir() {
+            ekraniDurumaGoreCiz('yukleniyor');
             try {
                 const { data: { session } } = await _supabase.auth.getSession();
                 if (!session) { 
@@ -99,21 +86,13 @@
                 ekraniCiz();
             } catch (error) {
                 console.error("Başlatma hatası:", error);
-                document.getElementById('yukleniyor').classList.add('hidden');
-                modalAc("Sistem Hatası", "Sayfa yüklenirken bir sorun oluştu.", "hata");
+                ekraniDurumaGoreCiz('hata', error.message);
             }
         }
 
         async function verileriCek() {
-            document.getElementById('yukleniyor').classList.remove('hidden');
-            document.getElementById('yukleniyor').classList.add('flex');
-            document.getElementById('teklif-listesi').classList.add('hidden');
-            document.getElementById('teklif-listesi').classList.remove('grid');
-            document.getElementById('bos-durum').classList.add('hidden');
-            document.getElementById('bos-durum').classList.remove('flex');
-
             try {
-                const { data: ilanlar, error: ilanErr } = await _supabase.from('ilanlar').select('id, baslik, sahip_email, resim_url');
+                const { data: ilanlar, error: ilanErr } = await _supabase.from('ilanlar').select('*');
                 if (ilanErr) throw ilanErr;
                 tumIlanlar = ilanlar || [];
 
@@ -123,7 +102,7 @@
                 
             } catch (err) {
                 console.error("Veri çekme hatası:", err);
-                modalAc("Bağlantı Hatası", "Veritabanına bağlanılamadı.", "hata");
+                throw err;
             }
         }
 
@@ -134,107 +113,125 @@
             ekraniCiz();
         }
 
+        function ekraniDurumaGoreCiz(durum, ekstraMesaj = "") {
+            const alan = document.getElementById('dinamik-alan');
+            
+            if (durum === 'yukleniyor') {
+                alan.innerHTML = `
+                    <div class="flex flex-col items-center justify-center py-20 w-full">
+                        <svg class="animate-spin h-8 w-8 text-[#111827] mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                        <span class="text-xs font-bold text-gray-500 uppercase tracking-widest">Veriler Çekiliyor...</span>
+                    </div>`;
+            } 
+            else if (durum === 'bos') {
+                const bosMetin = aktifSekme === 'gelen' ? "HENÜZ BİR TAKAS TEKLİFİ ALMADINIZ" : "HENÜZ KİMSEYE TEKLİF GÖNDERMEDİNİZ";
+                alan.innerHTML = `
+                    <div class="flex flex-col items-center justify-center py-20 text-center w-full">
+                        <div class="w-16 h-16 bg-white border border-gray-200 rounded-full flex items-center justify-center mb-4 shadow-sm">
+                            <svg class="w-8 h-8 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path></svg>
+                        </div>
+                        <p class="text-gray-400 font-bold uppercase text-[10px] tracking-widest">${bosMetin}</p>
+                    </div>`;
+            }
+            else if (durum === 'hata') {
+                alan.innerHTML = `
+                    <div class="flex flex-col items-center justify-center py-20 text-center w-full text-red-500">
+                        <p class="font-bold uppercase tracking-widest text-xs mb-2">BİR HATA OLUŞTU</p>
+                        <p class="text-sm text-gray-600">${ekstraMesaj}</p>
+                        <button onclick="sitemiCalistir()" class="mt-4 bg-gray-900 text-white px-6 py-2 rounded-lg text-xs uppercase tracking-widest font-bold">Tekrar Dene</button>
+                    </div>`;
+            }
+        }
+
         function ekraniCiz() {
-            const listeDiv = document.getElementById('teklif-listesi');
-            const bosDiv = document.getElementById('bos-durum');
-            const yukleniyorDiv = document.getElementById('yukleniyor');
-            
-            yukleniyorDiv.classList.add('hidden');
-            yukleniyorDiv.classList.remove('flex');
-            listeDiv.innerHTML = "";
+            try {
+                // Benim ilanlarımı bul
+                const benimIlanIdlerim = tumIlanlar.filter(i => i.sahip_email === benimEmailim).map(i => i.id);
 
-            const benimIlanIdlerim = tumIlanlar.filter(i => i.sahip_email === benimEmailim).map(i => i.id);
+                let gosterilecekTeklifler = [];
+                if(aktifSekme === 'gelen') {
+                    gosterilecekTeklifler = tumTeklifler.filter(t => benimIlanIdlerim.includes(t.ilan_id));
+                } else {
+                    gosterilecekTeklifler = tumTeklifler.filter(t => t.teklif_veren_email === benimEmailim);
+                }
 
-            let gosterilecekTeklifler = [];
-            if(aktifSekme === 'gelen') {
-                gosterilecekTeklifler = tumTeklifler.filter(t => benimIlanIdlerim.includes(t.ilan_id));
-            } else {
-                gosterilecekTeklifler = tumTeklifler.filter(t => t.teklif_veren_email === benimEmailim);
-            }
+                // Hatalı (ilanı silinmiş) teklifleri filtrele
+                let gecerliTeklifler = gosterilecekTeklifler.filter(t => tumIlanlar.some(i => i.id == t.ilan_id));
 
-            // 🔥 HAYALET KORUMASI: İlanı gerçekten veritabanında olan teklifleri süz 🔥
-            let gecerliTeklifler = gosterilecekTeklifler.filter(t => tumIlanlar.some(i => i.id === t.ilan_id));
+                if(gecerliTeklifler.length === 0) {
+                    ekraniDurumaGoreCiz('bos');
+                    return;
+                }
 
-            // EĞER GEÇERLİ TEKLİF YOKSA
-            if(gecerliTeklifler.length === 0) {
-                listeDiv.classList.add('hidden');
-                listeDiv.classList.remove('grid');
+                let htmlCikti = `<div class="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">`;
                 
-                bosDiv.classList.remove('hidden');
-                bosDiv.classList.add('flex');
-                document.getElementById('bos-durum-yazi').innerText = aktifSekme === 'gelen' ? "HENÜZ BİR TAKAS TEKLİFİ ALMADINIZ" : "HENÜZ KİMSEYE TEKLİF GÖNDERMEDİNİZ";
-                return;
+                gecerliTeklifler.forEach(t => {
+                    const ilgiliIlan = tumIlanlar.find(i => i.id == t.ilan_id);
+                    if(!ilgiliIlan) return;
+
+                    let durumRenk = "bg-yellow-50 text-yellow-600 border-yellow-200";
+                    if(t.durum === 'Kabul Edildi') durumRenk = "bg-green-50 text-green-600 border-green-200";
+                    if(t.durum === 'Reddedildi' || t.durum === 'İptal Edildi') durumRenk = "bg-red-50 text-red-600 border-red-200";
+
+                    let ilkResim = "";
+                    if(ilgiliIlan.resim_url) ilkResim = ilgiliIlan.resim_url.split(',')[0];
+
+                    // Çökme Koruması: E-posta adresi null gelirse patlamaması için
+                    const teklifVerenGoster = t.teklif_veren_email ? t.teklif_veren_email.split('@')[0] : "Bilinmiyor";
+                    const sahipGoster = ilgiliIlan.sahip_email ? ilgiliIlan.sahip_email.split('@')[0] : "Bilinmiyor";
+
+                    htmlCikti += `
+                    <div class="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between">
+                        <div class="flex gap-4 items-start mb-4">
+                            <div class="w-16 h-16 rounded-xl bg-gray-50 flex-shrink-0 overflow-hidden border border-gray-100">
+                                ${ilkResim ? `<img src="${ilkResim}" class="w-full h-full object-cover">` : `<div class="w-full h-full flex items-center justify-center text-gray-300"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg></div>`}
+                            </div>
+                            <div class="flex-grow min-w-0 flex flex-col items-start">
+                                <span class="inline-block px-3 py-1 rounded-md text-[9px] font-black uppercase tracking-widest border mb-2 ${durumRenk}">${t.durum}</span>
+                                <h3 class="font-bold text-gray-900 text-sm truncate uppercase tracking-tight w-full"><a href="detay.html?id=${t.ilan_id}" class="hover:text-yellow-500 transition-colors">${ilgiliIlan.baslik || 'İsimsiz İlan'}</a></h3>
+                                <p class="text-[10px] text-gray-500 mt-1 truncate w-full">
+                                    ${aktifSekme === 'gelen' ? `Teklif Veren: <span class="font-bold text-gray-700">${teklifVerenGoster}</span>` : `İlan Sahibi: <span class="font-bold text-gray-700">${sahipGoster}</span>`}
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="flex gap-2 mt-auto border-t border-gray-50 pt-3">
+                            ${aktifSekme === 'gelen' && t.durum === 'Bekliyor' ? `
+                                <button onclick="durumGuncelle('${t.id}', 'Kabul Edildi')" class="flex-1 bg-green-500 text-white text-[10px] font-black uppercase tracking-widest py-3 rounded-xl hover:bg-green-600 transition-colors shadow-sm">Kabul Et</button>
+                                <button onclick="durumGuncelle('${t.id}', 'Reddedildi')" class="flex-1 bg-red-500 text-white text-[10px] font-black uppercase tracking-widest py-3 rounded-xl hover:bg-red-600 transition-colors shadow-sm">Reddet</button>
+                            ` : ''}
+
+                            ${aktifSekme === 'gelen' && t.durum === 'Kabul Edildi' ? `
+                                 <button onclick="sohbetBaslat('${t.teklif_veren_email}')" class="w-full bg-[#111827] text-white text-[10px] font-black uppercase tracking-widest py-3 rounded-xl hover:bg-black transition-colors flex items-center justify-center gap-2 shadow-sm">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg> Sohbete Başla
+                                 </button>
+                            ` : ''}
+                            
+                            ${aktifSekme === 'gelen' && t.durum === 'Reddedildi' ? `
+                                <span class="w-full text-center text-gray-400 text-[10px] font-bold uppercase py-3">Reddedildi</span>
+                            ` : ''}
+
+                            ${aktifSekme === 'giden' ? `
+                                ${t.durum === 'Bekliyor' ? `<button onclick="durumGuncelle('${t.id}', 'İptal Edildi')" class="w-full bg-gray-100 text-gray-500 hover:text-red-500 text-[10px] font-black uppercase tracking-widest py-3 rounded-xl hover:bg-red-50 transition-colors">Teklifi Geri Çek</button>` : ''}
+                                ${t.durum === 'Kabul Edildi' ? `<button onclick="sohbetBaslat('${ilgiliIlan.sahip_email}')" class="w-full bg-[#111827] text-white text-[10px] font-black uppercase tracking-widest py-3 rounded-xl hover:bg-black transition-colors flex items-center justify-center gap-2 shadow-sm">Sohbet Et</button>` : ''}
+                                ${t.durum === 'Reddedildi' || t.durum === 'İptal Edildi' ? `<span class="w-full text-center text-gray-400 text-[10px] font-bold uppercase py-3">İşlem Kapandı</span>` : ''}
+                            ` : ''}
+                        </div>
+                    </div>`;
+                });
+
+                htmlCikti += `</div>`;
+                document.getElementById('dinamik-alan').innerHTML = htmlCikti;
+
+            } catch(e) {
+                console.error("Çizim hatası:", e);
+                ekraniDurumaGoreCiz('hata', e.message);
             }
-
-            // TEKLİF VARSA
-            bosDiv.classList.add('hidden');
-            bosDiv.classList.remove('flex');
-            
-            listeDiv.classList.remove('hidden');
-            listeDiv.classList.add('grid');
-
-            let htmlCikti = '';
-            gecerliTeklifler.forEach(t => {
-                const ilgiliIlan = tumIlanlar.find(i => i.id === t.ilan_id);
-
-                let durumRenk = "bg-yellow-50 text-yellow-600 border-yellow-200";
-                if(t.durum === 'Kabul Edildi') durumRenk = "bg-green-50 text-green-600 border-green-200";
-                if(t.durum === 'Reddedildi' || t.durum === 'İptal Edildi') durumRenk = "bg-red-50 text-red-600 border-red-200";
-
-                let ilkResim = "";
-                if(ilgiliIlan.resim_url) ilkResim = ilgiliIlan.resim_url.split(',')[0];
-
-                htmlCikti += `
-                <div class="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between">
-                    <div class="flex gap-4 items-start mb-4">
-                        <div class="w-16 h-16 rounded-xl bg-gray-50 flex-shrink-0 overflow-hidden border border-gray-100">
-                            ${ilkResim ? `<img src="${ilkResim}" class="w-full h-full object-cover">` : `<div class="w-full h-full flex items-center justify-center text-gray-300"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg></div>`}
-                        </div>
-                        <div class="flex-grow min-w-0 flex flex-col items-start">
-                            <span class="inline-block px-3 py-1 rounded-md text-[9px] font-black uppercase tracking-widest border mb-2 ${durumRenk}">${t.durum}</span>
-                            <h3 class="font-bold text-gray-900 text-sm truncate uppercase tracking-tight w-full"><a href="detay.html?id=${t.ilan_id}" class="hover:text-yellow-500 transition-colors">${ilgiliIlan.baslik}</a></h3>
-                            <p class="text-[10px] text-gray-500 mt-1 truncate w-full">
-                                ${aktifSekme === 'gelen' ? `Teklif Veren: <span class="font-bold text-gray-700">${t.teklif_veren_email.split('@')[0]}</span>` : `İlan Sahibi: <span class="font-bold text-gray-700">${ilgiliIlan.sahip_email.split('@')[0]}</span>`}
-                            </p>
-                        </div>
-                    </div>
-
-                    <div class="flex gap-2 mt-auto border-t border-gray-50 pt-3">
-                        ${aktifSekme === 'gelen' && t.durum === 'Bekliyor' ? `
-                            <button onclick="durumGuncelle('${t.id}', 'Kabul Edildi')" class="flex-1 bg-green-500 text-white text-[10px] font-black uppercase tracking-widest py-3 rounded-xl hover:bg-green-600 transition-colors shadow-sm">Kabul Et</button>
-                            <button onclick="durumGuncelle('${t.id}', 'Reddedildi')" class="flex-1 bg-red-500 text-white text-[10px] font-black uppercase tracking-widest py-3 rounded-xl hover:bg-red-600 transition-colors shadow-sm">Reddet</button>
-                        ` : ''}
-
-                        ${aktifSekme === 'gelen' && t.durum === 'Kabul Edildi' ? `
-                             <button onclick="sohbetBaslat('${t.teklif_veren_email}')" class="w-full bg-[#111827] text-white text-[10px] font-black uppercase tracking-widest py-3 rounded-xl hover:bg-black transition-colors flex items-center justify-center gap-2 shadow-sm">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg> Sohbete Başla
-                             </button>
-                        ` : ''}
-                        
-                        ${aktifSekme === 'gelen' && t.durum === 'Reddedildi' ? `
-                            <span class="w-full text-center text-gray-400 text-[10px] font-bold uppercase py-3">Reddedildi</span>
-                        ` : ''}
-
-                        ${aktifSekme === 'giden' ? `
-                            ${t.durum === 'Bekliyor' ? `<button onclick="durumGuncelle('${t.id}', 'İptal Edildi')" class="w-full bg-gray-100 text-gray-500 hover:text-red-500 text-[10px] font-black uppercase tracking-widest py-3 rounded-xl hover:bg-red-50 transition-colors">Teklifi Geri Çek</button>` : ''}
-                            ${t.durum === 'Kabul Edildi' ? `<button onclick="sohbetBaslat('${ilgiliIlan.sahip_email}')" class="w-full bg-[#111827] text-white text-[10px] font-black uppercase tracking-widest py-3 rounded-xl hover:bg-black transition-colors flex items-center justify-center gap-2 shadow-sm">Sohbet Et</button>` : ''}
-                            ${t.durum === 'Reddedildi' || t.durum === 'İptal Edildi' ? `<span class="w-full text-center text-gray-400 text-[10px] font-bold uppercase py-3">İşlem Kapandı</span>` : ''}
-                        ` : ''}
-                    </div>
-                </div>`;
-            });
-
-            listeDiv.innerHTML = htmlCikti;
         }
 
         async function durumGuncelle(teklifId, yeniDurum) {
             try {
-                document.getElementById('yukleniyor').classList.remove('hidden');
-                document.getElementById('yukleniyor').classList.add('flex');
-                document.getElementById('teklif-listesi').classList.add('hidden');
-                document.getElementById('teklif-listesi').classList.remove('grid');
-                document.getElementById('bos-durum').classList.add('hidden');
-                document.getElementById('bos-durum').classList.remove('flex');
+                ekraniDurumaGoreCiz('yukleniyor');
 
                 const { error } = await _supabase.from('teklifler').update({ durum: yeniDurum }).eq('id', teklifId);
                 if (error) throw error;
