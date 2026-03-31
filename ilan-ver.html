@@ -40,7 +40,7 @@
                         <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest mb-3">
                             İLAN BAŞLIĞI <span class="text-red-500">*</span>
                         </label>
-                        <input type="text" id="baslik" required placeholder="Örn: Temiz iPhone 13" class="w-full bg-gray-50 border border-gray-100 p-4 rounded-xl outline-none focus:border-yellow-500 focus:ring-1 focus:ring-yellow-500 text-sm font-medium transition-all text-gray-800 placeholder-gray-400">
+                        <input type="text" id="baslik" required placeholder="Örn: Temiz iPhone 13 Pro" class="w-full bg-gray-50 border border-gray-100 p-4 rounded-xl outline-none focus:border-yellow-500 focus:ring-1 focus:ring-yellow-500 text-sm font-medium transition-all text-gray-800 placeholder-gray-400">
                     </div>
 
                     <div>
@@ -63,7 +63,7 @@
                     <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest mb-3">
                         TAHMİNİ DEĞER (TL) <span class="text-red-500">*</span>
                     </label>
-                    <input type="number" id="deger" required placeholder="Örn: 25000" class="w-full bg-gray-50 border border-gray-100 p-4 rounded-xl outline-none focus:border-yellow-500 focus:ring-1 focus:ring-yellow-500 text-sm font-medium transition-all text-gray-800 placeholder-gray-400">
+                    <input type="number" id="deger" required placeholder="Örn: 35000" class="w-full bg-gray-50 border border-gray-100 p-4 rounded-xl outline-none focus:border-yellow-500 focus:ring-1 focus:ring-yellow-500 text-sm font-medium transition-all text-gray-800 placeholder-gray-400">
                     <p class="text-[10px] text-gray-400 mt-2 font-medium">Bu değer, takas tekliflerinin dengeli olması için referans olarak kullanılacaktır.</p>
                 </div>
 
@@ -78,27 +78,25 @@
                     <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest mb-3">
                         ÜRÜN GÖRSELLERİ <span class="text-red-500">*</span>
                     </label>
-                    <div class="relative w-full md:w-1/2 bg-white border-2 border-dashed border-gray-300 rounded-2xl p-8 text-center hover:bg-gray-50 hover:border-gray-400 transition-colors flex flex-col items-center justify-center group overflow-hidden min-h-[160px]">
+                    
+                    <div class="relative w-full bg-white border-2 border-dashed border-gray-300 rounded-2xl p-6 transition-all hover:border-gray-400">
                         
-                        <input type="file" id="resim_dosya" required accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" onchange="resimOnizleme(this)">
+                        <input type="file" id="resim_dosyalar" multiple accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" onchange="resimOnizleme(this)">
                         
-                        <div id="resim-secici-icerik" class="flex flex-col items-center transition-all duration-300 pointer-events-none">
-                            <svg class="w-10 h-10 text-gray-300 group-hover:text-gray-500 transition-colors mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
-                            <p class="text-sm font-bold text-gray-600">Görsel Seç</p>
-                        </div>
-
-                        <div id="resim-onizleme-alani" class="hidden absolute inset-0 w-full h-full bg-gray-100 z-0">
-                            <img id="onizleme-resmi" class="w-full h-full object-contain p-2">
-                            <div class="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity bg-black/40 z-20">
-                                <span class="text-white text-xs font-bold uppercase tracking-widest bg-gray-900/80 px-3 py-1.5 rounded-lg border border-gray-600">Değiştir</span>
-                            </div>
+                        <div id="resim-secici-icerik" class="flex flex-col items-center justify-center py-6 text-center transition-all duration-300 pointer-events-none">
+                            <svg class="w-10 h-10 text-gray-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                            <p class="text-sm font-bold text-gray-600">Resim Seç / Sürükle Bırak (Çoklu)</p>
+                            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">Maksimum 8 Resim Yükleyebilirsiniz</p>
                         </div>
                     </div>
+
+                    <div id="resim-grid-alani" class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
+                        </div>
                 </div>
 
                 <div class="pt-6 border-t border-gray-100">
                     <button type="submit" id="submit-btn" class="w-full md:w-auto md:px-12 bg-[#111827] text-white py-4 rounded-xl font-black text-sm uppercase tracking-widest shadow-lg hover:bg-black hover:-translate-y-0.5 transition-all flex justify-center items-center gap-2">
-                        İlanı Yayına Al
+                        İlanı Yayına Al (Çoklu Resim)
                     </button>
                 </div>
             </form>
@@ -123,6 +121,7 @@
         const _supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
         let benimEmailim = "";
+        let secilenDosyalar = []; // Seçilen dosyaların state'i
 
         async function yetkiKontrol() {
             const { data: { session } } = await _supabase.auth.getSession();
@@ -131,28 +130,75 @@
             document.getElementById('user-name').innerText = benimEmailim.split('@')[0].toUpperCase();
         }
 
-        // Seçilen resmi ekranda gösterme (Önizleme)
+        // Seçilen çoklu resimleri state'e ekle ve önizle
         function resimOnizleme(input) {
-            if (input.files && input.files[0]) {
+            if (input.files) {
+                const newFiles = Array.from(input.files);
+                
+                // Toplamda maks 8 resim sınırı
+                if(secilenDosyalar.length + newFiles.length > 8) {
+                    modalAc("Sınır Aşıldı", "Maksimum 8 resim yükleyebilirsiniz.", "uyari");
+                    // Inputu temizle ki aynı resimleri tekrar seçebilsin
+                    input.value = "";
+                    return;
+                }
+
+                secilenDosyalar = [...secilenDosyalar, ...newFiles];
+                input.value = ""; // Inputu temizle ki aynı dosyayı tekrar ekleyebilsin
+                renderPreviews();
+            }
+        }
+
+        // Seçilen resmi state'den sil ve grid'i güncelle
+        function resimSil(index) {
+            secilenDosyalar.splice(index, 1);
+            renderPreviews();
+        }
+
+        // State'deki resimleri grid'e bas
+        function renderPreviews() {
+            const grid = document.getElementById('resim-grid-alani');
+            const seciciIcerik = document.getElementById('resim-secici-icerik');
+            
+            grid.innerHTML = "";
+            
+            if(secilenDosyalar.length === 0) {
+                grid.classList.add('hidden');
+                seciciIcerik.classList.remove('hidden');
+                return;
+            } else {
+                grid.classList.remove('hidden');
+                seciciIcerik.classList.add('hidden');
+            }
+
+            secilenDosyalar.forEach((dosya, index) => {
                 const reader = new FileReader();
                 reader.onload = function(e) {
-                    document.getElementById('resim-secici-icerik').classList.add('hidden');
-                    document.getElementById('resim-onizleme-alani').classList.remove('hidden');
-                    document.getElementById('onizleme-resmi').src = e.target.result;
+                    const thumbnailHtml = `
+                    <div class="relative group aspect-square bg-gray-50 border border-gray-100 rounded-xl overflow-hidden shadow-sm">
+                        <img src="${e.target.result}" class="w-full h-full object-contain p-1">
+                        <button type="button" onclick="resimSil(${index})" class="absolute top-1.5 right-1.5 bg-red-500 text-white w-5 h-5 rounded-full flex items-center justify-center font-bold text-xs opacity-0 group-hover:opacity-100 transition-opacity z-20">×</button>
+                    </div>`;
+                    grid.insertAdjacentHTML('beforeend', thumbnailHtml);
                 }
-                reader.readAsDataURL(input.files[0]);
-            }
+                reader.readAsDataURL(dosya);
+            });
         }
 
         async function ilanGonder(event) {
             event.preventDefault();
             
+            if(secilenDosyalar.length === 0) {
+                modalAc("Hata", "Lütfen en az bir resim yükleyin.", "uyari");
+                return;
+            }
+
             const btn = document.getElementById('submit-btn');
             const orijinalHTML = btn.innerHTML;
             
             // Yükleniyor Animasyonu
             btn.disabled = true;
-            btn.innerHTML = `<svg class="animate-spin h-5 w-5 text-white mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> İŞLENİYOR...`;
+            btn.innerHTML = `<svg class="animate-spin h-5 w-5 text-white mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> YÜKLENİYOR...`;
             btn.classList.add('cursor-not-allowed', 'opacity-90');
 
             try {
@@ -160,28 +206,28 @@
                 const aciklama = document.getElementById('aciklama').value.trim();
                 const kategori = document.getElementById('kategori').value;
                 const deger = document.getElementById('deger').value;
-                const dosya = document.getElementById('resim_dosya').files[0];
-                let finalResimUrl = "";
+                
+                let yuklenenUrlDizisi = [];
 
-                // DOSYA YÜKLEME İŞLEMİ (Supabase Storage)
-                if (dosya) {
+                // ÇOKLU DOSYA YÜKLEME İŞLEMİ (Döngü!)
+                const storageBucket = _supabase.storage.from('ilan-resimleri');
+
+                for(const dosya of secilenDosyalar) {
                     const dosyaUzantisi = dosya.name.split('.').pop();
                     const dosyaAdi = `${Date.now()}-${Math.random().toString(36).substring(7)}.${dosyaUzantisi}`;
                     
-                    const { data: uploadData, error: uploadError } = await _supabase.storage
-                        .from('ilan-resimleri') 
-                        .upload(dosyaAdi, dosya);
+                    const { data: uploadData, error: uploadError } = await storageBucket.upload(dosyaAdi, dosya);
 
-                    if (uploadError) throw new Error("Resim yüklenemedi: " + uploadError.message);
+                    if (uploadError) throw new Error(`${dosya.name} yüklenemedi: ${uploadError.message}`);
 
-                    const { data: urlData } = _supabase.storage
-                        .from('ilan-resimleri')
-                        .getPublicUrl(dosyaAdi);
-
-                    finalResimUrl = urlData.publicUrl;
+                    const { data: urlData } = storageBucket.getPublicUrl(dosyaAdi);
+                    yuklenenUrlDizisi.push(urlData.publicUrl);
                 }
 
-                // VERİTABANINA KAYIT İŞLEMİ (DURUM SÜTUNU ÇIKARTILDI)
+                // URL'leri VIRGÜLLE AYIRIP TEK METİN YAPMA (Mevcut Şema Uyumlu)
+                const finalResimMetni = yuklenenUrlDizisi.join(',');
+
+                // VERİTABANINA KAYIT İŞLEMİ (Mevcut şemayı bozmadan url'leri metin olarak yazıyoruz)
                 const { error: dbError } = await _supabase.from('ilanlar').insert([
                     {
                         sahip_email: benimEmailim,
@@ -189,14 +235,16 @@
                         aciklama: aciklama,
                         kategori: kategori,
                         deger: deger,
-                        resim_url: finalResimUrl
+                        resim_url: finalResimMetni
                     }
                 ]);
 
                 if (dbError) throw dbError;
 
                 document.getElementById('ilan-formu').reset();
-                modalAc("Başarılı", "İlanınız ve görseliniz başarıyla sisteme yüklendi. Vitrine yönlendiriliyorsunuz...", "basarili", () => window.location.href = 'index.html');
+                secilenDosyalar = [];
+                renderPreviews();
+                modalAc("Başarılı", "İlanınız ve tüm görselleriniz başarıyla yüklendi. Vitrine yönlendiriliyorsunuz...", "basarili", () => window.location.href = 'index.html');
                 
             } catch (err) {
                 btn.disabled = false;
@@ -223,9 +271,12 @@
             if(tip === 'basarili') { 
                 ikon.className = "mx-auto h-16 w-16 rounded-full bg-green-50 flex items-center justify-center text-green-500 font-bold text-2xl border border-green-100"; 
                 ikon.innerHTML = "✓"; 
-            } else { 
+            } else if (tip === 'hata') { 
                 ikon.className = "mx-auto h-16 w-16 rounded-full bg-red-50 flex items-center justify-center text-red-500 font-bold text-2xl border border-red-100"; 
                 ikon.innerHTML = "!"; 
+            } else { // uyari
+                 ikon.className = "mx-auto h-16 w-16 rounded-full bg-yellow-50 flex items-center justify-center text-yellow-500 font-bold text-2xl border border-yellow-100"; 
+                ikon.innerHTML = "?"; 
             }
             
             document.getElementById('ozel-modal').classList.remove('hidden');
@@ -237,7 +288,7 @@
         function modalKapat() {
             document.getElementById('ozel-modal-kutu').classList.add('scale-95', 'opacity-0');
             setTimeout(() => { document.getElementById('ozel-modal').classList.add('hidden'); }, 300);
-            if(modalOnayFonk && document.getElementById('modal-ikon').innerText === '!') modalOnayFonk = null;
+            if(modalOnayFonk && (document.getElementById('modal-ikon').innerText === '!' || document.getElementById('modal-ikon').innerText === '?')) modalOnayFonk = null;
         }
 
         yetkiKontrol();
