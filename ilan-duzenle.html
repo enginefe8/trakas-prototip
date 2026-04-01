@@ -94,17 +94,12 @@
         </div>
     </main>
 
-    <div id="ozel-modal" class="hidden fixed inset-0 z-[999] flex items-center justify-center px-4">
-        <div class="absolute inset-0 bg-gray-900/80 backdrop-blur-sm transition-opacity" onclick="modalKapat()"></div>
-        <div id="ozel-modal-kutu" class="relative bg-white p-8 rounded-3xl shadow-2xl w-full max-w-sm transform scale-95 opacity-0 transition-all duration-300">
-            <div class="text-center">
-                <div id="modal-ikon" class="mx-auto flex items-center justify-center h-16 w-16 rounded-full mb-6"></div>
-                <h3 id="modal-baslik" class="text-xl font-black text-gray-900 mb-2 uppercase tracking-wide">Bilgi</h3>
-                <p id="modal-mesaj" class="text-gray-600 font-medium text-sm mb-8 leading-relaxed"></p>
-                <button id="modal-btn-ana" onclick="modalKapat()" class="w-full bg-[#0f172a] text-white font-black px-4 py-4 rounded-xl hover:bg-black transition-colors uppercase text-[10px] tracking-widest shadow-md">Tamam</button>
-            </div>
+    <footer class="bg-[#0f172a] border-t-4 border-[#facc15] pt-12 pb-8 w-full mt-auto">
+        <div class="max-w-7xl mx-auto flex flex-col items-center justify-center">
+            <h2 class="text-4xl font-black text-white italic tracking-tighter uppercase mb-2">TRAKAS</h2>
+            <p class="text-gray-500 text-xs font-bold tracking-widest uppercase">Takas Pazaryeri Platformu</p>
         </div>
-    </div>
+    </footer>
 
     <script>
         const supabaseUrl = 'https://ivnazhfahtjcdspclkis.supabase.co';
@@ -129,12 +124,14 @@
             const { data: ilanVerisi, error } = await _supabase.from('ilanlar').select('*').eq('id', ilanId).single();
             
             if (error || !ilanVerisi) {
-                modalAc("Hata", "İlan bulunamadı.", "hata", () => window.location.href = 'ilanlarim.html');
+                alert("İlan bulunamadı!");
+                window.location.href = 'ilanlarim.html';
                 return;
             }
 
             if(ilanVerisi.sahip_email !== benimEmailim) {
-                modalAc("Yetkisiz Erişim", "Bu ilanı düzenleme yetkiniz yok.", "hata", () => window.location.href = 'ilanlarim.html');
+                alert("Bu ilanı düzenleme yetkiniz yok!");
+                window.location.href = 'ilanlarim.html';
                 return;
             }
 
@@ -157,7 +154,7 @@
                 const toplamResim = mevcutResimler.length + yeniSecilenDosyalar.length + newFiles.length;
                 
                 if(toplamResim > 8) {
-                    modalAc("Sınır Aşıldı", "Maksimum 8 resim yükleyebilirsiniz.", "uyari");
+                    alert("Sınır Aşıldı: Maksimum 8 resim yükleyebilirsiniz.");
                     input.value = "";
                     return;
                 }
@@ -191,11 +188,11 @@
                 grid.classList.remove('hidden');
             }
 
-            // HER TÜRLÜ YAZI SİLİNDİ, SADECE MODERN ÇARPI BUTONU VAR
+            // MEVCUT RESİMLER: YAZI YOK SADECE ÇARPI İKONU
             mevcutResimler.forEach((url, index) => {
                 grid.insertAdjacentHTML('beforeend', `
                     <div class="relative group aspect-square bg-gray-50 border border-gray-100 rounded-xl overflow-hidden shadow-inner transition-all hover:border-gray-200">
-                        <img src="${url}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105">
+                        <img src="${url}" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105">
                         <div class="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-start justify-end p-2 z-20">
                             <button type="button" onclick="eskiResimSil(${index})" class="bg-white/90 backdrop-blur-sm text-red-500 w-8 h-8 rounded-full flex items-center justify-center font-black text-sm shadow-md hover:bg-red-500 hover:text-white transition-colors transform scale-90 group-hover:scale-100" title="Resmi Sil">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
@@ -205,12 +202,18 @@
                 `);
             });
 
+            // YENİ SEÇİLEN RESİMLER
             yeniSecilenDosyalar.forEach((dosya, index) => {
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     grid.insertAdjacentHTML('beforeend', `
                         <div class="relative group aspect-square bg-yellow-50 border border-yellow-300 rounded-xl overflow-hidden shadow-sm transition-all hover:border-yellow-400">
                             <img src="${e.target.result}" class="w-full h-full object-cover opacity-90 transition-transform duration-300 group-hover:scale-105">
+                            
+                            <div class="absolute bottom-2 left-2 pointer-events-none z-10">
+                                <span class="bg-yellow-400 text-[#0f172a] text-[9px] font-black uppercase px-2 py-1 rounded shadow-sm">YENİ</span>
+                            </div>
+
                             <div class="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-start justify-end p-2 z-20">
                                 <button type="button" onclick="yeniResimSil(${index})" class="bg-white/90 backdrop-blur-sm text-red-500 w-8 h-8 rounded-full flex items-center justify-center font-black text-sm shadow-md hover:bg-red-500 hover:text-white transition-colors transform scale-90 group-hover:scale-100" title="Resmi Sil">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
@@ -228,19 +231,21 @@
             
             const toplamResim = mevcutResimler.length + yeniSecilenDosyalar.length;
             if(toplamResim === 0) {
-                modalAc("Eksik Bilgi", "Lütfen ilanınızda en az bir görsel bırakın.", "uyari");
+                alert("Lütfen ilanınızda en az bir görsel bırakın.");
                 return;
             }
 
             const btn = document.getElementById('submit-btn');
-            const orijinalHTML = btn.innerHTML;
-            btn.disabled = true;
             
             try {
+                // BUTONU KİLİTLE
+                btn.disabled = true;
+                btn.classList.add('cursor-not-allowed', 'opacity-90');
+                
                 const baslik = document.getElementById('baslik').value.trim();
                 const aciklama = document.getElementById('aciklama').value.trim();
                 const kategori = document.getElementById('kategori').value;
-                const deger = Number(document.getElementById('deger').value); // Sayısal garanti!
+                const deger = Number(document.getElementById('deger').value);
                 
                 let finalResimDizisi = [...mevcutResimler]; 
                 const storageBucket = _supabase.storage.from('ilan-resimleri');
@@ -248,12 +253,12 @@
                 if(yeniSecilenDosyalar.length > 0) {
                     let sayac = 1;
                     for(const dosya of yeniSecilenDosyalar) {
-                        btn.innerHTML = `<svg class="animate-spin h-5 w-5 text-[#facc15] mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> GÖRSELLER YÜKLENİYOR (${sayac}/${yeniSecilenDosyalar.length})...`;
+                        btn.innerHTML = `<svg class="animate-spin h-5 w-5 text-[#facc15] mr-2 inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> GÖRSELLER YÜKLENİYOR (${sayac}/${yeniSecilenDosyalar.length})...`;
                         
                         const dosyaAdi = `img_${Date.now()}_${Math.random().toString(36).substring(7)}.jpg`;
-                        
                         const { error: uploadError } = await storageBucket.upload(dosyaAdi, dosya);
-                        if (uploadError) throw new Error(`Storage Hatası: ${uploadError.message}`);
+                        
+                        if (uploadError) throw new Error(`Resim yüklenemedi: ${uploadError.message}`);
 
                         const { data: urlData } = storageBucket.getPublicUrl(dosyaAdi);
                         finalResimDizisi.push(urlData.publicUrl); 
@@ -261,64 +266,32 @@
                     }
                 }
 
-                btn.innerHTML = `<svg class="animate-spin h-5 w-5 text-[#facc15] mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> VERİTABANI GÜNCELLENİYOR...`;
+                btn.innerHTML = `<svg class="animate-spin h-5 w-5 text-[#facc15] mr-2 inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> VERİTABANI GÜNCELLENİYOR...`;
                 const finalResimMetni = finalResimDizisi.join(',');
 
-                // GÜVENLİK VE HATA TESPİTİ İÇİN .select() EKLENDİ!
-                const { data: updateData, error: dbError } = await _supabase
+                // NÜKLEER ÇÖZÜM: .select() KALDIRILDI! ARTIK KİLİTLENEMEZ!
+                const { error: dbError } = await _supabase
                     .from('ilanlar')
                     .update({ baslik, aciklama, kategori, deger, resim_url: finalResimMetni })
-                    .eq('id', ilanId)
-                    .select();
+                    .eq('id', ilanId);
 
-                if (dbError) throw new Error(`Veritabanı reddetti: ${dbError.message}`);
+                if (dbError) throw new Error(dbError.message);
 
-                if (!updateData || updateData.length === 0) {
-                    throw new Error("Sistem bu ilanı güncelleyemedi! RLS Güvenlik kuralları işlemi engelliyor olabilir.");
-                }
-
-                // EĞER BURAYA KADAR GELDİYSE İŞLEM KESİN BAŞARILI!
-                modalAc("Başarılı", "İlanınız başarıyla güncellendi! Yönlendiriliyorsunuz...", "basarili", () => {
-                    window.location.href = `detay.html?id=${ilanId}&v=${Date.now()}`; 
-                });
+                // İŞLEM BİTTİ, BEKLEMEDEN ŞAK DİYE VİTRİNE GİT!
+                btn.innerHTML = `✅ BAŞARILI! YÖNLENDİRİLİYOR...`;
+                window.location.href = `detay.html?id=${ilanId}&v=${Date.now()}`; 
                 
             } catch (err) {
-                console.error("HATA DETAYI: ", err);
+                // HATAYI GİZLEMEDEN KULLANICIYA GÖSTER (ZORUNLU ALERT)
+                console.error(err);
+                alert("GÜNCELLEME BAŞARISIZ OLDU!\n\nHata Detayı: " + (err.message || "Bilinmeyen bir hata."));
+                
+            } finally {
+                // NE OLURSA OLSUN BUTONUN KİLİDİNİ AÇ!
                 btn.disabled = false;
-                btn.innerHTML = orijinalHTML;
                 btn.classList.remove('cursor-not-allowed', 'opacity-90');
-                modalAc("İşlem Başarısız", err.message, "hata");
+                btn.innerHTML = "DEĞİŞİKLİKLERİ KAYDET";
             }
-        }
-
-        let modalOnayFonk = null;
-        function modalAc(baslik, mesaj, tip, onayFonk = null) {
-            document.getElementById('modal-baslik').innerText = baslik;
-            document.getElementById('modal-mesaj').innerText = mesaj;
-            modalOnayFonk = onayFonk;
-            
-            const ikon = document.getElementById('modal-ikon');
-            if(tip === 'basarili') { ikon.className = "mx-auto h-16 w-16 rounded-full bg-green-50 flex items-center justify-center text-green-500 font-bold text-2xl border border-green-100"; ikon.innerHTML = "✓"; }
-            else if(tip === 'hata') { ikon.className = "mx-auto h-16 w-16 rounded-full bg-red-50 flex items-center justify-center text-red-500 font-bold text-2xl border border-red-100"; ikon.innerHTML = "!"; }
-            else { ikon.className = "mx-auto h-16 w-16 rounded-full bg-yellow-50 flex items-center justify-center text-yellow-500 font-bold text-2xl border border-yellow-100"; ikon.innerHTML = "?"; }
-            
-            document.getElementById('ozel-modal').classList.remove('hidden');
-            setTimeout(() => { document.getElementById('ozel-modal-kutu').classList.remove('scale-95', 'opacity-0'); }, 10);
-            
-            // Başarılıysa 2 saniye sonra otomotik kapat ve yönlendir
-            if(tip === 'basarili' && onayFonk) {
-                setTimeout(() => { 
-                    if(!document.getElementById('ozel-modal').classList.contains('hidden')) { 
-                        modalKapat(); onayFonk(); 
-                    } 
-                }, 1500);
-            }
-        }
-
-        function modalKapat() {
-            document.getElementById('ozel-modal-kutu').classList.add('scale-95', 'opacity-0');
-            setTimeout(() => { document.getElementById('ozel-modal').classList.add('hidden'); }, 300);
-            if(modalOnayFonk && document.getElementById('modal-ikon').innerText !== '✓') modalOnayFonk = null;
         }
 
         async function cikisYap() { await _supabase.auth.signOut(); window.location.href = 'index.html'; }
