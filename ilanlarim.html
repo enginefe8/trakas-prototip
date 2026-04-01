@@ -13,12 +13,14 @@
 </head>
 <body class="bg-white font-sans min-h-screen flex flex-col text-gray-900">
 
-    <nav class="bg-[#0f172a] px-6 py-4 flex justify-between items-center w-full">
+    <nav class="bg-[#0f172a] px-6 py-4 flex justify-between items-center w-full shadow-md z-50">
         <a href="index.html" class="text-3xl font-black text-white italic tracking-tighter uppercase">TRAKAS</a>
         
         <div class="hidden lg:flex items-center gap-6">
             <span id="user-name" class="text-yellow-500 font-bold text-xs uppercase tracking-widest"></span>
-            <a href="#" class="text-gray-400 font-bold text-[11px] uppercase tracking-widest hover:text-white transition-colors">FAVORİLERİM</a>
+            
+            <a href="favorilerim.html" class="text-gray-400 font-bold text-[11px] uppercase tracking-widest hover:text-white transition-colors">FAVORİLERİM</a>
+            
             <a href="ilanlarim.html" class="text-white font-black text-[11px] uppercase tracking-widest">İLANLARIM</a>
             <a href="sohbetler.html" class="text-gray-400 font-bold text-[11px] uppercase tracking-widest hover:text-white transition-colors">MESAJLARIM</a>
             <a href="teklifler.html" class="text-gray-400 font-bold text-[11px] uppercase tracking-widest hover:text-white transition-colors">TEKLİFLERİM</a>
@@ -204,14 +206,13 @@
             }
         }
 
-        // İŞTE DÜZELTTİĞİMİZ KISIM BURASI!
         function ilanDuzenle(id) {
             window.location.href = `ilan-duzenle.html?id=${id}`;
         }
 
         function silmeOnayiIste(id) {
             silinecekIlanId = id;
-            modalAc("İlanı Sil", "Bu ilanı silmek istediğinize emin misiniz? Bu işlem geri alınamaz ve ilana ait teklifler boşa düşer.", "uyari", true, gercektenSil);
+            modalAc("İlanı Sil", "Bu ilanı silmek istediğinize emin misiniz? Bu işlem geri alınamaz.", "uyari", true, gercektenSil);
         }
 
         async function gercektenSil() {
@@ -241,7 +242,7 @@
             const ikon = document.getElementById('modal-ikon');
             if(tip === 'basarili') { ikon.className = "mx-auto h-16 w-16 rounded-full bg-green-50 flex items-center justify-center text-green-500 font-bold text-2xl border border-green-100"; ikon.innerHTML = "✓"; }
             else if(tip === 'hata') { ikon.className = "mx-auto h-16 w-16 rounded-full bg-red-50 flex items-center justify-center text-red-500 font-bold text-2xl border border-red-100"; ikon.innerHTML = "!"; }
-            else { ikon.className = "mx-auto h-16 w-16 rounded-full bg-yellow-50 flex items-center justify-center text-yellow-500 font-bold text-2xl border border-yellow-100"; ikon.innerHTML = "?"; }
+            else { ikon.className = "mx-auto h-16 w-16 rounded-full bg-yellow-50 flex items-center justify-center text-yellow-500 font-bold text-2xl border border-yellow-100";innerHTML = "?"; }
             
             const iptalBtn = document.getElementById('modal-btn-ikincil');
             const anaBtn = document.getElementById('modal-btn-ana');
