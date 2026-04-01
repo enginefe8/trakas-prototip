@@ -23,47 +23,63 @@
 
     <main class="max-w-7xl mx-auto px-4 py-8 w-full flex-grow flex flex-col items-center">
         
-        <div class="text-center mb-12 mt-4">
+        <div class="text-center mb-10 mt-4">
             <h1 class="text-4xl md:text-5xl font-black text-[#0f172a] tracking-tight uppercase mb-4 italic">EŞYALARINI TAKASLA, <span class="text-yellow-500">DEĞERİNE DEĞER KAT</span></h1>
             <p class="text-gray-500 font-medium text-sm md:text-base max-w-2xl mx-auto">Trakas ile kullanmadığın eşyaları ihtiyacın olanlarla değiştir. Güvenli, hızlı ve tamamen ücretsiz pazaryeri.</p>
         </div>
 
+        <div class="w-full max-w-4xl mx-auto mb-10 z-10">
+            <div class="flex flex-col md:flex-row gap-3 bg-white p-3 rounded-2xl shadow-md border border-gray-200">
+                
+                <div class="flex-grow flex items-center bg-gray-50 rounded-xl px-4 py-2 border border-gray-100 focus-within:border-[#facc15] focus-within:ring-1 focus-within:ring-[#facc15] transition-all">
+                    <svg class="w-5 h-5 text-gray-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    <input type="text" id="arama-kutusu" placeholder="İlan başlığında ara... (Örn: iPhone 13, Bisiklet)" class="w-full bg-transparent outline-none text-sm font-bold text-gray-800 placeholder-gray-400 py-2">
+                </div>
+
+                <div class="md:w-56 flex-shrink-0 relative">
+                    <select id="kategori-filtresi" class="w-full bg-gray-50 rounded-xl px-4 py-4 border border-gray-100 outline-none focus:border-[#facc15] focus:ring-1 focus:ring-[#facc15] text-xs font-black text-gray-700 uppercase tracking-widest appearance-none cursor-pointer h-full transition-all">
+                        <option value="">TÜM KATEGORİLER</option>
+                        <option value="Elektronik">ELEKTRONİK</option>
+                        <option value="Giyim & Aksesuar">GİYİM & AKSESUAR</option>
+                        <option value="Araç">ARAÇ</option>
+                        <option value="Ev & Yaşam">EV & YAŞAM</option>
+                        <option value="Eğlence & Hobi">EĞLENCE & HOBİ</option>
+                        <option value="Diğer">DİĞER</option>
+                    </select>
+                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-500">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </div>
+                </div>
+
+                <button onclick="filtreleVeAra()" class="bg-[#0f172a] text-[#facc15] px-8 py-4 md:py-0 rounded-xl font-black text-xs uppercase tracking-widest shadow-md hover:bg-black transition-colors flex-shrink-0 flex items-center justify-center gap-2">
+                    ARA
+                </button>
+            </div>
+        </div>
+
+        <div id="yukleniyor" class="py-20 flex flex-col items-center justify-center w-full hidden">
+            <svg class="animate-spin h-10 w-10 text-[#0f172a] mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+            <span class="text-xs font-bold text-gray-500 uppercase tracking-widest">SONUÇLAR GETİRİLİYOR...</span>
+        </div>
+
         <div id="ilan-vitrini" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 w-full">
             </div>
-        
-        <div id="yukleniyor" class="py-20 flex flex-col items-center justify-center w-full">
-            <svg class="animate-spin h-10 w-10 text-[#0f172a] mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-            <span class="text-xs font-bold text-gray-500 uppercase tracking-widest">VİTRİN YÜKLENİYOR...</span>
-        </div>
 
     </main>
 
     <footer class="bg-[#0f172a] border-t-4 border-[#facc15] pt-12 pb-8 w-full mt-auto">
         <div class="max-w-7xl mx-auto px-6 flex flex-col items-center justify-center text-center">
-            
             <h2 class="text-4xl font-black text-white italic tracking-tighter uppercase mb-2">TRAKAS</h2>
             <p class="text-gray-400 text-xs font-bold tracking-widest uppercase mb-8">Takas Pazaryeri Platformu</p>
-
             <div class="h-px bg-gray-800 w-full mb-8"></div>
-
             <div class="flex flex-col md:flex-row justify-between items-center w-full gap-6">
-                <p class="text-gray-500 text-[10px] font-bold tracking-widest uppercase">
-                    Copyright © 2024 TRAKAS Ltd. Tüm hakları saklıdır.
-                </p>
-
+                <p class="text-gray-500 text-[10px] font-bold tracking-widest uppercase">Copyright © 2026 TRAKAS Ltd. Tüm hakları saklıdır.</p>
                 <div class="flex items-center gap-5 text-gray-500">
-                    <a href="#" class="hover:text-[#facc15] transition-colors">
-                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
-                    </a>
-                    <a href="#" class="hover:text-[#facc15] transition-colors">
-                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.222 8.255 8.496 11.245H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-                    </a>
-                    <a href="#" class="hover:text-[#facc15] transition-colors">
-                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.919-.058-1.265-.069-1.646-.069-4.849 0-3.204.013-3.583.069-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12s.014 3.667.072 4.947c.2 4.353 2.62 6.765 6.98 6.965 1.28.058 1.688.072 4.948.072s3.668-.014 4.948-.072c4.354-.2 6.765-2.62 6.965-6.98.058-1.28.072-1.689.072-4.948s-.014-3.667-.072-4.947c-.2-4.353-2.62-6.765-6.98-6.965C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
-                    </a>
+                    <a href="#" class="hover:text-[#facc15] transition-colors"><svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg></a>
+                    <a href="#" class="hover:text-[#facc15] transition-colors"><svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.222 8.255 8.496 11.245H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>
+                    <a href="#" class="hover:text-[#facc15] transition-colors"><svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.919-.058-1.265-.069-1.646-.069-4.849 0-3.204.013-3.583.069-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12s.014 3.667.072 4.947c.2 4.353 2.62 6.765 6.98 6.965 1.28.058 1.688.072 4.948.072s3.668-.014 4.948-.072c4.354-.2 6.765-2.62 6.965-6.98.058-1.28.072-1.689.072-4.948s-.014-3.667-.072-4.947c-.2-4.353-2.62-6.765-6.98-6.965C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg></a>
                 </div>
             </div>
-
         </div>
     </footer>
 
@@ -78,6 +94,8 @@
             const { data: { session } } = await _supabase.auth.getSession();
             aktifSession = session;
             menuOlustur();
+            
+            // Sayfa ilk açıldığında boş arama yaparak tüm ilanları getirir
             vitriniDoldur();
         }
 
@@ -88,8 +106,6 @@
             if (aktifSession) {
                 const user = aktifSession.user;
                 const meta = user.user_metadata || {};
-                
-                // İSİM SOYİSİM AKILLI ÇEKİMİ (Profil sayfasından gelen gerçek ad)
                 const gorunenIsim = meta.ad_soyad ? meta.ad_soyad.toUpperCase() : user.email.split('@')[0].toUpperCase();
                 
                 menuDiv.classList.remove('hidden');
@@ -119,12 +135,46 @@
             }
         }
 
-        async function vitriniDoldur() {
+        // Enter tuşuna basıldığında aramayı tetikle
+        document.getElementById('arama-kutusu').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                filtreleVeAra();
+            }
+        });
+
+        // Dropdown değiştiğinde otomatik ara (Opsiyonel, daha iyi UX sağlar)
+        document.getElementById('kategori-filtresi').addEventListener('change', filtreleVeAra);
+
+        // Arama Butonuna basıldığında çalışacak fonksiyon
+        function filtreleVeAra() {
+            const aranacakKelime = document.getElementById('arama-kutusu').value;
+            const secilenKategori = document.getElementById('kategori-filtresi').value;
+            vitriniDoldur(aranacakKelime, secilenKategori);
+        }
+
+        // AKILLI VİTRİN MOTORU (Arama parametrelerini alır)
+        async function vitriniDoldur(arama = "", kategori = "") {
+            
+            // Ekranı temizle ve yükleniyor animasyonunu göster
+            document.getElementById('ilan-vitrini').innerHTML = "";
+            document.getElementById('yukleniyor').classList.remove('hidden');
+
             try {
-                const { data: ilanlar, error } = await _supabase
-                    .from('ilanlar')
-                    .select('*')
-                    .order('created_at', { ascending: false });
+                // Temel Sorguyu Başlat
+                let sorgu = _supabase.from('ilanlar').select('*').order('created_at', { ascending: false });
+
+                // Eğer arama kelimesi yazıldıysa, başlıkta arat
+                if (arama && arama.trim() !== "") {
+                    sorgu = sorgu.ilike('baslik', `%${arama.trim()}%`);
+                }
+
+                // Eğer spesifik bir kategori seçildiyse, sadece o kategoriyi getir
+                if (kategori && kategori !== "") {
+                    sorgu = sorgu.eq('kategori', kategori);
+                }
+
+                // Sorguyu çalıştır
+                const { data: ilanlar, error } = await sorgu;
 
                 document.getElementById('yukleniyor').classList.add('hidden');
 
@@ -132,11 +182,21 @@
 
                 const vitrin = document.getElementById('ilan-vitrini');
                 
+                // Eğer sonuç bulunamadıysa şık bir uyarı ver
                 if (!ilanlar || ilanlar.length === 0) {
-                    vitrin.innerHTML = `<div class="col-span-full text-center py-10 text-gray-500 font-bold text-sm uppercase tracking-widest">HENÜZ HİÇ İLAN YÜKLENMEMİŞ. İLK İLANI SEN VER!</div>`;
+                    vitrin.innerHTML = `
+                    <div class="col-span-full flex flex-col items-center justify-center py-16 text-center bg-white rounded-2xl border border-gray-200">
+                        <svg class="w-16 h-16 text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        <h3 class="font-black text-gray-900 text-lg uppercase tracking-widest mb-2">SONUÇ BULUNAMADI</h3>
+                        <p class="text-gray-500 font-medium text-sm">Arama kriterlerinize uygun bir ilan bulamadık. Lütfen farklı kelimelerle tekrar deneyin.</p>
+                        <button onclick="document.getElementById('arama-kutusu').value=''; document.getElementById('kategori-filtresi').value=''; filtreleVeAra();" class="mt-6 bg-[#facc15] text-[#0f172a] px-6 py-2 rounded-lg font-black text-[10px] uppercase tracking-widest hover:bg-yellow-500 transition-colors">
+                            FİLTRELERİ TEMİZLE
+                        </button>
+                    </div>`;
                     return;
                 }
 
+                // İlanları ekrana bas
                 let html = "";
                 ilanlar.forEach(ilan => {
                     let ilkResim = "";
