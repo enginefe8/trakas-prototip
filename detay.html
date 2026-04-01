@@ -9,16 +9,15 @@
     <style>
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 10px; }
+        .kalp-btn-detay:active svg { transform: scale(1.3); transition: transform 0.1s; }
     </style>
 </head>
 <body class="bg-gray-50 font-sans min-h-screen flex flex-col text-gray-900">
 
     <nav class="bg-[#0f172a] px-6 py-4 flex justify-between items-center w-full shadow-md z-50">
         <a href="index.html" class="text-3xl font-black text-white italic tracking-tighter uppercase">TRAKAS</a>
-        <div id="auth-menu" class="hidden lg:flex items-center gap-6">
-            </div>
-        <div id="auth-menu-mobil" class="lg:hidden flex items-center gap-4">
-             </div>
+        <div id="auth-menu" class="hidden lg:flex items-center gap-6"></div>
+        <div id="auth-menu-mobil" class="lg:hidden flex items-center gap-4"></div>
     </nav>
 
     <main class="max-w-6xl mx-auto px-4 py-8 w-full flex-grow">
@@ -40,31 +39,23 @@
                         <span class="text-xs font-bold uppercase tracking-widest">Görsel Yok</span>
                     </div>
                 </div>
-                
-                <div id="kucuk-resimler-alani" class="flex gap-3 overflow-x-auto pb-2 hidden scroll-smooth">
-                    </div>
+                <div id="kucuk-resimler-alani" class="flex gap-3 overflow-x-auto pb-2 hidden scroll-smooth"></div>
             </div>
 
             <div class="w-full lg:w-1/2 flex flex-col justify-between">
-                
                 <div id="detay-alani" class="opacity-0 transition-opacity duration-500">
-                    
                     <div class="mb-4">
                         <span id="ilan-kategori" class="bg-[#0f172a] text-[#facc15] text-[10px] font-black uppercase tracking-widest px-4 py-1.5 rounded-md shadow-sm">YÜKLENİYOR...</span>
                     </div>
-
                     <h1 id="ilan-baslik" class="text-3xl md:text-4xl font-black text-gray-900 tracking-tight uppercase mb-6">Yükleniyor...</h1>
-                    
                     <div class="bg-yellow-50 border border-yellow-100 rounded-xl p-5 mb-8 inline-block shadow-sm">
                         <p class="text-[10px] font-bold text-yellow-700 uppercase tracking-widest mb-1">TAHMİNİ TAKAS DEĞERİ</p>
                         <span id="ilan-deger" class="text-3xl font-black text-[#0f172a] tracking-tight">-- ₺</span>
                     </div>
-
                     <div class="mb-10">
                         <h3 class="text-xs font-bold text-gray-700 uppercase tracking-widest mb-3 border-b border-gray-100 pb-2">İLAN AÇIKLAMASI</h3>
                         <p id="ilan-aciklama" class="text-gray-600 font-medium leading-relaxed text-sm whitespace-pre-line">--</p>
                     </div>
-
                     <div class="flex items-center gap-4 bg-gray-50 border border-gray-100 p-4 rounded-xl mb-8">
                         <div class="w-12 h-12 bg-[#0f172a] rounded-full flex items-center justify-center text-[#facc15] font-black text-lg shadow-sm flex-shrink-0" id="sahip-harf">?</div>
                         <div class="flex-grow min-w-0">
@@ -74,21 +65,26 @@
                     </div>
                 </div>
 
-                <div class="mt-auto pt-4 border-t border-gray-100">
-                    <button id="teklif-btn" onclick="teklifGonder()" class="w-full bg-[#0f172a] text-[#facc15] py-4 rounded-xl font-black text-sm uppercase tracking-widest shadow-lg hover:bg-black hover:-translate-y-0.5 transition-all opacity-0 flex justify-center items-center gap-2">
+                <div id="aksiyon-alani" class="mt-auto pt-4 border-t border-gray-100 flex gap-3 opacity-0 transition-opacity duration-500">
+                    
+                    <button id="detay-kalp-btn" onclick="favoriTetikleDetay()" class="kalp-btn-detay w-14 flex-shrink-0 bg-white border border-gray-200 text-gray-400 rounded-xl flex items-center justify-center hover:bg-gray-50 hover:text-red-500 transition-colors shadow-sm focus:outline-none">
+                        <svg id="detay-kalp-ikon" class="w-6 h-6 transition-colors duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
+                    </button>
+
+                    <button id="teklif-btn" onclick="teklifGonder()" class="flex-grow bg-[#0f172a] text-[#facc15] py-4 rounded-xl font-black text-sm uppercase tracking-widest shadow-lg hover:bg-black hover:-translate-y-0.5 transition-all flex justify-center items-center gap-2">
                         TAKAS TEKLİFİ GÖNDER
                     </button>
                 </div>
+
+                <div id="kendi-ilanin-uyarisi" class="mt-auto pt-4 border-t border-gray-100 hidden">
+                    <div class="w-full bg-gray-100 text-gray-400 py-4 rounded-xl font-black text-sm uppercase tracking-widest border border-gray-200 text-center">
+                        BU SİZİN İLANINIZ
+                    </div>
+                </div>
+
             </div>
         </div>
     </main>
-
-    <footer class="bg-[#0f172a] border-t-4 border-[#facc15] pt-12 pb-8 w-full mt-auto">
-        <div class="max-w-7xl mx-auto flex flex-col items-center justify-center">
-            <h2 class="text-4xl font-black text-white italic tracking-tighter uppercase mb-2">TRAKAS</h2>
-            <p class="text-gray-500 text-xs font-bold tracking-widest uppercase">Takas Pazaryeri Platformu</p>
-        </div>
-    </footer>
 
     <div id="ozel-modal" class="hidden fixed inset-0 z-[999] flex items-center justify-center px-4">
         <div class="absolute inset-0 bg-gray-900/80 backdrop-blur-sm transition-opacity" onclick="modalKapat()"></div>
@@ -116,6 +112,7 @@
         let aktifSession = null;
         let ilanVerisi = null;
         let resimDizisi = [];
+        let isFavoriMi = false;
 
         async function sayfaYukle() {
             if (!ilanId) { window.location.href = 'index.html'; return; }
@@ -125,43 +122,33 @@
             menuOlustur();
 
             const { data, error } = await _supabase.from('ilanlar').select('*').eq('id', ilanId).single();
-            
             if (error || !data) {
                 modalAc("Hata", "Bu ilan yayından kaldırılmış veya bulunamıyor.", "hata", false, () => window.location.href = 'index.html');
                 return;
             }
 
             ilanVerisi = data;
+            
+            // Eğer giriş yapmışsa favori durumunu kontrol et
+            if(aktifSession) {
+                const { data: favData } = await _supabase.from('favoriler').select('id').eq('ilan_id', ilanId).eq('kullanici_email', aktifSession.user.email);
+                if(favData && favData.length > 0) isFavoriMi = true;
+            }
+
             ekraniDoldur();
         }
 
         function menuOlustur() {
             const menuDiv = document.getElementById('auth-menu');
-            const mobilMenuDiv = document.getElementById('auth-menu-mobil');
-            
             if (aktifSession) {
-                const isim = aktifSession.user.email.split('@')[0].toUpperCase();
-                
+                const user = aktifSession.user;
+                const meta = user.user_metadata || {};
+                const gorunenIsim = meta.ad_soyad ? meta.ad_soyad.toUpperCase() : user.email.split('@')[0].toUpperCase();
                 menuDiv.classList.remove('hidden');
-                menuDiv.innerHTML = `
-                    <span class="text-[#facc15] font-bold text-xs uppercase tracking-widest">${isim}</span>
-                    <a href="#" class="text-gray-400 font-bold text-[11px] uppercase tracking-widest hover:text-white transition-colors">FAVORİLERİM</a>
-                    <a href="ilanlarim.html" class="text-gray-400 font-bold text-[11px] uppercase tracking-widest hover:text-white transition-colors">İLANLARIM</a>
-                    <a href="sohbetler.html" class="text-gray-400 font-bold text-[11px] uppercase tracking-widest hover:text-white transition-colors">MESAJLARIM</a>
-                    <a href="teklifler.html" class="text-gray-400 font-bold text-[11px] uppercase tracking-widest hover:text-white transition-colors">TEKLİFLERİM</a>
-                    <span class="text-gray-700">|</span>
-                    <button onclick="cikisYap()" class="text-red-500 font-bold text-[11px] uppercase tracking-widest hover:text-red-400">ÇIKIŞ</button>
-                    <a href="ilan-ver.html" class="ml-2 bg-[#facc15] text-[#0f172a] px-6 py-2.5 rounded-lg font-black text-[11px] uppercase tracking-widest hover:bg-yellow-500 transition-colors">İLAN VER</a>
-                `;
-
-                mobilMenuDiv.innerHTML = `
-                    <a href="ilan-ver.html" class="bg-[#facc15] text-[#0f172a] px-4 py-2 rounded-lg font-black text-[10px] uppercase tracking-widest">İLAN VER</a>
-                    <button onclick="cikisYap()" class="text-red-500 font-bold text-[10px] uppercase">ÇIKIŞ</button>
-                `;
+                menuDiv.innerHTML = `<a href="profil.html" class="text-[#facc15] font-black text-xs uppercase tracking-widest">${gorunenIsim}</a> <a href="ilanlarim.html" class="text-gray-400 font-bold text-[11px] uppercase tracking-widest ml-4">İLANLARIM</a> <button onclick="cikisYap()" class="text-red-500 font-bold text-[11px] uppercase tracking-widest ml-4">ÇIKIŞ</button>`;
             } else {
                 menuDiv.classList.remove('hidden');
-                menuDiv.innerHTML = `<a href="giris.html" class="bg-[#facc15] text-[#0f172a] px-6 py-2.5 rounded-lg font-black text-xs uppercase tracking-widest hover:bg-yellow-500 transition-colors shadow-sm">GİRİŞ YAP / KAYIT OL</a>`;
-                mobilMenuDiv.innerHTML = `<a href="giris.html" class="text-[#facc15] font-bold text-[10px] uppercase tracking-widest">GİRİŞ YAP</a>`;
+                menuDiv.innerHTML = `<a href="giris.html" class="bg-[#facc15] text-[#0f172a] px-6 py-2.5 rounded-lg font-black text-xs uppercase tracking-widest">GİRİŞ YAP</a>`;
             }
         }
 
@@ -176,9 +163,7 @@
             document.getElementById('sahip-email').innerText = sahipIsim;
             document.getElementById('sahip-harf').innerText = sahipIsim.charAt(0).toUpperCase();
 
-            // ÇOKLU RESİM GALERİSİ MANTIĞI (VİRGÜLDEN BÖLME)
             if (ilanVerisi.resim_url && ilanVerisi.resim_url.trim() !== "") {
-                // Linkleri virgülden böl ve boşlukları temizle
                 resimDizisi = ilanVerisi.resim_url.split(',').map(url => url.trim()).filter(url => url !== "");
                 galeriyiOlustur();
             } else {
@@ -189,37 +174,28 @@
 
             document.getElementById('detay-alani').classList.remove('opacity-0');
 
-            const btn = document.getElementById('teklif-btn');
-            btn.classList.remove('opacity-0');
-
+            // Kendi ilanıysa butonları gizle, uyarıyı göster
             if (aktifSession && aktifSession.user.email === ilanVerisi.sahip_email) {
-                btn.disabled = true;
-                btn.innerText = "BU SENİN İLANIN";
-                btn.className = "w-full bg-gray-100 text-gray-400 py-4 rounded-xl font-black text-sm uppercase tracking-widest cursor-not-allowed border border-gray-200 text-center";
+                document.getElementById('aksiyon-alani').classList.add('hidden');
+                document.getElementById('kendi-ilanin-uyarisi').classList.remove('hidden');
+            } else {
+                document.getElementById('aksiyon-alani').classList.remove('opacity-0');
+                kalpGorselGuncelle();
             }
         }
 
         function galeriyiOlustur() {
             const anaResim = document.getElementById('ana-resim');
             const kucukResimlerAlani = document.getElementById('kucuk-resimler-alani');
-            
-            // İlk resmi ana resim yap
             anaResim.src = resimDizisi[0];
 
-            // Eğer 1'den fazla resim varsa küçük resimleri (thumbnails) göster
             if (resimDizisi.length > 1) {
                 kucukResimlerAlani.classList.remove('hidden');
                 let html = "";
-                
                 resimDizisi.forEach((url, index) => {
-                    const activeClass = index === 0 ? 'border-[#0f172a] opacity-100 scale-100' : 'border-transparent opacity-60 hover:opacity-100 scale-95 hover:scale-100';
-                    html += `
-                        <div onclick="resimDegistir('${url}', this)" class="thumbnail-item w-20 h-20 flex-shrink-0 rounded-xl overflow-hidden cursor-pointer transition-all duration-300 border-2 ${activeClass} bg-gray-50">
-                            <img src="${url}" class="w-full h-full object-cover">
-                        </div>
-                    `;
+                    const activeClass = index === 0 ? 'border-[#0f172a] opacity-100 scale-100' : 'border-transparent opacity-60 scale-95';
+                    html += `<div onclick="resimDegistir('${url}', this)" class="thumbnail-item w-20 h-20 flex-shrink-0 rounded-xl overflow-hidden cursor-pointer border-2 ${activeClass} bg-gray-50"><img src="${url}" class="w-full h-full object-cover"></div>`;
                 });
-                
                 kucukResimlerAlani.innerHTML = html;
             }
         }
@@ -227,80 +203,78 @@
         window.resimDegistir = function(url, tiklananElement) {
             const anaResim = document.getElementById('ana-resim');
             anaResim.style.opacity = 0; 
-            
-            setTimeout(() => {
-                anaResim.src = url;
-                anaResim.style.opacity = 1;
-            }, 150);
-
-            // Tüm küçük resimlerin sınıfını sıfırla
+            setTimeout(() => { anaResim.src = url; anaResim.style.opacity = 1; }, 150);
             const tumThumbnails = document.querySelectorAll('.thumbnail-item');
-            tumThumbnails.forEach(el => {
-                el.className = "thumbnail-item w-20 h-20 flex-shrink-0 rounded-xl overflow-hidden cursor-pointer transition-all duration-300 border-2 border-transparent opacity-60 hover:opacity-100 scale-95 hover:scale-100 bg-gray-50";
-            });
-            // Tıklanana aktif sınıfı ver
-            tiklananElement.className = "thumbnail-item w-20 h-20 flex-shrink-0 rounded-xl overflow-hidden cursor-pointer transition-all duration-300 border-2 border-[#0f172a] opacity-100 scale-100 bg-gray-50";
+            tumThumbnails.forEach(el => { el.className = "thumbnail-item w-20 h-20 flex-shrink-0 rounded-xl overflow-hidden cursor-pointer border-2 border-transparent opacity-60 scale-95 bg-gray-50"; });
+            tiklananElement.className = "thumbnail-item w-20 h-20 flex-shrink-0 rounded-xl overflow-hidden cursor-pointer border-2 border-[#0f172a] opacity-100 scale-100 bg-gray-50";
         }
 
-        async function teklifGonder() {
+        // YENİ: DETAY SAYFASI İÇİN OPTIMISTIC KALKANI
+        async function favoriTetikleDetay() {
             if (!aktifSession) {
-                modalAc("GİRİŞ GEREKLİ", "Takas teklifi gönderebilmek için önce sisteme giriş yapmalısınız.", "uyari", true, () => window.location.href = 'giris.html');
+                modalAc("GİRİŞ GEREKLİ", "İlanı favoriye eklemek için giriş yapmanız gerekiyor.", "uyari", true, () => window.location.href = 'giris.html');
                 document.getElementById('modal-btn-ana').innerText = "GİRİŞ YAP";
                 return;
             }
 
-            const btn = document.getElementById('teklif-btn');
-            const orijinalIcerik = btn.innerText;
+            isFavoriMi = !isFavoriMi; // Durumu tersine çevir
+            kalpGorselGuncelle(); // Ekrana anında bas (Bekletme yok)
+
+            if (isFavoriMi) {
+                _supabase.from('favoriler').insert([{ ilan_id: ilanId, kullanici_email: aktifSession.user.email }]).then();
+            } else {
+                _supabase.from('favoriler').delete().eq('ilan_id', ilanId).eq('kullanici_email', aktifSession.user.email).then();
+            }
+        }
+
+        function kalpGorselGuncelle() {
+            const ikon = document.getElementById('detay-kalp-ikon');
+            const btn = document.getElementById('detay-kalp-btn');
             
-            btn.disabled = true;
-            btn.innerHTML = `<svg class="animate-spin h-5 w-5 text-[#0f172a] mr-2 inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> İŞLENİYOR...`;
+            if(isFavoriMi) {
+                ikon.classList.remove('text-gray-400');
+                ikon.classList.add('text-red-500', 'fill-current');
+                ikon.setAttribute('fill', 'currentColor');
+                btn.classList.add('border-red-200', 'bg-red-50');
+            } else {
+                ikon.classList.remove('text-red-500', 'fill-current');
+                ikon.classList.add('text-gray-400');
+                ikon.setAttribute('fill', 'none');
+                btn.classList.remove('border-red-200', 'bg-red-50');
+            }
+        }
 
+        async function teklifGonder() {
+            if (!aktifSession) { modalAc("GİRİŞ GEREKLİ", "Teklif göndermek için giriş yapmalısınız.", "uyari", true, () => window.location.href = 'giris.html'); return; }
+            const btn = document.getElementById('teklif-btn');
+            btn.disabled = true; btn.innerText = "İŞLENİYOR...";
             try {
-                const { error } = await _supabase.from('teklifler').insert([
-                    { ilan_id: ilanId, teklif_veren_email: aktifSession.user.email, durum: 'Bekliyor' }
-                ]);
-
+                const { error } = await _supabase.from('teklifler').insert([{ ilan_id: ilanId, teklif_veren_email: aktifSession.user.email, durum: 'Bekliyor' }]);
                 if (error) throw error;
-
-                modalAc("TEKLİF İLETİLDİ", "Takas teklifiniz ilan sahibine başarıyla iletildi. İlanlarım panelinden takip edebilirsiniz.", "basarili");
+                modalAc("TEKLİF İLETİLDİ", "Takas teklifiniz ilan sahibine başarıyla iletildi.", "basarili");
                 btn.innerText = "TEKLİF GÖNDERİLDİ";
-                btn.className = "w-full bg-green-500 text-white py-4 rounded-xl font-black text-sm uppercase tracking-widest cursor-not-allowed text-center";
+                btn.className = "flex-grow bg-green-500 text-white py-4 rounded-xl font-black text-sm uppercase tracking-widest cursor-not-allowed text-center";
             } catch (err) {
-                btn.disabled = false;
-                btn.innerText = orijinalIcerik;
-                modalAc("HATA", "Teklif gönderilemedi: " + err.message, "hata");
+                btn.disabled = false; btn.innerText = "TAKAS TEKLİFİ GÖNDER";
+                modalAc("HATA", "Teklif gönderilemedi.", "hata");
             }
         }
 
         let modalOnayFonk = null;
         function modalAc(baslik, mesaj, tip, isIptal = false, onayFonk = null) {
-            document.getElementById('modal-baslik').innerText = baslik;
-            document.getElementById('modal-mesaj').innerText = mesaj;
-            modalOnayFonk = onayFonk;
-            
-            const ikon = document.getElementById('modal-ikon');
-            if(tip === 'basarili') { ikon.className = "mx-auto h-16 w-16 rounded-full bg-green-50 flex items-center justify-center text-green-500 font-bold text-2xl border border-green-100"; ikon.innerHTML = "✓"; }
-            else if(tip === 'hata') { ikon.className = "mx-auto h-16 w-16 rounded-full bg-red-50 flex items-center justify-center text-red-500 font-bold text-2xl border border-red-100"; ikon.innerHTML = "!"; }
-            else { ikon.className = "mx-auto h-16 w-16 rounded-full bg-yellow-50 flex items-center justify-center text-yellow-500 font-bold text-2xl border border-yellow-100"; ikon.innerHTML = "?"; }
+            document.getElementById('modal-baslik').innerText = baslik; document.getElementById('modal-mesaj').innerText = mesaj; modalOnayFonk = onayFonk;
+            document.getElementById('ozel-modal').classList.remove('hidden');
+            setTimeout(() => { document.getElementById('ozel-modal-kutu').classList.remove('scale-95', 'opacity-0'); }, 10);
             
             if(isIptal) {
                 document.getElementById('modal-btn-ikincil').classList.remove('hidden');
                 document.getElementById('modal-btn-ana').onclick = () => { modalKapat(); if(modalOnayFonk) modalOnayFonk(); };
             } else {
                 document.getElementById('modal-btn-ikincil').classList.add('hidden');
-                document.getElementById('modal-btn-ana').innerText = "TAMAM";
                 document.getElementById('modal-btn-ana').onclick = () => { modalKapat(); if(modalOnayFonk) modalOnayFonk(); };
             }
-
-            document.getElementById('ozel-modal').classList.remove('hidden');
-            setTimeout(() => { document.getElementById('ozel-modal-kutu').classList.remove('scale-95', 'opacity-0'); }, 10);
         }
-
-        function modalKapat() {
-            document.getElementById('ozel-modal-kutu').classList.add('scale-95', 'opacity-0');
-            setTimeout(() => { document.getElementById('ozel-modal').classList.add('hidden'); }, 300);
-        }
-
+        function modalKapat() { document.getElementById('ozel-modal-kutu').classList.add('scale-95', 'opacity-0'); setTimeout(() => { document.getElementById('ozel-modal').classList.add('hidden'); }, 300); }
         async function cikisYap() { await _supabase.auth.signOut(); window.location.href = 'index.html'; }
 
         sayfaYukle();
