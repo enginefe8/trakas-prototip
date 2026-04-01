@@ -144,9 +144,7 @@
             document.getElementById('aciklama').value = ilanVerisi.aciklama;
 
             if(ilanVerisi.resim_url && ilanVerisi.resim_url.trim() !== "") {
-                mevcutResimler = ilanVerisi.resim_url.split(',')
-                    .map(url => url.trim())
-                    .filter(url => url !== "");
+                mevcutResimler = ilanVerisi.resim_url.split(',').map(url => url.trim()).filter(url => url !== "");
             }
 
             renderPreviews();
@@ -193,12 +191,11 @@
                 grid.classList.remove('hidden');
             }
 
-            // 1. MEVCUT RESİMLER (Yazılar Komple Kalktı, Sadece Çarpı Var)
+            // HER TÜRLÜ YAZI SİLİNDİ, SADECE MODERN ÇARPI BUTONU VAR
             mevcutResimler.forEach((url, index) => {
                 grid.insertAdjacentHTML('beforeend', `
-                    <div class="relative group aspect-square bg-gray-50 border border-gray-100 rounded-xl overflow-hidden shadow-sm transition-all hover:border-gray-300">
-                        <img src="${url}" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105">
-                        
+                    <div class="relative group aspect-square bg-gray-50 border border-gray-100 rounded-xl overflow-hidden shadow-inner transition-all hover:border-gray-200">
+                        <img src="${url}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105">
                         <div class="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-start justify-end p-2 z-20">
                             <button type="button" onclick="eskiResimSil(${index})" class="bg-white/90 backdrop-blur-sm text-red-500 w-8 h-8 rounded-full flex items-center justify-center font-black text-sm shadow-md hover:bg-red-500 hover:text-white transition-colors transform scale-90 group-hover:scale-100" title="Resmi Sil">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
@@ -208,18 +205,12 @@
                 `);
             });
 
-            // 2. YENİ SEÇİLEN RESİMLER (Sadece Küçücük Bir "YENİ" Etiketi Var)
             yeniSecilenDosyalar.forEach((dosya, index) => {
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     grid.insertAdjacentHTML('beforeend', `
                         <div class="relative group aspect-square bg-yellow-50 border border-yellow-300 rounded-xl overflow-hidden shadow-sm transition-all hover:border-yellow-400">
                             <img src="${e.target.result}" class="w-full h-full object-cover opacity-90 transition-transform duration-300 group-hover:scale-105">
-                            
-                            <div class="absolute bottom-2 left-2 pointer-events-none z-10">
-                                <span class="bg-yellow-400 text-[#0f172a] text-[9px] font-black uppercase px-2 py-1 rounded shadow-sm">YENİ</span>
-                            </div>
-
                             <div class="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-start justify-end p-2 z-20">
                                 <button type="button" onclick="yeniResimSil(${index})" class="bg-white/90 backdrop-blur-sm text-red-500 w-8 h-8 rounded-full flex items-center justify-center font-black text-sm shadow-md hover:bg-red-500 hover:text-white transition-colors transform scale-90 group-hover:scale-100" title="Resmi Sil">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
@@ -245,15 +236,11 @@
             const orijinalHTML = btn.innerHTML;
             btn.disabled = true;
             
-            // CANLI TAKİP: İLK AŞAMA
-            btn.innerHTML = `<svg class="animate-spin h-5 w-5 text-[#facc15] mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> BAŞLATILIYOR...`;
-            btn.classList.add('cursor-not-allowed', 'opacity-90');
-
             try {
                 const baslik = document.getElementById('baslik').value.trim();
                 const aciklama = document.getElementById('aciklama').value.trim();
                 const kategori = document.getElementById('kategori').value;
-                const deger = document.getElementById('deger').value;
+                const deger = Number(document.getElementById('deger').value); // Sayısal garanti!
                 
                 let finalResimDizisi = [...mevcutResimler]; 
                 const storageBucket = _supabase.storage.from('ilan-resimleri');
@@ -261,10 +248,8 @@
                 if(yeniSecilenDosyalar.length > 0) {
                     let sayac = 1;
                     for(const dosya of yeniSecilenDosyalar) {
-                        // CANLI TAKİP: RESİM YÜKLEME AŞAMASI
                         btn.innerHTML = `<svg class="animate-spin h-5 w-5 text-[#facc15] mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> GÖRSELLER YÜKLENİYOR (${sayac}/${yeniSecilenDosyalar.length})...`;
                         
-                        // Dosya adını güvenli hale getirdik (Türkçe karakter veya boşluk çökmesini engeller)
                         const dosyaAdi = `img_${Date.now()}_${Math.random().toString(36).substring(7)}.jpg`;
                         
                         const { error: uploadError } = await storageBucket.upload(dosyaAdi, dosya);
@@ -276,30 +261,36 @@
                     }
                 }
 
-                // CANLI TAKİP: VERİTABANI AŞAMASI
                 btn.innerHTML = `<svg class="animate-spin h-5 w-5 text-[#facc15] mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> VERİTABANI GÜNCELLENİYOR...`;
                 const finalResimMetni = finalResimDizisi.join(',');
 
-                const { error: dbError } = await _supabase
+                // GÜVENLİK VE HATA TESPİTİ İÇİN .select() EKLENDİ!
+                const { data: updateData, error: dbError } = await _supabase
                     .from('ilanlar')
                     .update({ baslik, aciklama, kategori, deger, resim_url: finalResimMetni })
-                    .eq('id', ilanId);
+                    .eq('id', ilanId)
+                    .select();
 
-                if (dbError) throw new Error(`Veritabanı Hatası: ${dbError.message}`);
+                if (dbError) throw new Error(`Veritabanı reddetti: ${dbError.message}`);
 
-                // İŞLEM BİTTİ ŞAK DİYE YÖNLENDİR!
-                window.location.href = `detay.html?id=${ilanId}&v=${Date.now()}`; 
+                if (!updateData || updateData.length === 0) {
+                    throw new Error("Sistem bu ilanı güncelleyemedi! RLS Güvenlik kuralları işlemi engelliyor olabilir.");
+                }
+
+                // EĞER BURAYA KADAR GELDİYSE İŞLEM KESİN BAŞARILI!
+                modalAc("Başarılı", "İlanınız başarıyla güncellendi! Yönlendiriliyorsunuz...", "basarili", () => {
+                    window.location.href = `detay.html?id=${ilanId}&v=${Date.now()}`; 
+                });
                 
             } catch (err) {
-                console.error("Kayıt Hatası Detayı: ", err);
+                console.error("HATA DETAYI: ", err);
                 btn.disabled = false;
                 btn.innerHTML = orijinalHTML;
                 btn.classList.remove('cursor-not-allowed', 'opacity-90');
-                modalAc("Hata", "İşlem sırasında bir hata oluştu: " + err.message, "hata");
+                modalAc("İşlem Başarısız", err.message, "hata");
             }
         }
 
-        // Modal Fonksiyonları
         let modalOnayFonk = null;
         function modalAc(baslik, mesaj, tip, onayFonk = null) {
             document.getElementById('modal-baslik').innerText = baslik;
@@ -314,7 +305,14 @@
             document.getElementById('ozel-modal').classList.remove('hidden');
             setTimeout(() => { document.getElementById('ozel-modal-kutu').classList.remove('scale-95', 'opacity-0'); }, 10);
             
-            if(tip === 'basarili' && onayFonk) setTimeout(() => { if(!document.getElementById('ozel-modal').classList.contains('hidden')) { modalKapat(); onayFonk(); } }, 2000);
+            // Başarılıysa 2 saniye sonra otomotik kapat ve yönlendir
+            if(tip === 'basarili' && onayFonk) {
+                setTimeout(() => { 
+                    if(!document.getElementById('ozel-modal').classList.contains('hidden')) { 
+                        modalKapat(); onayFonk(); 
+                    } 
+                }, 1500);
+            }
         }
 
         function modalKapat() {
