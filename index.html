@@ -13,7 +13,7 @@
 </head>
 <body class="bg-gray-50 font-sans min-h-screen flex flex-col text-gray-900">
 
-    <nav class="bg-[#0f172a] px-6 py-4 flex justify-between items-center w-full shadow-md z-50">
+    <nav class="bg-[#0f172a] px-6 py-4 flex justify-between items-center w-full shadow-md z-50 relative">
         <a href="index.html" class="text-3xl font-black text-white italic tracking-tighter uppercase">TRAKAS</a>
         <div id="auth-menu" class="hidden lg:flex items-center gap-6">
             </div>
@@ -28,12 +28,17 @@
             <p class="text-gray-500 font-medium text-sm md:text-base max-w-2xl mx-auto">Trakas ile kullanmadığın eşyaları ihtiyacın olanlarla değiştir. Güvenli, hızlı ve tamamen ücretsiz pazaryeri.</p>
         </div>
 
-        <div class="w-full max-w-4xl mx-auto mb-10 z-10">
-            <div class="flex flex-col md:flex-row gap-3 bg-white p-3 rounded-2xl shadow-md border border-gray-200">
+        <div class="w-full max-w-4xl mx-auto mb-10 z-40 relative">
+            <div class="flex flex-col md:flex-row gap-3 bg-white p-3 rounded-2xl shadow-md border border-gray-200 relative">
                 
-                <div class="flex-grow flex items-center bg-gray-50 rounded-xl px-4 py-2 border border-gray-100 focus-within:border-[#facc15] focus-within:ring-1 focus-within:ring-[#facc15] transition-all">
-                    <svg class="w-5 h-5 text-gray-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                    <input type="text" id="arama-kutusu" placeholder="İlan başlığında ara... (Örn: iPhone 13, Bisiklet)" class="w-full bg-transparent outline-none text-sm font-bold text-gray-800 placeholder-gray-400 py-2">
+                <div class="flex-grow relative">
+                    <div class="flex items-center bg-gray-50 rounded-xl px-4 py-2 border border-gray-100 focus-within:border-[#facc15] focus-within:ring-1 focus-within:ring-[#facc15] transition-all h-full">
+                        <svg class="w-5 h-5 text-gray-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                        <input type="text" id="arama-kutusu" oninput="aramaOnerileriGoster(this.value)" autocomplete="off" placeholder="İlan başlığında ara... (Örn: iPhone 13, Bisiklet)" class="w-full bg-transparent outline-none text-sm font-bold text-gray-800 placeholder-gray-400 py-2">
+                    </div>
+
+                    <div id="arama-onerileri" class="absolute w-full bg-white shadow-2xl rounded-xl mt-2 hidden max-h-60 overflow-y-auto border border-gray-100 top-full left-0 z-50">
+                        </div>
                 </div>
 
                 <div class="md:w-56 flex-shrink-0 relative">
@@ -67,7 +72,7 @@
 
     </main>
 
-    <footer class="bg-[#0f172a] border-t-4 border-[#facc15] pt-12 pb-8 w-full mt-auto">
+    <footer class="bg-[#0f172a] border-t-4 border-[#facc15] pt-12 pb-8 w-full mt-auto relative z-10">
         <div class="max-w-7xl mx-auto px-6 flex flex-col items-center justify-center text-center">
             <h2 class="text-4xl font-black text-white italic tracking-tighter uppercase mb-2">TRAKAS</h2>
             <p class="text-gray-400 text-xs font-bold tracking-widest uppercase mb-8">Takas Pazaryeri Platformu</p>
@@ -89,14 +94,15 @@
         const _supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
         let aktifSession = null;
+        let tumIlanlarVeritabani = []; // Akıllı arama ve filtreleme için ana depo
 
         async function sitemiCalistir() {
             const { data: { session } } = await _supabase.auth.getSession();
             aktifSession = session;
             menuOlustur();
             
-            // Sayfa ilk açıldığında boş arama yaparak tüm ilanları getirir
-            vitriniDoldur();
+            // Sayfa açılışında veritabanındaki TÜM ilanları tek seferde çekip depoluyoruz (Hız ve Türkçe kalkanı için)
+            await tumIlanlariCek();
         }
 
         function menuOlustur() {
@@ -135,94 +141,172 @@
             }
         }
 
-        // Enter tuşuna basıldığında aramayı tetikle
-        document.getElementById('arama-kutusu').addEventListener('keypress', function (e) {
-            if (e.key === 'Enter') {
-                filtreleVeAra();
-            }
-        });
-
-        // Dropdown değiştiğinde otomatik ara (Opsiyonel, daha iyi UX sağlar)
-        document.getElementById('kategori-filtresi').addEventListener('change', filtreleVeAra);
-
-        // Arama Butonuna basıldığında çalışacak fonksiyon
-        function filtreleVeAra() {
-            const aranacakKelime = document.getElementById('arama-kutusu').value;
-            const secilenKategori = document.getElementById('kategori-filtresi').value;
-            vitriniDoldur(aranacakKelime, secilenKategori);
+        // --- 1. TÜRKÇE KARAKTER KALKANI ---
+        function turkceTemizle(metin) {
+            if(!metin) return "";
+            return metin.toLowerCase()
+                .replace(/ğ/g, 'g').replace(/ü/g, 'u').replace(/ş/g, 's')
+                .replace(/ı/g, 'i').replace(/ö/g, 'o').replace(/ç/g, 'c')
+                .replace(/i̇/g, 'i');
         }
 
-        // AKILLI VİTRİN MOTORU (Arama parametrelerini alır)
-        async function vitriniDoldur(arama = "", kategori = "") {
-            
-            // Ekranı temizle ve yükleniyor animasyonunu göster
-            document.getElementById('ilan-vitrini').innerHTML = "";
-            document.getElementById('yukleniyor').classList.remove('hidden');
-
+        // --- 2. VERİLERİ DEPOYA ÇEKME (BİR KERE ÇALIŞIR) ---
+        async function tumIlanlariCek() {
             try {
-                // Temel Sorguyu Başlat
-                let sorgu = _supabase.from('ilanlar').select('*').order('created_at', { ascending: false });
-
-                // Eğer arama kelimesi yazıldıysa, başlıkta arat
-                if (arama && arama.trim() !== "") {
-                    sorgu = sorgu.ilike('baslik', `%${arama.trim()}%`);
-                }
-
-                // Eğer spesifik bir kategori seçildiyse, sadece o kategoriyi getir
-                if (kategori && kategori !== "") {
-                    sorgu = sorgu.eq('kategori', kategori);
-                }
-
-                // Sorguyu çalıştır
-                const { data: ilanlar, error } = await sorgu;
-
-                document.getElementById('yukleniyor').classList.add('hidden');
+                const { data: ilanlar, error } = await _supabase
+                    .from('ilanlar')
+                    .select('*')
+                    .order('created_at', { ascending: false });
 
                 if (error) throw error;
-
-                const vitrin = document.getElementById('ilan-vitrini');
+                tumIlanlarVeritabani = ilanlar || [];
                 
-                // Eğer sonuç bulunamadıysa şık bir uyarı ver
-                if (!ilanlar || ilanlar.length === 0) {
-                    vitrin.innerHTML = `
-                    <div class="col-span-full flex flex-col items-center justify-center py-16 text-center bg-white rounded-2xl border border-gray-200">
-                        <svg class="w-16 h-16 text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                        <h3 class="font-black text-gray-900 text-lg uppercase tracking-widest mb-2">SONUÇ BULUNAMADI</h3>
-                        <p class="text-gray-500 font-medium text-sm">Arama kriterlerinize uygun bir ilan bulamadık. Lütfen farklı kelimelerle tekrar deneyin.</p>
-                        <button onclick="document.getElementById('arama-kutusu').value=''; document.getElementById('kategori-filtresi').value=''; filtreleVeAra();" class="mt-6 bg-[#facc15] text-[#0f172a] px-6 py-2 rounded-lg font-black text-[10px] uppercase tracking-widest hover:bg-yellow-500 transition-colors">
-                            FİLTRELERİ TEMİZLE
-                        </button>
-                    </div>`;
-                    return;
-                }
-
-                // İlanları ekrana bas
-                let html = "";
-                ilanlar.forEach(ilan => {
-                    let ilkResim = "";
-                    if(ilan.resim_url) ilkResim = ilan.resim_url.split(',')[0].trim();
-
-                    html += `
-                    <a href="detay.html?id=${ilan.id}" class="group bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col">
-                        <div class="w-full h-48 bg-gray-100 relative overflow-hidden flex items-center justify-center">
-                            ${ilkResim ? `<img src="${ilkResim}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">` : `<span class="text-[10px] font-black uppercase tracking-widest text-gray-400">GÖRSEL YOK</span>`}
-                        </div>
-                        <div class="p-5 flex flex-col flex-grow">
-                            <span class="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-1">${ilan.kategori || 'DİĞER'}</span>
-                            <h3 class="font-black text-gray-900 text-base uppercase tracking-tight line-clamp-2 mb-2 group-hover:text-yellow-500 transition-colors">${ilan.baslik}</h3>
-                            <div class="mt-auto pt-4 border-t border-gray-100">
-                                <span class="font-black text-[#0f172a] text-lg">${ilan.deger} ₺</span>
-                            </div>
-                        </div>
-                    </a>`;
-                });
-
-                vitrin.innerHTML = html;
+                // Başlangıçta hepsini vitrine bas
+                ekranaBas(tumIlanlarVeritabani);
 
             } catch (err) {
                 console.error(err);
                 document.getElementById('yukleniyor').innerHTML = `<span class="text-red-500 font-bold text-xs uppercase tracking-widest">İLANLAR ÇEKİLEMEDİ!</span>`;
             }
+        }
+
+        // --- 3. AKILLI TAHMİN (AUTOCOMPLETE) SİSTEMİ ---
+        function aramaOnerileriGoster(kelime) {
+            const oneriKutusu = document.getElementById('arama-onerileri');
+            
+            // Eğer 2 harften az yazdıysa kutuyu gizle
+            if(kelime.trim().length < 2) {
+                oneriKutusu.classList.add('hidden');
+                return;
+            }
+
+            const temizAranan = turkceTemizle(kelime);
+            
+            // Sadece başlıkları al, benzerleri süz (Sadece 5 tane göster)
+            const eslesenBasliklar = [];
+            tumIlanlarVeritabani.forEach(ilan => {
+                if(turkceTemizle(ilan.baslik).includes(temizAranan)) {
+                    if(!eslesenBasliklar.includes(ilan.baslik)) {
+                        eslesenBasliklar.push(ilan.baslik);
+                    }
+                }
+            });
+
+            const kisaListe = eslesenBasliklar.slice(0, 5);
+
+            if(kisaListe.length > 0) {
+                let html = '<ul class="py-2">';
+                kisaListe.forEach(baslik => {
+                    html += `
+                    <li onclick="oneriSec('${baslik.replace(/'/g, "\\'")}')" class="px-5 py-3 hover:bg-gray-50 cursor-pointer text-sm font-bold text-gray-700 border-b border-gray-50 last:border-0 flex items-center gap-3 transition-colors">
+                        <svg class="w-4 h-4 text-[#facc15]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg> 
+                        ${baslik}
+                    </li>`;
+                });
+                html += '</ul>';
+                oneriKutusu.innerHTML = html;
+                oneriKutusu.classList.remove('hidden');
+            } else {
+                oneriKutusu.classList.add('hidden');
+            }
+        }
+
+        // Öneriden seçim yapıldığında
+        function oneriSec(secilenBaslik) {
+            document.getElementById('arama-kutusu').value = secilenBaslik;
+            document.getElementById('arama-onerileri').classList.add('hidden');
+            filtreleVeAra(); // Tıklandığı an direkt aramayı tetikle
+        }
+
+        // Ekranda boş bir yere tıklayınca öneri kutusunu kapat
+        document.addEventListener('click', function(e) {
+            if(!document.getElementById('arama-kutusu').contains(e.target) && !document.getElementById('arama-onerileri').contains(e.target)) {
+                document.getElementById('arama-onerileri').classList.add('hidden');
+            }
+        });
+
+        // Enter tuşuna basıldığında aramayı tetikle
+        document.getElementById('arama-kutusu').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                document.getElementById('arama-onerileri').classList.add('hidden');
+                filtreleVeAra();
+            }
+        });
+
+        // Kategori değiştiğinde otomatik ara
+        document.getElementById('kategori-filtresi').addEventListener('change', filtreleVeAra);
+
+
+        // --- 4. JS TABANLI KUSURSUZ FİLTRELEME MOTORU ---
+        function filtreleVeAra() {
+            const arama = document.getElementById('arama-kutusu').value;
+            const kategori = document.getElementById('kategori-filtresi').value;
+            
+            document.getElementById('ilan-vitrini').innerHTML = "";
+            document.getElementById('yukleniyor').classList.remove('hidden');
+
+            setTimeout(() => { // Ufak bir yükleniyor efekti verelim göz şenlensin
+                let filtrelenmis = tumIlanlarVeritabani;
+
+                // Kategori Filtresi
+                if (kategori && kategori !== "") {
+                    filtrelenmis = filtrelenmis.filter(ilan => ilan.kategori === kategori);
+                }
+
+                // Kelime Filtresi (Hem başlıkta hem açıklamada kusursuz Türkçe kalkanıyla arar)
+                if (arama && arama.trim() !== "") {
+                    const temizArama = turkceTemizle(arama);
+                    filtrelenmis = filtrelenmis.filter(ilan => 
+                        turkceTemizle(ilan.baslik).includes(temizArama) || 
+                        turkceTemizle(ilan.aciklama).includes(temizArama)
+                    );
+                }
+
+                ekranaBas(filtrelenmis);
+                document.getElementById('yukleniyor').classList.add('hidden');
+
+            }, 300);
+        }
+
+        // --- 5. EKRANA ÇİZİM FONKSİYONU ---
+        function ekranaBas(ilanlar) {
+            const vitrin = document.getElementById('ilan-vitrini');
+            document.getElementById('yukleniyor').classList.add('hidden');
+            
+            if (!ilanlar || ilanlar.length === 0) {
+                vitrin.innerHTML = `
+                <div class="col-span-full flex flex-col items-center justify-center py-16 text-center bg-white rounded-2xl border border-gray-200 shadow-sm mt-4">
+                    <svg class="w-16 h-16 text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    <h3 class="font-black text-gray-900 text-lg uppercase tracking-widest mb-2">SONUÇ BULUNAMADI</h3>
+                    <p class="text-gray-500 font-medium text-sm">Arama kriterlerinize uygun bir ilan bulamadık. Lütfen farklı kelimelerle tekrar deneyin.</p>
+                    <button onclick="document.getElementById('arama-kutusu').value=''; document.getElementById('kategori-filtresi').value=''; filtreleVeAra();" class="mt-6 bg-[#facc15] text-[#0f172a] px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-yellow-500 transition-colors shadow-sm">
+                        FİLTRELERİ TEMİZLE
+                    </button>
+                </div>`;
+                return;
+            }
+
+            let html = "";
+            ilanlar.forEach(ilan => {
+                let ilkResim = "";
+                if(ilan.resim_url) ilkResim = ilan.resim_url.split(',')[0].trim();
+
+                html += `
+                <a href="detay.html?id=${ilan.id}" class="group bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col">
+                    <div class="w-full h-48 bg-gray-100 relative overflow-hidden flex items-center justify-center">
+                        ${ilkResim ? `<img src="${ilkResim}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">` : `<span class="text-[10px] font-black uppercase tracking-widest text-gray-400">GÖRSEL YOK</span>`}
+                    </div>
+                    <div class="p-5 flex flex-col flex-grow">
+                        <span class="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-1">${ilan.kategori || 'DİĞER'}</span>
+                        <h3 class="font-black text-gray-900 text-base uppercase tracking-tight line-clamp-2 mb-2 group-hover:text-yellow-500 transition-colors">${ilan.baslik}</h3>
+                        <div class="mt-auto pt-4 border-t border-gray-100">
+                            <span class="font-black text-[#0f172a] text-lg">${ilan.deger} ₺</span>
+                        </div>
+                    </div>
+                </a>`;
+            });
+
+            vitrin.innerHTML = html;
         }
 
         async function cikisYap() { await _supabase.auth.signOut(); window.location.href = 'index.html'; }
