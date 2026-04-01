@@ -13,7 +13,7 @@
 </head>
 <body class="bg-gray-50 font-sans min-h-screen flex flex-col text-gray-900">
 
-    <nav class="bg-[#0f172a] px-6 py-4 flex justify-between items-center w-full shadow-md">
+    <nav class="bg-[#0f172a] px-6 py-4 flex justify-between items-center w-full shadow-md z-50">
         <a href="index.html" class="text-3xl font-black text-white italic tracking-tighter uppercase">TRAKAS</a>
         <div class="flex items-center gap-6">
             <span id="user-name" class="text-yellow-500 font-bold text-xs uppercase tracking-widest hidden md:block"></span>
@@ -23,7 +23,7 @@
         </div>
     </nav>
 
-    <main class="max-w-4xl mx-auto p-4 md:p-8 w-full flex-grow flex items-start justify-center mt-4 md:mt-8">
+    <main class="max-w-4xl mx-auto p-4 md:p-8 w-full flex-grow flex items-start justify-center mt-4 md:mt-8 mb-12">
         
         <div class="bg-white rounded-2xl shadow-sm border border-gray-200 w-full p-8 md:p-12 relative overflow-hidden">
             
@@ -70,14 +70,14 @@
                 </div>
 
                 <div>
-                    <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest mb-3">ÜRÜN GÖRSELLERİ <span class="text-red-500">*</span></label>
+                    <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest mb-3 hover:text-gray-900 transition-colors cursor-pointer" for="resim_dosyalar">ÜRÜN GÖRSELLERİ <span class="text-red-500">*</span></label>
                     
-                    <div class="relative w-full bg-white border-2 border-dashed border-gray-300 rounded-2xl p-6 transition-all hover:border-gray-400 hover:bg-gray-50 mb-6 cursor-pointer">
+                    <div class="relative w-full bg-white border-2 border-dashed border-gray-300 rounded-2xl p-6 transition-all hover:border-gray-400 hover:bg-gray-50 mb-6 cursor-pointer group">
                         <input type="file" id="resim_dosyalar" multiple accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" onchange="resimOnizleme(this)">
                         
                         <div class="flex flex-col items-center justify-center text-center pointer-events-none min-h-[80px]">
-                            <svg class="w-8 h-8 text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                            <p class="text-xs font-bold text-gray-500 uppercase tracking-widest">Yeni Görsel Ekle (Sürükle veya Tıkla)</p>
+                            <svg class="w-8 h-8 text-gray-400 mb-2 group-hover:text-yellow-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                            <p class="text-xs font-bold text-gray-500 uppercase tracking-widest group-hover:text-gray-700">Yeni Görsel Ekle (Sürükle veya Tıkla)</p>
                             <p class="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-1">Maksimum toplam 8 görsel</p>
                         </div>
                     </div>
@@ -93,6 +93,13 @@
             </form>
         </div>
     </main>
+
+    <footer class="bg-[#0f172a] border-t-4 border-[#facc15] pt-12 pb-8 w-full mt-auto">
+        <div class="max-w-7xl mx-auto flex flex-col items-center justify-center">
+            <h2 class="text-4xl font-black text-white italic tracking-tighter uppercase mb-2">TRAKAS</h2>
+            <p class="text-gray-500 text-xs font-bold tracking-widest uppercase">Takas Pazaryeri Platformu</p>
+        </div>
+    </footer>
 
     <div id="ozel-modal" class="hidden fixed inset-0 z-[999] flex items-center justify-center px-4">
         <div class="absolute inset-0 bg-gray-900/80 backdrop-blur-sm transition-opacity" onclick="modalKapat()"></div>
@@ -126,6 +133,7 @@
             benimEmailim = session.user.email;
             document.getElementById('user-name').innerText = benimEmailim.split('@')[0].toUpperCase();
 
+            // Önbellek Kırıcı ile veriyi çek (z=...)
             const { data: ilanVerisi, error } = await _supabase.from('ilanlar').select('*').eq('id', ilanId).single();
             
             if (error || !ilanVerisi) {
@@ -180,6 +188,7 @@
             renderPreviews();
         }
 
+        // --- GÖRSEL DÜZENLEME: MODERN SİLME İKONLARI ---
         function renderPreviews() {
             const grid = document.getElementById('resim-grid-alani');
             grid.innerHTML = "";
@@ -193,30 +202,34 @@
                 grid.classList.remove('hidden');
             }
 
-            // MEVCUT RESİMLER (Etiketler artık her zaman görünür)
+            // 1. MEVCUT RESİMLER (Jilet İkonlu)
             mevcutResimler.forEach((url, index) => {
                 grid.insertAdjacentHTML('beforeend', `
-                    <div class="relative aspect-square bg-gray-50 border border-gray-200 rounded-xl overflow-hidden shadow-sm">
-                        <img src="${url}" class="w-full h-full object-cover opacity-90">
-                        <div class="absolute inset-0 flex flex-col justify-between p-2 pointer-events-none">
-                            <span class="bg-[#0f172a] text-white text-[9px] font-black uppercase px-2 py-1 rounded w-max shadow-sm">✅ Mevcut</span>
-                            <button type="button" onclick="eskiResimSil(${index})" class="pointer-events-auto self-end bg-red-500 text-white w-7 h-7 rounded-full flex items-center justify-center font-black text-sm shadow-lg hover:bg-red-600 hover:scale-110 transition-all">X</button>
+                    <div class="relative group aspect-square bg-gray-50 border border-gray-200 rounded-xl overflow-hidden shadow-sm transition-all hover:border-gray-300">
+                        <img src="${url}" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105">
+                        <div class="absolute top-2 left-2 pointer-events-none">
+                            <span class="bg-[#0f172a]/90 backdrop-blur-sm text-white text-[8px] font-black uppercase px-2 py-1 rounded w-max shadow-sm">✅ Mevcut</span>
                         </div>
+                        <button type="button" onclick="eskiResimSil(${index})" class="absolute top-2 right-2 bg-white/80 backdrop-blur-sm text-red-500 w-7 h-7 rounded-full flex items-center justify-center font-black text-sm shadow-lg opacity-0 group-hover:opacity-100 transition-all hover:bg-red-500 hover:text-white transform scale-90 group-hover:scale-100" title="Resmi Sil">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
+                        </button>
                     </div>
                 `);
             });
 
-            // YENİ SEÇİLEN RESİMLER (Etiketler her zaman görünür)
+            // 2. YENİ SEÇİLEN RESİMLER (Jilet İkonlu)
             yeniSecilenDosyalar.forEach((dosya, index) => {
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     grid.insertAdjacentHTML('beforeend', `
-                        <div class="relative aspect-square bg-yellow-50 border-2 border-yellow-400 rounded-xl overflow-hidden shadow-sm">
-                            <img src="${e.target.result}" class="w-full h-full object-cover opacity-80">
-                            <div class="absolute inset-0 flex flex-col justify-between p-2 pointer-events-none">
-                                <span class="bg-yellow-500 text-[#0f172a] text-[9px] font-black uppercase px-2 py-1 rounded w-max shadow-sm">Yeni Yüklenecek</span>
-                                <button type="button" onclick="yeniResimSil(${index})" class="pointer-events-auto self-end bg-red-500 text-white w-7 h-7 rounded-full flex items-center justify-center font-black text-sm shadow-lg hover:bg-red-600 hover:scale-110 transition-all">X</button>
+                        <div class="relative group aspect-square bg-yellow-50 border-2 border-yellow-400 rounded-xl overflow-hidden shadow-sm transition-all hover:border-yellow-500">
+                            <img src="${e.target.result}" class="w-full h-full object-cover opacity-90 transition-transform duration-300 group-hover:scale-105">
+                            <div class="absolute top-2 left-2 pointer-events-none">
+                                <span class="bg-yellow-500/90 backdrop-blur-sm text-[#0f172a] text-[8px] font-black uppercase px-2 py-1 rounded w-max shadow-sm">Yeni Yüklenecek</span>
                             </div>
+                            <button type="button" onclick="yeniResimSil(${index})" class="absolute top-2 right-2 bg-white/80 backdrop-blur-sm text-red-500 w-7 h-7 rounded-full flex items-center justify-center font-black text-sm shadow-lg opacity-0 group-hover:opacity-100 transition-all hover:bg-red-500 hover:text-white transform scale-90 group-hover:scale-100" title="Resmi Sil">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
+                            </button>
                         </div>
                     `);
                 }
@@ -248,7 +261,7 @@
                 let finalResimDizisi = [...mevcutResimler]; 
                 const storageBucket = _supabase.storage.from('ilan-resimleri');
 
-                // Yeni seçilenleri sırayla yükle
+                // Yeni seçilenleri Storage'a yükle
                 for(const dosya of yeniSecilenDosyalar) {
                     const dosyaUzantisi = dosya.name.split('.').pop();
                     const dosyaAdi = `${Date.now()}-${Math.random().toString(36).substring(7)}.${dosyaUzantisi}`;
@@ -262,23 +275,23 @@
 
                 const finalResimMetni = finalResimDizisi.join(',');
 
+                // Veritabanını güncelle
                 const { error: dbError } = await _supabase
                     .from('ilanlar')
-                    .update({
-                        baslik: baslik,
-                        aciklama: aciklama,
-                        kategori: kategori,
-                        deger: deger,
-                        resim_url: finalResimMetni
-                    })
+                    .update({ baslik, aciklama, kategori, deger, resim_url: finalResimMetni })
                     .eq('id', ilanId);
 
                 if (dbError) throw dbError;
 
-                // ÖNBELLEK KIRICI: Yönlendirme linkinin sonuna rastgele rakam (?v=...) ekliyoruz ki tarayıcı eski sayfayı vermesin!
-                modalAc("Başarılı", "İlanınız başarıyla güncellendi.", "basarili", () => {
-                    window.location.href = `detay.html?id=${ilanId}&v=${Date.now()}`; 
-                });
+                // --- GARANTİLİ SENKRONİZASYON (500ms Nefes Alma Süresi) ---
+                btn.innerHTML = `<svg class="animate-spin h-5 w-5 text-white mr-2" ...></svg> VERİLER EŞİTLENİYOR...`;
+                
+                setTimeout(() => {
+                    modalAc("Başarılı", "İlanınız başarıyla güncellendi.", "basarili", () => {
+                        // Hem Detay sayfasına hem de veriye z= önbellek kırıcı ekle!
+                        window.location.href = `detay.html?id=${ilanId}&v=${Date.now()}`; 
+                    });
+                }, 500); // 0.5 saniye bekle ki Supabase veriyi tam işlesin.
                 
             } catch (err) {
                 btn.disabled = false;
@@ -288,6 +301,7 @@
             }
         }
 
+        // Modal Fonksiyonları
         let modalOnayFonk = null;
         function modalAc(baslik, mesaj, tip, onayFonk = null) {
             document.getElementById('modal-baslik').innerText = baslik;
@@ -302,7 +316,8 @@
             document.getElementById('ozel-modal').classList.remove('hidden');
             setTimeout(() => { document.getElementById('ozel-modal-kutu').classList.remove('scale-95', 'opacity-0'); }, 10);
             
-            if(tip === 'basarili' && onayFonk) setTimeout(() => { modalKapat(); onayFonk(); }, 2000);
+            // Başarılıysa ve onay fonk varsa otomatik kapatma (zamanlayıcıyı temizlemezsek çakışabilir)
+            if(tip === 'basarili' && onayFonk) setTimeout(() => { if(!document.getElementById('ozel-modal').classList.contains('hidden')) { modalKapat(); onayFonk(); } }, 2000);
         }
 
         function modalKapat() {
@@ -310,6 +325,8 @@
             setTimeout(() => { document.getElementById('ozel-modal').classList.add('hidden'); }, 300);
             if(modalOnayFonk && document.getElementById('modal-ikon').innerText !== '✓') modalOnayFonk = null;
         }
+
+        async function cikisYap() { await _supabase.auth.signOut(); window.location.href = 'index.html'; }
 
         sayfaYukle();
     </script>
