@@ -17,8 +17,11 @@
 
     <nav class="bg-[#0f172a] px-6 py-4 flex justify-between items-center w-full shadow-md z-50 flex-shrink-0 relative">
         <a href="index.html" class="text-3xl font-black text-white italic tracking-tighter uppercase">TRAKAS</a>
+        
         <div id="auth-menu" class="hidden lg:flex items-center gap-6"></div>
+        
         <div id="auth-menu-mobil" class="lg:hidden flex items-center gap-3"></div>
+
         <div id="mobile-menu" class="hidden absolute top-full left-0 w-full bg-[#0f172a] border-t border-gray-800 shadow-2xl flex-col z-50"></div>
     </nav>
 
@@ -217,7 +220,6 @@
                 ).subscribe();
         }
 
-        // HATA DEDEKTİFİ BURADA (Gerçek hatayı basacak)
         async function eskiMesajlariGetir() {
             if(!aktifTeklifId) return;
             const kutu = document.getElementById('mesajlar-kutusu');
@@ -239,7 +241,6 @@
                     <div class="mx-auto w-[90%] mt-10 p-4 border border-red-300 bg-red-50 rounded-xl shadow-sm text-center">
                         <h4 class="font-black text-red-600 text-xs uppercase tracking-widest mb-2">SUPABASE HATASI YAKALANDI!</h4>
                         <p class="text-sm font-bold text-gray-800 break-words">${err.message || JSON.stringify(err)}</p>
-                        <p class="text-[10px] text-gray-500 mt-2">Lütfen usta, bu ekranın fotoğrafını at ki sorunu şak diye çözelim!</p>
                     </div>`;
             }
         }
@@ -311,9 +312,11 @@
             const mobileMenu = document.getElementById('mobile-menu');
             const gorunenIsim = session.user.user_metadata.ad_soyad ? session.user.user_metadata.ad_soyad.toUpperCase() : session.user.email.split('@')[0].toUpperCase();
             
+            // DÜZELTİLEN KISIM: classList.remove('hidden') SİLİNDİ
             menuDiv.innerHTML = `<a href="profil.html" class="text-[#facc15] font-black text-xs uppercase tracking-widest border-b-2 border-[#facc15] hover:border-white transition-colors pb-0.5">${gorunenIsim}</a> <a href="favorilerim.html" class="text-gray-400 font-bold text-[11px] uppercase tracking-widest hover:text-white transition-colors">FAVORİLERİM</a> <a href="ilanlarim.html" class="text-gray-400 font-bold text-[11px] uppercase tracking-widest hover:text-white transition-colors">İLANLARIM</a> <a href="sohbetler.html" class="text-white font-black text-[11px] uppercase tracking-widest transition-colors">MESAJLARIM</a> <a href="teklifler.html" class="text-gray-400 font-bold text-[11px] uppercase tracking-widest hover:text-white transition-colors">TEKLİFLERİM</a> <span class="text-gray-700">|</span> <button onclick="cikisYap()" class="text-red-500 font-bold text-[11px] uppercase tracking-widest hover:text-red-400">ÇIKIŞ</button> <a href="ilan-ver.html" class="ml-2 bg-[#facc15] text-[#0f172a] px-6 py-2.5 rounded-lg font-black text-[11px] uppercase tracking-widest shadow-sm">İLAN VER</a>`;
-            menuDiv.classList.remove('hidden');
+            
             mobilTopDiv.innerHTML = `<a href="ilan-ver.html" class="bg-[#facc15] text-[#0f172a] px-3 py-1.5 rounded-lg font-black text-[10px] uppercase tracking-widest shadow-sm">İLAN VER</a> <button onclick="toggleMobileMenu()" class="text-white p-1 focus:outline-none"><svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg></button>`;
+            
             mobileMenu.innerHTML = `<a href="profil.html" class="block px-6 py-4 text-[#facc15] font-black text-[11px] uppercase tracking-widest border-b border-gray-800">${gorunenIsim}</a> <a href="favorilerim.html" class="block px-6 py-4 text-gray-300 font-bold text-[11px] uppercase tracking-widest border-b border-gray-800 hover:bg-gray-800 transition-colors">FAVORİLERİM</a> <a href="sohbetler.html" class="block px-6 py-4 text-[#facc15] font-black text-[11px] uppercase tracking-widest border-b border-gray-800">MESAJLARIM</a> <a href="teklifler.html" class="block px-6 py-4 text-gray-300 font-bold text-[11px] uppercase tracking-widest border-b border-gray-800 hover:bg-gray-800 transition-colors">TEKLİFLERİM</a> <button onclick="cikisYap()" class="w-full text-left block px-6 py-4 text-red-500 font-bold text-[11px] uppercase tracking-widest border-b border-gray-800 hover:bg-gray-800 transition-colors">ÇIKIŞ</button>`;
         }
 
