@@ -17,11 +17,8 @@
 
     <nav class="bg-[#0f172a] px-6 py-4 flex justify-between items-center w-full shadow-md z-50 flex-shrink-0 relative">
         <a href="index.html" class="text-3xl font-black text-white italic tracking-tighter uppercase">TRAKAS</a>
-        
         <div id="auth-menu" class="hidden lg:flex items-center gap-6"></div>
-        
         <div id="auth-menu-mobil" class="lg:hidden flex items-center gap-3"></div>
-
         <div id="mobile-menu" class="hidden absolute top-full left-0 w-full bg-[#0f172a] border-t border-gray-800 shadow-2xl flex-col z-50"></div>
     </nav>
 
@@ -50,23 +47,31 @@
                 <p class="text-xs text-gray-500 font-bold uppercase tracking-widest mt-2">Mesajlaşmaya başlamak için soldan bir sohbet seçin.</p>
             </div>
 
-            <div id="sohbet-header" class="p-4 border-b border-gray-100 bg-white flex justify-between items-center shadow-sm z-0 flex-shrink-0">
-                <div class="flex items-center gap-4">
-                    <button onclick="solaDon()" class="md:hidden text-gray-500 hover:text-gray-900"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></button>
-                    <div class="w-12 h-12 bg-gray-100 rounded-lg overflow-hidden border border-gray-200 flex-shrink-0">
+            <div id="sohbet-header" class="p-2 md:p-4 border-b border-gray-100 bg-white flex justify-between items-center shadow-sm z-0 flex-shrink-0 gap-2 w-full">
+                
+                <div class="flex items-center gap-2 md:gap-4 flex-1 min-w-0">
+                    <button onclick="solaDon()" class="md:hidden text-gray-500 hover:text-gray-900 flex-shrink-0 p-1 -ml-1">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                    </button>
+                    <div class="w-9 h-9 md:w-12 md:h-12 bg-gray-100 rounded-md md:rounded-lg overflow-hidden border border-gray-200 flex-shrink-0">
                         <img id="header-ilan-resim" src="" class="w-full h-full object-cover">
                     </div>
-                    <div class="min-w-0">
-                        <span id="header-ilan-durum" class="bg-yellow-100 text-yellow-700 text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded shadow-sm">KABUL EDİLEN TAKAS</span>
-                        <h3 id="header-ilan-baslik" class="font-black text-gray-900 uppercase tracking-tight text-sm truncate max-w-[150px] md:max-w-[250px]">--</h3>
-                        <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mt-0.5 truncate"><span id="header-karsi-isim" class="text-[#0f172a]">--</span> ile sohbet ediyorsunuz</p>
+                    <div class="flex-1 min-w-0">
+                        <span id="header-ilan-durum" class="hidden md:inline-block bg-yellow-100 text-yellow-700 text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded shadow-sm mb-1">KABUL EDİLEN TAKAS</span>
+                        <h3 id="header-ilan-baslik" class="font-black text-gray-900 uppercase tracking-tight text-[11px] md:text-sm truncate w-full">--</h3>
+                        <p class="text-[9px] md:text-[10px] font-bold text-gray-500 uppercase tracking-widest mt-0.5 truncate w-full">
+                            <span id="header-karsi-isim" class="text-[#0f172a]">--</span>
+                            <span class="hidden md:inline"> ile sohbet ediyorsunuz</span>
+                        </p>
                     </div>
                 </div>
                 
-                <button onclick="takasiTamamlaAdiminaGec()" class="bg-green-500 text-white px-3 md:px-4 py-2 rounded-lg font-black text-[10px] uppercase tracking-widest hover:bg-green-600 transition-colors shadow-md flex items-center gap-1 md:gap-2 flex-shrink-0">
-                    <svg class="w-4 h-4 hidden md:block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                    <span class="hidden md:inline">TAKASI TAMAMLA</span><span class="md:hidden">TAMAMLA</span>
+                <button onclick="takasiTamamlaAdiminaGec()" class="bg-green-500 text-white px-2.5 py-2 md:px-4 md:py-2 rounded-lg font-black text-[9px] md:text-[10px] uppercase tracking-widest hover:bg-green-600 transition-colors shadow-md flex items-center gap-1 md:gap-2 flex-shrink-0">
+                    <svg class="w-3.5 h-3.5 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
+                    <span class="hidden sm:inline">TAKASI TAMAMLA</span>
+                    <span class="sm:hidden">TAMAMLA</span>
                 </button>
+
             </div>
 
             <div id="mesajlar-kutusu" class="flex-grow p-4 overflow-y-auto bg-slate-50 flex flex-col gap-3">
@@ -75,7 +80,8 @@
             <form onsubmit="mesajGonder(event)" class="p-3 md:p-4 border-t border-gray-200 bg-white flex gap-2 md:gap-3 flex-shrink-0">
                 <input type="text" id="mesaj-input" required autocomplete="off" placeholder="Mesajınızı yazın..." class="flex-grow bg-gray-100 border-none px-4 py-3 rounded-xl outline-none focus:ring-2 focus:ring-[#facc15] text-sm font-medium text-gray-800 transition-all">
                 <button type="submit" id="gonder-btn" class="bg-[#0f172a] text-[#facc15] px-4 md:px-6 py-3 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-black transition-colors shadow-md flex-shrink-0">
-                    GÖNDER
+                    <span class="hidden md:inline">GÖNDER</span>
+                    <svg class="w-4 h-4 md:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>
                 </button>
             </form>
 
@@ -156,7 +162,6 @@
 
             } catch(e) {
                 console.error(e);
-                document.getElementById('sohbet-listesi').innerHTML = `<div class="text-center text-red-500 text-xs mt-4 p-2 bg-red-50 rounded border border-red-200">Hata: ${e.message}</div>`;
             }
         }
 
@@ -312,8 +317,8 @@
             const mobileMenu = document.getElementById('mobile-menu');
             const gorunenIsim = session.user.user_metadata.ad_soyad ? session.user.user_metadata.ad_soyad.toUpperCase() : session.user.email.split('@')[0].toUpperCase();
             
-            // DÜZELTİLEN KISIM: classList.remove('hidden') SİLİNDİ
             menuDiv.innerHTML = `<a href="profil.html" class="text-[#facc15] font-black text-xs uppercase tracking-widest border-b-2 border-[#facc15] hover:border-white transition-colors pb-0.5">${gorunenIsim}</a> <a href="favorilerim.html" class="text-gray-400 font-bold text-[11px] uppercase tracking-widest hover:text-white transition-colors">FAVORİLERİM</a> <a href="ilanlarim.html" class="text-gray-400 font-bold text-[11px] uppercase tracking-widest hover:text-white transition-colors">İLANLARIM</a> <a href="sohbetler.html" class="text-white font-black text-[11px] uppercase tracking-widest transition-colors">MESAJLARIM</a> <a href="teklifler.html" class="text-gray-400 font-bold text-[11px] uppercase tracking-widest hover:text-white transition-colors">TEKLİFLERİM</a> <span class="text-gray-700">|</span> <button onclick="cikisYap()" class="text-red-500 font-bold text-[11px] uppercase tracking-widest hover:text-red-400">ÇIKIŞ</button> <a href="ilan-ver.html" class="ml-2 bg-[#facc15] text-[#0f172a] px-6 py-2.5 rounded-lg font-black text-[11px] uppercase tracking-widest shadow-sm">İLAN VER</a>`;
+            menuDiv.classList.remove('hidden');
             
             mobilTopDiv.innerHTML = `<a href="ilan-ver.html" class="bg-[#facc15] text-[#0f172a] px-3 py-1.5 rounded-lg font-black text-[10px] uppercase tracking-widest shadow-sm">İLAN VER</a> <button onclick="toggleMobileMenu()" class="text-white p-1 focus:outline-none"><svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg></button>`;
             
