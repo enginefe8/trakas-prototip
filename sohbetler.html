@@ -9,14 +9,13 @@
     <style>
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-        /* Mesaj balonları için özel stiller */
         .mesaj-giden { background-color: #0f172a; color: white; border-bottom-right-radius: 2px; }
         .mesaj-gelen { background-color: #f1f5f9; color: #0f172a; border-bottom-left-radius: 2px; }
     </style>
 </head>
 <body class="bg-gray-100 font-sans h-screen flex flex-col overflow-hidden">
 
-    <nav class="bg-[#0f172a] px-6 py-4 flex justify-between items-center w-full shadow-md z-50 flex-shrink-0">
+    <nav class="bg-[#0f172a] px-6 py-4 flex justify-between items-center w-full shadow-md z-50 flex-shrink-0 relative">
         <a href="index.html" class="text-3xl font-black text-white italic tracking-tighter uppercase">TRAKAS</a>
         <div id="auth-menu" class="hidden lg:flex items-center gap-6"></div>
         <div id="auth-menu-mobil" class="lg:hidden flex items-center gap-3"></div>
@@ -116,11 +115,8 @@
 
         async function sohbetListesiniCek() {
             try {
-                // Sadece KABUL EDİLMİŞ teklifler sohbete dönüşür.
-                // 1. Benim yaptığım kabul edilmiş teklifler
                 const { data: gidenler } = await _supabase.from('teklifler').select('id, ilan_id, teklif_veren_email, durum').eq('teklif_veren_email', benimEmailim).eq('durum', 'Kabul Edildi');
                 
-                // 2. Benim ilanlarıma gelen kabul edilmiş teklifleri bulmak için önce ilanlarımı bulmalıyım
                 const { data: ilanlarim } = await _supabase.from('ilanlar').select('id, baslik, resim_url, sahip_email').eq('sahip_email', benimEmailim);
                 const benimIlanIdleri = ilanlarim ? ilanlarim.map(i => i.id) : [];
                 
@@ -137,13 +133,11 @@
                     return;
                 }
 
-                // Bu tekliflerin bağlı olduğu ilan detaylarını çek
                 const tumIlanIdleri = birlesikTeklifler.map(t => t.ilan_id);
                 const { data: tumIlanDetaylari } = await _supabase.from('ilanlar').select('id, baslik, resim_url, sahip_email').in('id', tumIlanIdleri);
 
                 tumSohbetler = birlesikTeklifler.map(teklif => {
                     const ilan = tumIlanDetaylari.find(i => i.id === teklif.ilan_id);
-                    // Eğer ilan benimse, karşı taraf teklifi verendir. İlan başkasınınsa, karşı taraf ilan sahibidir.
                     const isBenimIlanim = ilan.sahip_email === benimEmailim;
                     const karsiEmail = isBenimIlanim ? teklif.teklif_veren_email : ilan.sahip_email;
 
@@ -185,15 +179,12 @@
             aktifTeklifId = teklifId;
             aktifKarsiEmail = karsiEmail;
 
-            // Mobilde listeyi gizle, sohbeti aç (Responsive yapı)
             document.getElementById('sohbet-alani').classList.remove('hidden');
             document.getElementById('sohbet-alani').classList.add('flex');
             
-            // Seçili stili ayarla
             document.querySelectorAll('.sohbet-item').forEach(el => el.classList.remove('bg-yellow-50', 'border-yellow-200'));
             document.getElementById(`btn-sohbet-${teklifId}`).classList.add('bg-yellow-50', 'border-yellow-200');
 
-            // Header Doldur
             document.getElementById('sohbet-bos').classList.add('hidden');
             document.getElementById('header-ilan-baslik').innerText = ilanBaslik;
             document.getElementById('header-karsi-isim').innerText = karsiEmail.split('@')[0].toUpperCase();
@@ -205,49 +196,58 @@
 
             mesajlariGetir();
             
-            // Otomatik yenileme döngüsünü başlat (Her 3 saniyede bir yeni mesaj var mı diye bakar)
             if(mesajDongusu) clearInterval(mesajDongusu);
             mesajDongusu = setInterval(mesajlariGetir, 3000);
         }
 
+        // KIRILMAZ MOTOR BURADA! (try-catch eklendi, mantık düzeltildi)
         async function mesajlariGetir() {
             if(!aktifTeklifId) return;
-            const { data, error } = await _supabase.from('mesajlar').select('*').eq('teklif_id', aktifTeklifId).order('created_at', { ascending: true });
-            
-            if(!data || error) return;
-
             const kutu = document.getElementById('mesajlar-kutusu');
-            
-            // Eğer mesaj sayısı eskiyse DOM'u güncelle (Gereksiz yenilemeyi önler)
-            const guncelMesajSayisi = kutu.querySelectorAll('.mesaj-satiri').length;
-            if(data.length === guncelMesajSayisi && guncelMesajSayisi !== 0) return;
 
-            if(data.length === 0) {
-                kutu.innerHTML = `<div class="text-center text-[10px] uppercase tracking-widest font-bold text-gray-400 bg-gray-100 p-2 rounded-lg mx-auto w-fit mt-10 border border-gray-200">Sohbet başlatıldı. İlk mesajı siz yazın!</div>`;
-                return;
-            }
-
-            let html = "";
-            data.forEach(m => {
-                const benMiyim = m.gonderen_email === benimEmailim;
-                const hizalama = benMiyim ? "justify-end" : "justify-start";
-                const renkClass = benMiyim ? "mesaj-giden" : "mesaj-gelen border border-gray-200";
+            try {
+                const { data, error } = await _supabase.from('mesajlar')
+                    .select('*')
+                    .eq('teklif_id', aktifTeklifId)
+                    .order('created_at', { ascending: true });
                 
-                // Saati formatla (Örn: 14:30)
-                const saat = new Date(m.created_at).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+                if (error) throw error;
 
-                html += `
-                <div class="w-full flex ${hizalama} mesaj-satiri">
-                    <div class="max-w-[75%] md:max-w-[60%] p-3 rounded-2xl ${renkClass} shadow-sm relative group">
-                        <p class="text-sm font-medium leading-relaxed">${m.mesaj}</p>
-                        <span class="text-[9px] font-bold opacity-50 block text-right mt-1 tracking-widest">${saat}</span>
-                    </div>
-                </div>`;
-            });
+                // Ekranda halihazırda gösterilen mesaj sayısı ile yeni gelen mesaj sayısı aynıysa boşuna işlem yapma
+                const guncelMesajSayisi = kutu.querySelectorAll('.mesaj-satiri').length;
+                if(data && data.length === guncelMesajSayisi && guncelMesajSayisi !== 0) return;
 
-            kutu.innerHTML = html;
-            // Scrollu en alta indir
-            kutu.scrollTop = kutu.scrollHeight;
+                // Eğer veritabanından boş veri geldiyse şık bir başlangıç metni bas
+                if(!data || data.length === 0) {
+                    kutu.innerHTML = `<div class="text-center text-[10px] uppercase tracking-widest font-bold text-gray-500 bg-white shadow-sm p-3 rounded-xl mx-auto w-fit mt-10 border border-gray-200">Sohbet başlatıldı. İlk mesajı siz yazın!</div>`;
+                    return;
+                }
+
+                // Eğer mesajlar varsa ekrana çiz
+                let html = "";
+                data.forEach(m => {
+                    const benMiyim = m.gonderen_email === benimEmailim;
+                    const hizalama = benMiyim ? "justify-end" : "justify-start";
+                    const renkClass = benMiyim ? "mesaj-giden shadow-md" : "mesaj-gelen border border-gray-200 shadow-sm";
+                    
+                    const saat = new Date(m.created_at).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+
+                    html += `
+                    <div class="w-full flex ${hizalama} mesaj-satiri">
+                        <div class="max-w-[85%] md:max-w-[70%] p-3 rounded-2xl ${renkClass} relative group">
+                            <p class="text-sm font-medium leading-relaxed">${m.mesaj}</p>
+                            <span class="text-[9px] font-bold opacity-50 block text-right mt-1 tracking-widest">${saat}</span>
+                        </div>
+                    </div>`;
+                });
+
+                kutu.innerHTML = html;
+                kutu.scrollTop = kutu.scrollHeight; // Kaydırma çubuğunu en alta indir
+
+            } catch (err) {
+                console.error("Mesajlar alınamadı: ", err);
+                kutu.innerHTML = `<div class="text-center text-xs font-bold text-red-500 mt-10">Bağlantı sorunu! Mesajlar çekilemedi.</div>`;
+            }
         }
 
         async function mesajGonder(event) {
@@ -270,9 +270,10 @@
                 
                 if (error) throw error;
                 input.value = "";
-                await mesajlariGetir(); // Hemen ekrana bas
+                await mesajlariGetir(); 
             } catch(e) {
                 console.error(e);
+                modalAc("HATA", "Mesaj gönderilemedi. Lütfen bağlantınızı kontrol edin.", "hata");
             } finally {
                 input.disabled = false; btn.disabled = false; input.focus();
             }
@@ -280,14 +281,15 @@
 
         function takasiTamamlaAdiminaGec() {
             modalAc("Takası Tamamla", "Diğer kullanıcıyla anlaştınız ve takas gerçekleşti mi? Bu işlem ilanı vitrinden kaldıracaktır.", "uyari", true, () => {
-                // Şimdilik sadece uyarı mesajı verelim, bir sonraki aşamada buranın kodunu bağlayacağız
                 modalAc("HARİKA HABER!", "Bir sonraki komutunda bu butona bastığında ilanı vitrinden kaldırıp üzerine 'TAKASLANDI' damgası vuran motoru kuracağız usta!", "basarili");
             });
             document.getElementById('modal-btn-ana').innerText = "EVET, ANLAŞTIK";
         }
 
+        function toggleMobileMenu() {
+            document.getElementById('mobile-menu').classList.toggle('hidden');
+        }
 
-        // --- GENEL SİSTEM FONKSİYONLARI ---
         function menuOlusturGuncel(session) {
             const menuDiv = document.getElementById('auth-menu');
             const mobilTopDiv = document.getElementById('auth-menu-mobil');
@@ -295,12 +297,12 @@
             
             const gorunenIsim = session.user.user_metadata.ad_soyad ? session.user.user_metadata.ad_soyad.toUpperCase() : session.user.email.split('@')[0].toUpperCase();
             
-            menuDiv.innerHTML = `<a href="profil.html" class="text-[#facc15] font-black text-xs uppercase tracking-widest border-b-2 border-[#facc15] pb-0.5">${gorunenIsim}</a> <a href="favorilerim.html" class="text-gray-400 font-bold text-[11px] uppercase tracking-widest hover:text-white transition-colors">FAVORİLERİM</a> <a href="ilanlarim.html" class="text-gray-400 font-bold text-[11px] uppercase tracking-widest hover:text-white transition-colors">İLANLARIM</a> <a href="sohbetler.html" class="text-white font-black text-[11px] uppercase tracking-widest transition-colors">MESAJLARIM</a> <a href="teklifler.html" class="text-gray-400 font-bold text-[11px] uppercase tracking-widest hover:text-white transition-colors">TEKLİFLERİM</a> <span class="text-gray-700">|</span> <button onclick="cikisYap()" class="text-red-500 font-bold text-[11px] uppercase tracking-widest hover:text-red-400">ÇIKIŞ</button> <a href="ilan-ver.html" class="ml-2 bg-[#facc15] text-[#0f172a] px-6 py-2.5 rounded-lg font-black text-[11px] uppercase tracking-widest shadow-sm">İLAN VER</a>`;
+            menuDiv.innerHTML = `<a href="profil.html" class="text-[#facc15] font-black text-xs uppercase tracking-widest border-b-2 border-[#facc15] hover:border-white transition-colors pb-0.5">${gorunenIsim}</a> <a href="favorilerim.html" class="text-gray-400 font-bold text-[11px] uppercase tracking-widest hover:text-white transition-colors">FAVORİLERİM</a> <a href="ilanlarim.html" class="text-gray-400 font-bold text-[11px] uppercase tracking-widest hover:text-white transition-colors">İLANLARIM</a> <a href="sohbetler.html" class="text-white font-black text-[11px] uppercase tracking-widest transition-colors">MESAJLARIM</a> <a href="teklifler.html" class="text-gray-400 font-bold text-[11px] uppercase tracking-widest hover:text-white transition-colors">TEKLİFLERİM</a> <span class="text-gray-700">|</span> <button onclick="cikisYap()" class="text-red-500 font-bold text-[11px] uppercase tracking-widest hover:text-red-400">ÇIKIŞ</button> <a href="ilan-ver.html" class="ml-2 bg-[#facc15] text-[#0f172a] px-6 py-2.5 rounded-lg font-black text-[11px] uppercase tracking-widest shadow-sm">İLAN VER</a>`;
             menuDiv.classList.remove('hidden');
 
-            mobilTopDiv.innerHTML = `<a href="ilan-ver.html" class="bg-[#facc15] text-[#0f172a] px-3 py-1.5 rounded-lg font-black text-[10px] uppercase tracking-widest shadow-sm">İLAN VER</a> <button onclick="document.getElementById('mobile-menu').classList.toggle('hidden')" class="text-white p-1 focus:outline-none"><svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg></button>`;
+            mobilTopDiv.innerHTML = `<a href="ilan-ver.html" class="bg-[#facc15] text-[#0f172a] px-3 py-1.5 rounded-lg font-black text-[10px] uppercase tracking-widest shadow-sm">İLAN VER</a> <button onclick="toggleMobileMenu()" class="text-white p-1 focus:outline-none"><svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg></button>`;
 
-            mobileMenu.innerHTML = `<a href="profil.html" class="block px-6 py-4 text-[#facc15] font-black text-[11px] uppercase tracking-widest border-b border-gray-800">${gorunenIsim}</a> <a href="favorilerim.html" class="block px-6 py-4 text-gray-300 font-bold text-[11px] uppercase tracking-widest border-b border-gray-800">FAVORİLERİM</a> <a href="sohbetler.html" class="block px-6 py-4 text-[#facc15] font-black text-[11px] uppercase tracking-widest border-b border-gray-800">MESAJLARIM</a> <a href="teklifler.html" class="block px-6 py-4 text-gray-300 font-bold text-[11px] uppercase tracking-widest border-b border-gray-800">TEKLİFLERİM</a> <button onclick="cikisYap()" class="w-full text-left block px-6 py-4 text-red-500 font-bold text-[11px] uppercase tracking-widest border-b border-gray-800">ÇIKIŞ</button>`;
+            mobileMenu.innerHTML = `<a href="profil.html" class="block px-6 py-4 text-[#facc15] font-black text-[11px] uppercase tracking-widest border-b border-gray-800">${gorunenIsim}</a> <a href="favorilerim.html" class="block px-6 py-4 text-gray-300 font-bold text-[11px] uppercase tracking-widest border-b border-gray-800 hover:bg-gray-800 transition-colors">FAVORİLERİM</a> <a href="sohbetler.html" class="block px-6 py-4 text-[#facc15] font-black text-[11px] uppercase tracking-widest border-b border-gray-800">MESAJLARIM</a> <a href="teklifler.html" class="block px-6 py-4 text-gray-300 font-bold text-[11px] uppercase tracking-widest border-b border-gray-800 hover:bg-gray-800 transition-colors">TEKLİFLERİM</a> <button onclick="cikisYap()" class="w-full text-left block px-6 py-4 text-red-500 font-bold text-[11px] uppercase tracking-widest hover:bg-gray-800 transition-colors">ÇIKIŞ</button>`;
         }
 
         function modalAc(baslik, mesaj, tip, isIptal = false, onayFonk = null) {
