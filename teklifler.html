@@ -3,50 +3,61 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Teklif Yönetimi - Trakas Pazaryeri</title>
+    <title>Teklif Yönetimi - Trakas</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 10px; }
-        .tab-aktif { border-bottom: 2px solid #111827; color: #111827; font-weight: 900; }
-        .tab-pasif { border-bottom: 2px solid transparent; color: #9ca3af; font-weight: 700; }
+        /* Sekme geçişleri için yumuşaklık */
+        .tab-content { display: none; animation: fadeIn 0.3s; }
+        .tab-content.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
-<body class="bg-gray-100 font-sans min-h-screen flex flex-col text-gray-900">
+<body class="bg-gray-50 font-sans min-h-screen flex flex-col text-gray-900">
 
-    <nav class="bg-[#111827] px-6 py-4 flex justify-between items-center shadow-md">
+    <nav class="bg-[#0f172a] px-6 py-4 flex justify-between items-center w-full shadow-md z-50 relative">
         <a href="index.html" class="text-3xl font-black text-white italic tracking-tighter uppercase">TRAKAS</a>
-        <div class="flex items-center gap-6">
-            <span id="user-name" class="text-yellow-500 font-bold text-sm uppercase tracking-widest hidden md:block"></span>
-            <a href="index.html" class="text-white font-bold text-sm uppercase tracking-wider hover:text-gray-300 transition-colors flex items-center gap-2">
-                <span>←</span> VİTRİNE DÖN
-            </a>
-        </div>
+        <div id="auth-menu" class="hidden lg:flex items-center gap-6"></div>
+        <div id="auth-menu-mobil" class="lg:hidden flex items-center gap-3"></div>
+        <div id="mobile-menu" class="hidden absolute top-full left-0 w-full bg-[#0f172a] border-t border-gray-800 shadow-2xl flex-col z-50"></div>
     </nav>
 
-    <main class="max-w-5xl mx-auto p-4 md:p-8 w-full flex-grow mt-2 md:mt-4">
+    <main class="max-w-6xl mx-auto px-4 py-8 w-full flex-grow">
         
-        <div class="mb-8">
-            <h1 class="text-3xl md:text-4xl font-black text-[#111827] italic tracking-tight uppercase mb-2">TEKLİF YÖNETİMİ</h1>
-            <p class="text-gray-500 font-medium text-sm">Gelen ve giden takas tekliflerinizi buradan yönetin.</p>
+        <div class="mb-10 border-b border-gray-200 pb-6">
+            <h1 class="text-3xl md:text-4xl font-black text-[#0f172a] tracking-tight uppercase mb-2 flex items-center gap-3">
+                <svg class="w-8 h-8 text-[#facc15]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                TEKLİF YÖNETİMİ
+            </h1>
+            <p class="text-gray-500 font-medium text-sm">Gelen ve giden takas tekliflerinizi buradan profesyonelce yönetin.</p>
         </div>
 
-        <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden min-h-[500px] flex flex-col">
+        <div id="yukleniyor" class="py-20 flex flex-col items-center justify-center w-full">
+            <svg class="animate-spin h-10 w-10 text-[#0f172a] mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+            <span class="text-xs font-bold text-gray-500 uppercase tracking-widest">VERİLER ÇEKİLİYOR...</span>
+        </div>
+
+        <div id="panel-alani" class="hidden bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
             
-            <div class="flex border-b border-gray-100 px-4 md:px-8 pt-4">
-                <button onclick="sekmeDegistir('gelen')" id="tab-gelen" class="pb-4 px-4 text-xs tracking-widest uppercase transition-all tab-aktif">
-                    Bana Gelen Teklifler
+            <div class="flex border-b border-gray-100 bg-gray-50/50">
+                <button onclick="sekmeDegistir('gelen')" id="tab-gelen" class="flex-1 py-4 text-xs font-black uppercase tracking-widest text-[#0f172a] border-b-2 border-[#facc15] transition-colors focus:outline-none">
+                    Gelen Teklifler <span id="gelen-sayac" class="ml-2 bg-[#0f172a] text-[#facc15] px-2 py-0.5 rounded-full text-[9px]">0</span>
                 </button>
-                <button onclick="sekmeDegistir('giden')" id="tab-giden" class="pb-4 px-4 text-xs tracking-widest uppercase transition-all tab-pasif hover:text-gray-600">
-                    Benim Verdiklerim
+                <button onclick="sekmeDegistir('giden')" id="tab-giden" class="flex-1 py-4 text-xs font-black uppercase tracking-widest text-gray-400 border-b-2 border-transparent hover:text-gray-600 transition-colors focus:outline-none">
+                    Gönderdiğim Teklifler <span id="giden-sayac" class="ml-2 bg-gray-200 text-gray-600 px-2 py-0.5 rounded-full text-[9px]">0</span>
                 </button>
             </div>
 
-            <div id="dinamik-alan" class="p-4 md:p-8 bg-gray-50/50 flex-grow relative">
-                </div>
-            
+            <div class="p-6 md:p-8">
+                <div id="icerik-gelen" class="tab-content active flex flex-col gap-4"></div>
+
+                <div id="icerik-giden" class="tab-content flex flex-col gap-4"></div>
+            </div>
+
         </div>
+
     </main>
 
     <div id="ozel-modal" class="hidden fixed inset-0 z-[999] flex items-center justify-center px-4">
@@ -56,7 +67,7 @@
                 <div id="modal-ikon" class="mx-auto flex items-center justify-center h-16 w-16 rounded-full mb-6"></div>
                 <h3 id="modal-baslik" class="text-xl font-black text-gray-900 mb-2 uppercase tracking-wide">Bilgi</h3>
                 <p id="modal-mesaj" class="text-gray-600 font-medium text-sm mb-8 leading-relaxed"></p>
-                <button id="modal-btn-ana" onclick="modalKapat()" class="w-full bg-[#111827] text-white font-black px-4 py-4 rounded-xl hover:bg-black transition-colors uppercase text-[10px] tracking-widest shadow-md">Tamam</button>
+                <button id="modal-btn-ana" onclick="modalKapat()" class="w-full bg-[#0f172a] text-white font-black px-4 py-4 rounded-xl hover:bg-black transition-colors uppercase text-[10px] tracking-widest shadow-md">Tamam</button>
             </div>
         </div>
     </div>
@@ -67,216 +78,237 @@
         const _supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
         let benimEmailim = "";
-        let aktifSekme = 'gelen'; 
-        let tumIlanlar = [];
-        let tumTeklifler = [];
+        let tumIlanlarim = [];
 
         async function sitemiCalistir() {
-            ekraniDurumaGoreCiz('yukleniyor');
-            try {
-                const { data: { session } } = await _supabase.auth.getSession();
-                if (!session) { 
-                    window.location.href = 'giris.html'; 
-                    return; 
-                }
-                benimEmailim = session.user.email;
-                document.getElementById('user-name').innerText = benimEmailim.split('@')[0].toUpperCase();
-
-                await verileriCek();
-                ekraniCiz();
-            } catch (error) {
-                console.error("Başlatma hatası:", error);
-                ekraniDurumaGoreCiz('hata', error.message);
-            }
-        }
-
-        async function verileriCek() {
-            try {
-                const { data: ilanlar, error: ilanErr } = await _supabase.from('ilanlar').select('*');
-                if (ilanErr) throw ilanErr;
-                tumIlanlar = ilanlar || [];
-
-                const { data: teklifler, error: tekErr } = await _supabase.from('teklifler').select('*').order('created_at', { ascending: false });
-                if (tekErr) throw tekErr;
-                tumTeklifler = teklifler || [];
-                
-            } catch (err) {
-                console.error("Veri çekme hatası:", err);
-                throw err;
-            }
-        }
-
-        function sekmeDegistir(sekmeAd) {
-            aktifSekme = sekmeAd;
-            document.getElementById('tab-gelen').className = sekmeAd === 'gelen' ? "pb-4 px-4 text-xs tracking-widest uppercase transition-all tab-aktif" : "pb-4 px-4 text-xs tracking-widest uppercase transition-all tab-pasif hover:text-gray-600";
-            document.getElementById('tab-giden').className = sekmeAd === 'giden' ? "pb-4 px-4 text-xs tracking-widest uppercase transition-all tab-aktif" : "pb-4 px-4 text-xs tracking-widest uppercase transition-all tab-pasif hover:text-gray-600";
-            ekraniCiz();
-        }
-
-        function ekraniDurumaGoreCiz(durum, ekstraMesaj = "") {
-            const alan = document.getElementById('dinamik-alan');
+            const { data: { session } } = await _supabase.auth.getSession();
+            if (!session) { window.location.href = 'giris.html'; return; }
+            benimEmailim = session.user.email;
             
-            if (durum === 'yukleniyor') {
-                alan.innerHTML = `
-                    <div class="flex flex-col items-center justify-center py-20 w-full">
-                        <svg class="animate-spin h-8 w-8 text-[#111827] mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                        <span class="text-xs font-bold text-gray-500 uppercase tracking-widest">Veriler Çekiliyor...</span>
-                    </div>`;
-            } 
-            else if (durum === 'bos') {
-                const bosMetin = aktifSekme === 'gelen' ? "HENÜZ BİR TAKAS TEKLİFİ ALMADINIZ" : "HENÜZ KİMSEYE TEKLİF GÖNDERMEDİNİZ";
-                alan.innerHTML = `
-                    <div class="flex flex-col items-center justify-center py-20 text-center w-full">
-                        <div class="w-16 h-16 bg-white border border-gray-200 rounded-full flex items-center justify-center mb-4 shadow-sm">
-                            <svg class="w-8 h-8 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path></svg>
-                        </div>
-                        <p class="text-gray-400 font-bold uppercase text-[10px] tracking-widest">${bosMetin}</p>
-                    </div>`;
-            }
-            else if (durum === 'hata') {
-                alan.innerHTML = `
-                    <div class="flex flex-col items-center justify-center py-20 text-center w-full text-red-500">
-                        <p class="font-bold uppercase tracking-widest text-xs mb-2">BİR HATA OLUŞTU</p>
-                        <p class="text-sm text-gray-600">${ekstraMesaj}</p>
-                        <button onclick="sitemiCalistir()" class="mt-4 bg-gray-900 text-white px-6 py-2 rounded-lg text-xs uppercase tracking-widest font-bold">Tekrar Dene</button>
-                    </div>`;
+            await verileriCekVeCiz();
+        }
+
+        function sekmeDegistir(sekmeAdi) {
+            // Buton Tasarımlarını Değiştir
+            const btnGelen = document.getElementById('tab-gelen');
+            const btnGiden = document.getElementById('tab-giden');
+            const icerikGelen = document.getElementById('icerik-gelen');
+            const icerikGiden = document.getElementById('icerik-giden');
+
+            if(sekmeAdi === 'gelen') {
+                btnGelen.className = "flex-1 py-4 text-xs font-black uppercase tracking-widest text-[#0f172a] border-b-2 border-[#facc15] transition-colors focus:outline-none";
+                btnGiden.className = "flex-1 py-4 text-xs font-black uppercase tracking-widest text-gray-400 border-b-2 border-transparent hover:text-gray-600 transition-colors focus:outline-none";
+                icerikGelen.classList.add('active');
+                icerikGiden.classList.remove('active');
+            } else {
+                btnGiden.className = "flex-1 py-4 text-xs font-black uppercase tracking-widest text-[#0f172a] border-b-2 border-[#facc15] transition-colors focus:outline-none";
+                btnGelen.className = "flex-1 py-4 text-xs font-black uppercase tracking-widest text-gray-400 border-b-2 border-transparent hover:text-gray-600 transition-colors focus:outline-none";
+                icerikGiden.classList.add('active');
+                icerikGelen.classList.remove('active');
             }
         }
 
-        function ekraniCiz() {
+        async function verileriCekVeCiz() {
             try {
-                // Benim ilanlarımı bul
-                const benimIlanIdlerim = tumIlanlar.filter(i => i.sahip_email === benimEmailim).map(i => i.id);
+                // 1. BENİM İLANLARIMI BUL (Gelen teklifleri süzmek için)
+                const { data: myIlans } = await _supabase.from('ilanlar').select('id, baslik, resim_url').eq('sahip_email', benimEmailim);
+                tumIlanlarim = myIlans || [];
+                const benimIlanIdleri = tumIlanlarim.map(i => i.id);
 
-                let gosterilecekTeklifler = [];
-                if(aktifSekme === 'gelen') {
-                    gosterilecekTeklifler = tumTeklifler.filter(t => benimIlanIdlerim.includes(t.ilan_id));
+                // 2. GELEN TEKLİFLERİ ÇEK
+                let gelenTeklifler = [];
+                if(benimIlanIdleri.length > 0) {
+                    const { data } = await _supabase.from('teklifler').select('*').in('ilan_id', benimIlanIdleri).order('created_at', { ascending: false });
+                    gelenTeklifler = data || [];
+                }
+
+                // 3. GÖNDERDİĞİM TEKLİFLERİ ÇEK
+                const { data: gidenTekliflerData } = await _supabase.from('teklifler').select('*').eq('teklif_veren_email', benimEmailim).order('created_at', { ascending: false });
+                let gidenTeklifler = gidenTekliflerData || [];
+
+                // Gönderdiğim tekliflerin ilan detaylarını çek
+                let karsiIlanlar = [];
+                if(gidenTeklifler.length > 0) {
+                    const karsiIlanIdleri = gidenTeklifler.map(t => t.ilan_id);
+                    const { data } = await _supabase.from('ilanlar').select('id, baslik, resim_url, sahip_email').in('id', karsiIlanIdleri);
+                    karsiIlanlar = data || [];
+                }
+
+                // Ekrana Çizdir
+                document.getElementById('yukleniyor').classList.add('hidden');
+                document.getElementById('panel-alani').classList.remove('hidden');
+
+                document.getElementById('gelen-sayac').innerText = gelenTeklifler.length;
+                document.getElementById('giden-sayac').innerText = gidenTeklifler.length;
+
+                cizGelenTeklifler(gelenTeklifler);
+                cizGidenTeklifler(gidenTeklifler, karsiIlanlar);
+
+            } catch (err) {
+                console.error("Hata:", err);
+                document.getElementById('yukleniyor').innerHTML = `<span class="text-red-500 font-bold text-xs uppercase tracking-widest">VERİLER ÇEKİLEMEDİ!</span>`;
+            }
+        }
+
+        // --- GELEN TEKLİFLERİ ÇİZ ---
+        function cizGelenTeklifler(teklifler) {
+            const alan = document.getElementById('icerik-gelen');
+            if(teklifler.length === 0) {
+                alan.innerHTML = `<div class="py-12 text-center text-gray-400 font-bold text-xs uppercase tracking-widest border border-dashed border-gray-200 rounded-xl">Henüz ilanlarınıza gelen bir teklif bulunmuyor.</div>`;
+                return;
+            }
+
+            let html = "";
+            teklifler.forEach(teklif => {
+                const ilgiliIlan = tumIlanlarim.find(i => i.id === teklif.ilan_id);
+                if(!ilgiliIlan) return;
+
+                let ilkResim = ilgiliIlan.resim_url ? ilgiliIlan.resim_url.split(',')[0] : "";
+                const teklifEdenKisi = teklif.teklif_veren_email.split('@')[0].toUpperCase();
+
+                let butonlarHTML = "";
+                let durumEtiketi = "";
+
+                if(teklif.durum === 'Bekliyor') {
+                    durumEtiketi = `<span class="bg-yellow-100 text-yellow-700 text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-md shadow-sm">BEKLİYOR</span>`;
+                    butonlarHTML = `
+                        <button onclick="teklifCevapla('${teklif.id}', 'Kabul Edildi')" class="bg-[#0f172a] text-[#facc15] px-6 py-2 rounded-lg font-black text-[10px] uppercase tracking-widest hover:bg-black transition-colors shadow-md">KABUL ET</button>
+                        <button onclick="teklifCevapla('${teklif.id}', 'Reddedildi')" class="bg-white text-red-500 border border-red-200 px-6 py-2 rounded-lg font-black text-[10px] uppercase tracking-widest hover:bg-red-50 transition-colors">REDDET</button>
+                    `;
+                } else if(teklif.durum === 'Kabul Edildi') {
+                    durumEtiketi = `<span class="bg-green-100 text-green-700 text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-md shadow-sm">KABUL ETTİNİZ</span>`;
+                    butonlarHTML = `<button onclick="window.location.href='sohbetler.html'" class="bg-green-500 text-white px-6 py-2 rounded-lg font-black text-[10px] uppercase tracking-widest hover:bg-green-600 transition-colors shadow-md flex items-center gap-2"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path></svg> SOHBETE GİT</button>`;
                 } else {
-                    gosterilecekTeklifler = tumTeklifler.filter(t => t.teklif_veren_email === benimEmailim);
+                    durumEtiketi = `<span class="bg-red-100 text-red-700 text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-md shadow-sm">REDDEDİLDİ</span>`;
                 }
 
-                // Hatalı (ilanı silinmiş) teklifleri filtrele
-                let gecerliTeklifler = gosterilecekTeklifler.filter(t => tumIlanlar.some(i => i.id == t.ilan_id));
-
-                if(gecerliTeklifler.length === 0) {
-                    ekraniDurumaGoreCiz('bos');
-                    return;
-                }
-
-                let htmlCikti = `<div class="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">`;
-                
-                gecerliTeklifler.forEach(t => {
-                    const ilgiliIlan = tumIlanlar.find(i => i.id == t.ilan_id);
-                    if(!ilgiliIlan) return;
-
-                    let durumRenk = "bg-yellow-50 text-yellow-600 border-yellow-200";
-                    if(t.durum === 'Kabul Edildi') durumRenk = "bg-green-50 text-green-600 border-green-200";
-                    if(t.durum === 'Reddedildi' || t.durum === 'İptal Edildi') durumRenk = "bg-red-50 text-red-600 border-red-200";
-
-                    let ilkResim = "";
-                    if(ilgiliIlan.resim_url) ilkResim = ilgiliIlan.resim_url.split(',')[0];
-
-                    // Çökme Koruması: E-posta adresi null gelirse patlamaması için
-                    const teklifVerenGoster = t.teklif_veren_email ? t.teklif_veren_email.split('@')[0] : "Bilinmiyor";
-                    const sahipGoster = ilgiliIlan.sahip_email ? ilgiliIlan.sahip_email.split('@')[0] : "Bilinmiyor";
-
-                    htmlCikti += `
-                    <div class="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between">
-                        <div class="flex gap-4 items-start mb-4">
-                            <div class="w-16 h-16 rounded-xl bg-gray-50 flex-shrink-0 overflow-hidden border border-gray-100">
-                                ${ilkResim ? `<img src="${ilkResim}" class="w-full h-full object-cover">` : `<div class="w-full h-full flex items-center justify-center text-gray-300"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg></div>`}
-                            </div>
-                            <div class="flex-grow min-w-0 flex flex-col items-start">
-                                <span class="inline-block px-3 py-1 rounded-md text-[9px] font-black uppercase tracking-widest border mb-2 ${durumRenk}">${t.durum}</span>
-                                <h3 class="font-bold text-gray-900 text-sm truncate uppercase tracking-tight w-full"><a href="detay.html?id=${t.ilan_id}" class="hover:text-yellow-500 transition-colors">${ilgiliIlan.baslik || 'İsimsiz İlan'}</a></h3>
-                                <p class="text-[10px] text-gray-500 mt-1 truncate w-full">
-                                    ${aktifSekme === 'gelen' ? `Teklif Veren: <span class="font-bold text-gray-700">${teklifVerenGoster}</span>` : `İlan Sahibi: <span class="font-bold text-gray-700">${sahipGoster}</span>`}
-                                </p>
-                            </div>
+                html += `
+                <div class="flex flex-col md:flex-row items-center justify-between p-4 border border-gray-200 rounded-xl bg-white hover:border-gray-300 transition-colors gap-4">
+                    <div class="flex items-center gap-4 w-full md:w-auto">
+                        <div class="w-16 h-16 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0 border border-gray-200">
+                            ${ilkResim ? `<img src="${ilkResim}" class="w-full h-full object-cover">` : `<div class="w-full h-full flex items-center justify-center text-[8px] font-bold text-gray-400">YOK</div>`}
                         </div>
-
-                        <div class="flex gap-2 mt-auto border-t border-gray-50 pt-3">
-                            ${aktifSekme === 'gelen' && t.durum === 'Bekliyor' ? `
-                                <button onclick="durumGuncelle('${t.id}', 'Kabul Edildi')" class="flex-1 bg-green-500 text-white text-[10px] font-black uppercase tracking-widest py-3 rounded-xl hover:bg-green-600 transition-colors shadow-sm">Kabul Et</button>
-                                <button onclick="durumGuncelle('${t.id}', 'Reddedildi')" class="flex-1 bg-red-500 text-white text-[10px] font-black uppercase tracking-widest py-3 rounded-xl hover:bg-red-600 transition-colors shadow-sm">Reddet</button>
-                            ` : ''}
-
-                            ${aktifSekme === 'gelen' && t.durum === 'Kabul Edildi' ? `
-                                 <button onclick="sohbetBaslat('${t.teklif_veren_email}')" class="w-full bg-[#111827] text-white text-[10px] font-black uppercase tracking-widest py-3 rounded-xl hover:bg-black transition-colors flex items-center justify-center gap-2 shadow-sm">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg> Sohbete Başla
-                                 </button>
-                            ` : ''}
-                            
-                            ${aktifSekme === 'gelen' && t.durum === 'Reddedildi' ? `
-                                <span class="w-full text-center text-gray-400 text-[10px] font-bold uppercase py-3">Reddedildi</span>
-                            ` : ''}
-
-                            ${aktifSekme === 'giden' ? `
-                                ${t.durum === 'Bekliyor' ? `<button onclick="durumGuncelle('${t.id}', 'İptal Edildi')" class="w-full bg-gray-100 text-gray-500 hover:text-red-500 text-[10px] font-black uppercase tracking-widest py-3 rounded-xl hover:bg-red-50 transition-colors">Teklifi Geri Çek</button>` : ''}
-                                ${t.durum === 'Kabul Edildi' ? `<button onclick="sohbetBaslat('${ilgiliIlan.sahip_email}')" class="w-full bg-[#111827] text-white text-[10px] font-black uppercase tracking-widest py-3 rounded-xl hover:bg-black transition-colors flex items-center justify-center gap-2 shadow-sm">Sohbet Et</button>` : ''}
-                                ${t.durum === 'Reddedildi' || t.durum === 'İptal Edildi' ? `<span class="w-full text-center text-gray-400 text-[10px] font-bold uppercase py-3">İşlem Kapandı</span>` : ''}
-                            ` : ''}
+                        <div>
+                            <div class="flex items-center gap-2 mb-1">
+                                <span class="text-[9px] font-bold text-gray-400 uppercase tracking-widest border border-gray-200 px-2 py-0.5 rounded">İLANINIZ</span>
+                                ${durumEtiketi}
+                            </div>
+                            <h3 class="font-black text-sm text-gray-900 uppercase tracking-tight truncate max-w-[200px]">${ilgiliIlan.baslik}</h3>
+                            <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mt-0.5"><span class="text-[#0f172a]">${teklifEdenKisi}</span> size teklif yaptı</p>
                         </div>
-                    </div>`;
-                });
-
-                htmlCikti += `</div>`;
-                document.getElementById('dinamik-alan').innerHTML = htmlCikti;
-
-            } catch(e) {
-                console.error("Çizim hatası:", e);
-                ekraniDurumaGoreCiz('hata', e.message);
-            }
+                    </div>
+                    <div class="flex items-center gap-2 w-full md:w-auto justify-end">
+                        ${butonlarHTML}
+                    </div>
+                </div>`;
+            });
+            alan.innerHTML = html;
         }
 
-        async function durumGuncelle(teklifId, yeniDurum) {
-            try {
-                ekraniDurumaGoreCiz('yukleniyor');
+        // --- GÖNDERİLEN TEKLİFLERİ ÇİZ ---
+        function cizGidenTeklifler(teklifler, ilanlar) {
+            const alan = document.getElementById('icerik-giden');
+            if(teklifler.length === 0) {
+                alan.innerHTML = `<div class="py-12 text-center text-gray-400 font-bold text-xs uppercase tracking-widest border border-dashed border-gray-200 rounded-xl">Henüz kimseye takas teklifi göndermediniz.</div>`;
+                return;
+            }
 
+            let html = "";
+            teklifler.forEach(teklif => {
+                const ilgiliIlan = ilanlar.find(i => i.id === teklif.ilan_id);
+                if(!ilgiliIlan) return;
+
+                let ilkResim = ilgiliIlan.resim_url ? ilgiliIlan.resim_url.split(',')[0] : "";
+                const ilanSahibi = ilgiliIlan.sahip_email.split('@')[0].toUpperCase();
+
+                let durumEtiketi = "";
+                let mesajButonu = "";
+
+                if(teklif.durum === 'Bekliyor') {
+                    durumEtiketi = `<span class="bg-yellow-100 text-yellow-700 text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-md shadow-sm">CEVAP BEKLİYOR</span>`;
+                } else if(teklif.durum === 'Kabul Edildi') {
+                    durumEtiketi = `<span class="bg-green-100 text-green-700 text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-md shadow-sm">KABUL EDİLDİ</span>`;
+                    mesajButonu = `<button onclick="window.location.href='sohbetler.html'" class="bg-[#0f172a] text-[#facc15] px-6 py-2 rounded-lg font-black text-[10px] uppercase tracking-widest hover:bg-black transition-colors shadow-md flex items-center gap-2"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path></svg> SOHBETE BAŞLA</button>`;
+                } else {
+                    durumEtiketi = `<span class="bg-red-100 text-red-700 text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-md shadow-sm">REDDEDİLDİ</span>`;
+                }
+
+                html += `
+                <div class="flex flex-col md:flex-row items-center justify-between p-4 border border-gray-200 rounded-xl bg-gray-50/50 hover:bg-white transition-colors gap-4">
+                    <div class="flex items-center gap-4 w-full md:w-auto">
+                        <div class="w-16 h-16 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0 border border-gray-200">
+                            ${ilkResim ? `<img src="${ilkResim}" class="w-full h-full object-cover opacity-80">` : `<div class="w-full h-full flex items-center justify-center text-[8px] font-bold text-gray-400">YOK</div>`}
+                        </div>
+                        <div>
+                            <div class="flex items-center gap-2 mb-1">
+                                <span class="text-[9px] font-bold text-gray-400 uppercase tracking-widest border border-gray-200 px-2 py-0.5 rounded bg-white">KARŞI İLAN</span>
+                                ${durumEtiketi}
+                            </div>
+                            <h3 class="font-black text-sm text-gray-900 uppercase tracking-tight truncate max-w-[200px]">${ilgiliIlan.baslik}</h3>
+                            <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mt-0.5"><span class="text-[#0f172a]">${ilanSahibi}</span> adlı kullanıcıya iletildi</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2 w-full md:w-auto justify-end">
+                        ${mesajButonu}
+                    </div>
+                </div>`;
+            });
+            alan.innerHTML = html;
+        }
+
+        // --- TEKLİF CEVAPLAMA MOTORU (KABUL / RED) ---
+        async function teklifCevapla(teklifId, yeniDurum) {
+            document.getElementById('yukleniyor').classList.remove('hidden');
+            document.getElementById('panel-alani').classList.add('hidden');
+
+            try {
                 const { error } = await _supabase.from('teklifler').update({ durum: yeniDurum }).eq('id', teklifId);
                 if (error) throw error;
                 
-                const index = tumTeklifler.findIndex(t => t.id == teklifId);
-                if(index > -1) tumTeklifler[index].durum = yeniDurum;
-                
-                ekraniCiz(); 
+                // Başarılı olursa sayfayı yeniden çizdir
+                await verileriCekVeCiz();
 
                 if(yeniDurum === 'Kabul Edildi') {
-                    modalAc("Harika!", "Teklifi kabul ettiniz. Karşı tarafla sohbet başlatarak detayları konuşabilirsiniz.", "basarili");
+                    modalAc("TEBRİKLER!", "Teklifi kabul ettiniz. Artık karşı tarafla sohbet edebilir ve takas detaylarını konuşabilirsiniz.", "basarili");
                 }
 
-            } catch (err) {
-                ekraniCiz();
-                modalAc("Hata", "Durum güncellenemedi: " + err.message, "hata");
+            } catch(err) {
+                modalAc("HATA", "İşlem sırasında bir hata oluştu.", "hata");
+                await verileriCekVeCiz(); // Hata olsa da arayüzü geri getir
             }
         }
 
-        function sohbetBaslat(karsiEmail) {
-            window.location.href = `sohbetler.html`;
-        }
-
-        let modalOnayFonk = null;
-        function modalAc(baslik, mesaj, tip, onayFonk = null) {
-            document.getElementById('modal-baslik').innerText = baslik;
-            document.getElementById('modal-mesaj').innerText = mesaj;
-            modalOnayFonk = onayFonk;
-            
+        function modalAc(baslik, mesaj, tip) {
+            document.getElementById('modal-baslik').innerText = baslik; document.getElementById('modal-mesaj').innerText = mesaj;
             const ikon = document.getElementById('modal-ikon');
             if(tip === 'basarili') { ikon.className = "mx-auto h-16 w-16 rounded-full bg-green-50 flex items-center justify-center text-green-500 font-bold text-2xl border border-green-100"; ikon.innerHTML = "✓"; }
             else if(tip === 'hata') { ikon.className = "mx-auto h-16 w-16 rounded-full bg-red-50 flex items-center justify-center text-red-500 font-bold text-2xl border border-red-100"; ikon.innerHTML = "!"; }
             else { ikon.className = "mx-auto h-16 w-16 rounded-full bg-yellow-50 flex items-center justify-center text-yellow-500 font-bold text-2xl border border-yellow-100"; ikon.innerHTML = "?"; }
-            
             document.getElementById('ozel-modal').classList.remove('hidden');
             setTimeout(() => { document.getElementById('ozel-modal-kutu').classList.remove('scale-95', 'opacity-0'); }, 10);
         }
 
-        function modalKapat() {
-            document.getElementById('ozel-modal-kutu').classList.add('scale-95', 'opacity-0');
-            setTimeout(() => { document.getElementById('ozel-modal').classList.add('hidden'); }, 300);
-            if(modalOnayFonk && (document.getElementById('modal-ikon').innerText === '!' || document.getElementById('modal-ikon').innerText === '?')) modalOnayFonk = null;
+        function modalKapat() { document.getElementById('ozel-modal-kutu').classList.add('scale-95', 'opacity-0'); setTimeout(() => { document.getElementById('ozel-modal').classList.add('hidden'); }, 300); }
+        async function cikisYap() { await _supabase.auth.signOut(); window.location.href = 'index.html'; }
+
+        // Sitenin navbarının mobil vs çekilmesi için
+        async function initialize() {
+            await sitemiCalistir();
+            
+            // Navbar doldurucu (Kısaltılmış versiyonu, önceki sayfalardaki logic ile aynı)
+            const menuDiv = document.getElementById('auth-menu');
+            const mobilTopDiv = document.getElementById('auth-menu-mobil');
+            const mobileMenu = document.getElementById('mobile-menu');
+            const { data: { session } } = await _supabase.auth.getSession();
+            if (session) {
+                const gorunenIsim = session.user.user_metadata.ad_soyad ? session.user.user_metadata.ad_soyad.toUpperCase() : session.user.email.split('@')[0].toUpperCase();
+                menuDiv.innerHTML = `<a href="profil.html" class="text-[#facc15] font-black text-xs uppercase tracking-widest border-b-2 border-[#facc15] pb-0.5">${gorunenIsim}</a> <a href="favorilerim.html" class="text-gray-400 font-bold text-[11px] uppercase tracking-widest hover:text-white transition-colors">FAVORİLERİM</a> <a href="ilanlarim.html" class="text-gray-400 font-bold text-[11px] uppercase tracking-widest hover:text-white transition-colors">İLANLARIM</a> <a href="sohbetler.html" class="text-gray-400 font-bold text-[11px] uppercase tracking-widest hover:text-white transition-colors">MESAJLARIM</a> <a href="teklifler.html" class="text-white font-black text-[11px] uppercase tracking-widest transition-colors">TEKLİFLERİM</a> <span class="text-gray-700">|</span> <button onclick="cikisYap()" class="text-red-500 font-bold text-[11px] uppercase tracking-widest hover:text-red-400">ÇIKIŞ</button> <a href="ilan-ver.html" class="ml-2 bg-[#facc15] text-[#0f172a] px-6 py-2.5 rounded-lg font-black text-[11px] uppercase tracking-widest shadow-sm">İLAN VER</a>`;
+                mobilTopDiv.innerHTML = `<a href="ilan-ver.html" class="bg-[#facc15] text-[#0f172a] px-3 py-1.5 rounded-lg font-black text-[10px] uppercase tracking-widest shadow-sm">İLAN VER</a> <button onclick="document.getElementById('mobile-menu').classList.toggle('hidden')" class="text-white p-1 focus:outline-none"><svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg></button>`;
+                mobileMenu.innerHTML = `<a href="profil.html" class="block px-6 py-4 text-[#facc15] font-black text-[11px] uppercase tracking-widest border-b border-gray-800">${gorunenIsim}</a> <a href="favorilerim.html" class="block px-6 py-4 text-gray-300 font-bold text-[11px] uppercase tracking-widest border-b border-gray-800">FAVORİLERİM</a> <a href="teklifler.html" class="block px-6 py-4 text-[#facc15] font-black text-[11px] uppercase tracking-widest border-b border-gray-800">TEKLİFLERİM</a> <button onclick="cikisYap()" class="w-full text-left block px-6 py-4 text-red-500 font-bold text-[11px] uppercase tracking-widest border-b border-gray-800">ÇIKIŞ</button>`;
+            }
         }
 
-        sitemiCalistir();
+        initialize();
     </script>
 </body>
 </html>
