@@ -126,11 +126,66 @@
             benimEmailim = session.user.email;
             document.getElementById('user-name').innerText = benimEmailim.split('@')[0].toUpperCase();
             
-            // Sayfa yüklendiğinde kutunun ilk halini çiz
             renderPreviews();
         }
 
-        function resimOnizleme(input) {
+        // --- YENİ: GÖRSEL SIKIŞTIRMA MOTORU BAŞLANGIÇ ---
+        function resmiSikistir(file, maxWidth, maxHeight, quality) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = function(event) {
+                    const img = new Image();
+                    img.src = event.target.result;
+                    img.onload = function() {
+                        let width = img.width;
+                        let height = img.height;
+
+                        // Oranları koruyarak boyutları hesapla
+                        if (width > height) {
+                            if (width > maxWidth) {
+                                height = Math.round((height *= maxWidth / width));
+                                width = maxWidth;
+                            }
+                        } else {
+                            if (height > maxHeight) {
+                                width = Math.round((width *= maxHeight / height));
+                                height = maxHeight;
+                            }
+                        }
+
+                        // Görünmez bir tuval (canvas) oluştur
+                        const canvas = document.createElement('canvas');
+                        canvas.width = width;
+                        canvas.height = height;
+                        const ctx = canvas.getContext('2d');
+                        
+                        // Resmi tuvale çiz
+                        ctx.drawImage(img, 0, 0, width, height);
+
+                        // Tuvaldeki resmi JPEG formatında belirtilen kalitede sıkıştırarak al
+                        canvas.toBlob((blob) => {
+                            if (blob) {
+                                // Orijinal dosya adıyla yeni bir File objesi oluştur
+                                const compressedFile = new File([blob], file.name.replace(/\.[^/.]+$/, ".jpg"), {
+                                    type: 'image/jpeg',
+                                    lastModified: Date.now()
+                                });
+                                resolve(compressedFile);
+                            } else {
+                                reject(new Error('Sıkıştırma başarısız oldu.'));
+                            }
+                        }, 'image/jpeg', quality);
+                    };
+                    img.onerror = function(error) { reject(error); };
+                };
+                reader.onerror = function(error) { reject(error); };
+            });
+        }
+        // --- YENİ: GÖRSEL SIKIŞTIRMA MOTORU BİTİŞ ---
+
+        // Resim önizleme fonksiyonu güncellendi (Seçildiği anda sıkıştırıyor)
+        async function resimOnizleme(input) {
             if (input.files) {
                 const newFiles = Array.from(input.files);
                 if(secilenDosyalar.length + newFiles.length > 8) {
@@ -138,7 +193,21 @@
                     input.value = "";
                     return;
                 }
-                secilenDosyalar = [...secilenDosyalar, ...newFiles];
+                
+                // Seçilen dosyaları döngüye al ve her birini sıkıştır
+                for (let i = 0; i < newFiles.length; i++) {
+                    const originalFile = newFiles[i];
+                    try {
+                        // Maksimum genişlik 1024px, Maksimum Yükseklik 1024px, Kalite %80 (0.8)
+                        const compressedFile = await resmiSikistir(originalFile, 1024, 1024, 0.8);
+                        secilenDosyalar.push(compressedFile);
+                    } catch (error) {
+                        console.error("Resim sıkıştırma hatası:", error);
+                        // Eğer sıkıştırma hata verirse orijinalini yükle
+                        secilenDosyalar.push(originalFile); 
+                    }
+                }
+                
                 input.value = ""; 
                 renderPreviews();
             }
@@ -155,7 +224,6 @@
             
             grid.innerHTML = "";
             
-            // KUTU TASARIMINI DURUMA GÖRE GÜNCELLE
             if(secilenDosyalar.length === 0) {
                 grid.classList.add('hidden');
                 seciciIcerik.innerHTML = `
@@ -172,7 +240,6 @@
                 `;
             }
 
-            // SEÇİLEN RESİMLERİ ÇİZ
             secilenDosyalar.forEach((dosya, index) => {
                 const reader = new FileReader();
                 reader.onload = function(e) {
