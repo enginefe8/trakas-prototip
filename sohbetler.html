@@ -11,6 +11,9 @@
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
         .mesaj-giden { background-color: #0f172a; color: white; border-bottom-right-radius: 2px; }
         .mesaj-gelen { background-color: #f1f5f9; color: #0f172a; border-bottom-left-radius: 2px; }
+        /* YENİ: Yıldız Puanlama Animasyonları */
+        .star-btn { transition: all 0.2s; cursor: pointer; color: #d1d5db; }
+        .star-btn:hover, .star-btn.active { color: #facc15; transform: scale(1.1); }
     </style>
 </head>
 <body class="bg-gray-100 font-sans h-[100dvh] flex flex-col overflow-hidden w-full">
@@ -65,7 +68,6 @@
                     </div>
                 </div>
                 
-                <!-- YENİ: DİNAMİK MODERN ONAY ALANI -->
                 <div id="header-sag-kisim" class="flex-shrink-0 flex items-center">
                     <!-- Javascript ile dolacak -->
                 </div>
@@ -103,6 +105,46 @@
         </div>
     </div>
 
+    <!-- YENİ: DEĞERLENDİRME (GÜVEN SKORU) MODALI -->
+    <div id="degerlendirme-modal" class="hidden fixed inset-0 z-[1000] flex items-center justify-center px-4">
+        <div class="absolute inset-0 bg-[#0f172a]/90 backdrop-blur-sm transition-opacity" onclick="degerlendirmeModalKapat()"></div>
+        <div id="degerlendirme-modal-kutu" class="relative bg-white p-6 md:p-8 rounded-3xl shadow-2xl w-full max-w-md transform scale-95 opacity-0 transition-all duration-300 border border-gray-200">
+            
+            <div class="text-center mb-6">
+                <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-[#0f172a] text-[#facc15] mb-4 shadow-md">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path></svg>
+                </div>
+                <h3 class="text-2xl font-black text-[#0f172a] tracking-tight uppercase">TİCARETİ DEĞERLENDİR</h3>
+                <p class="text-gray-500 font-medium text-[11px] uppercase tracking-widest mt-2">Bu değerlendirme karşı tarafın Güven Skorunu etkileyecektir.</p>
+            </div>
+
+            <div class="space-y-6">
+                <!-- Yıldızlar -->
+                <div>
+                    <label class="block text-center text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Güven Puanınız</label>
+                    <div class="flex justify-center gap-2" id="yildiz-alani">
+                        <svg class="w-10 h-10 star-btn" onclick="puanVer(1)" onmouseover="yildizHover(1)" onmouseout="yildizCek()" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
+                        <svg class="w-10 h-10 star-btn" onclick="puanVer(2)" onmouseover="yildizHover(2)" onmouseout="yildizCek()" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
+                        <svg class="w-10 h-10 star-btn" onclick="puanVer(3)" onmouseover="yildizHover(3)" onmouseout="yildizCek()" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
+                        <svg class="w-10 h-10 star-btn" onclick="puanVer(4)" onmouseover="yildizHover(4)" onmouseout="yildizCek()" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
+                        <svg class="w-10 h-10 star-btn" onclick="puanVer(5)" onmouseover="yildizHover(5)" onmouseout="yildizCek()" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
+                    </div>
+                </div>
+
+                <!-- Yorum -->
+                <div>
+                    <label class="block text-center text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Deneyiminizi Kısaca Yazın</label>
+                    <textarea id="degerlendirme-yorum" rows="3" placeholder="Zamanında geldi mi? Ürün anlatıldığı gibi miydi?" class="w-full bg-gray-50 border border-gray-200 p-3 rounded-xl outline-none focus:border-[#facc15] text-sm font-medium transition-all resize-none text-gray-800 placeholder-gray-400"></textarea>
+                </div>
+
+                <button id="degerlendirme-gonder-btn" onclick="degerlendirmeGonder()" class="w-full bg-[#0f172a] text-[#facc15] font-black px-4 py-4 rounded-xl hover:bg-black transition-colors uppercase text-xs tracking-widest shadow-md flex items-center justify-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    DEĞERLENDİRMEYİ GÖNDER
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script>
         const supabaseUrl = 'https://ivnazhfahtjcdspclkis.supabase.co';
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml2bmF6aGZhaHRqY2RzcGNsa2lzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMyMTgxNzEsImV4cCI6MjA4ODc5NDE3MX0.Z2bKgccAQX8dgex99cQL-GLpTYU1vhb-0BqWiuIMhxU';
@@ -113,6 +155,9 @@
         let aktifTeklifId = null;
         let aktifKarsiEmail = "";
         let realtimeAbonelik = null; 
+
+        // YENİ: Değerlendirme Sistemi Değişkenleri
+        let secilenPuan = 0;
 
         async function sitemiCalistir() {
             const { data: { session } } = await _supabase.auth.getSession();
@@ -125,7 +170,7 @@
         async function sohbetListesiniCek() {
             try {
                 const { data: gidenler } = await _supabase.from('teklifler')
-                    .select('id, ilan_id, teklif_veren_email, durum, ilan_sahibi_onay, teklif_veren_onay')
+                    .select('id, ilan_id, teklif_veren_email, durum, ilan_sahibi_onay, teklif_veren_onay, ilan_sahibi_puan, teklif_veren_puan')
                     .eq('teklif_veren_email', benimEmailim)
                     .in('durum', ['Kabul Edildi', 'Tamamlandı']);
                 
@@ -135,7 +180,7 @@
                 let gelenler = [];
                 if(benimIlanIdleri.length > 0) {
                     const { data } = await _supabase.from('teklifler')
-                        .select('id, ilan_id, teklif_veren_email, durum, ilan_sahibi_onay, teklif_veren_onay')
+                        .select('id, ilan_id, teklif_veren_email, durum, ilan_sahibi_onay, teklif_veren_onay, ilan_sahibi_puan, teklif_veren_puan')
                         .in('ilan_id', benimIlanIdleri)
                         .in('durum', ['Kabul Edildi', 'Tamamlandı']);
                     gelenler = data || [];
@@ -162,7 +207,9 @@
                         ilan_detay: ilan,
                         ilan_sahibi_onay: teklif.ilan_sahibi_onay,
                         teklif_veren_onay: teklif.teklif_veren_onay,
-                        durum: teklif.durum
+                        durum: teklif.durum,
+                        // Puan verilerini de alıyoruz
+                        ben_puan_verdim_mi: isBenimIlanim ? (teklif.teklif_veren_puan != null) : (teklif.ilan_sahibi_puan != null) 
                     };
                 });
 
@@ -179,7 +226,6 @@
                 const ilkResim = sohbet.ilan_detay.resim_url ? sohbet.ilan_detay.resim_url.split(',')[0] : "";
                 const karsiIsim = sohbet.karsi_email.split('@')[0].toUpperCase();
                 
-                // DÜZELTME: Jilet gibi, Trakas kurumsallığına uygun SVG'li modern rozet
                 const durumRozeti = sohbet.durum === 'Tamamlandı' ? `<span class="inline-flex items-center gap-1 bg-[#0f172a] text-[#34d399] px-2 py-0.5 rounded-md text-[8px] md:text-[9px] font-black uppercase tracking-widest ml-2 align-middle shadow-sm"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>TAKASLANDI</span>` : '';
                 
                 html += `
@@ -235,11 +281,31 @@
             const sagKisim = document.getElementById('header-sag-kisim');
 
             if (sohbet.durum === 'Tamamlandı') {
-                sagKisim.innerHTML = `
-                    <div class="bg-emerald-50 text-emerald-600 px-3 py-1.5 rounded-lg font-black text-[10px] md:text-xs uppercase tracking-widest flex items-center gap-1.5 border border-emerald-200 shadow-sm">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
-                        <span>TAKASLANDI</span>
-                    </div>`;
+                // EĞER BEN PUAN VERDİYSEM ARTIK "DEĞERLENDİRİLDİ" YAZSIN
+                if (sohbet.ben_puan_verdim_mi) {
+                    sagKisim.innerHTML = `
+                        <div class="flex items-center gap-2">
+                            <span class="text-[9px] font-black text-gray-400 uppercase tracking-widest hidden md:inline">DEĞERLENDİRİLDİ</span>
+                            <div class="bg-emerald-50 text-emerald-600 px-3 py-1.5 rounded-lg font-black text-[10px] md:text-xs uppercase tracking-widest flex items-center gap-1.5 border border-emerald-200 shadow-sm">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
+                                <span>TAKASLANDI</span>
+                            </div>
+                        </div>`;
+                } else {
+                    // EĞER PUAN VERMEDİYSEM "DEĞERLENDİR" BUTONU ÇIKSIN
+                    sagKisim.innerHTML = `
+                        <div class="flex items-center gap-2">
+                            <button onclick="degerlendirmeModalAc()" class="bg-[#facc15] text-[#0f172a] px-3 py-1.5 rounded-lg font-black text-[9px] md:text-[10px] uppercase tracking-widest hover:bg-yellow-500 transition-colors shadow-md flex items-center gap-1 animate-pulse">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path></svg>
+                                <span>DEĞERLENDİR</span>
+                            </button>
+                            <div class="bg-emerald-50 text-emerald-600 px-3 py-1.5 rounded-lg font-black text-[10px] md:text-xs uppercase tracking-widest flex items-center gap-1.5 border border-emerald-200 shadow-sm hidden md:flex">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
+                                <span>TAKASLANDI</span>
+                            </div>
+                        </div>`;
+                }
+
             } else if (benimOnayim) {
                 sagKisim.innerHTML = `
                     <div class="bg-amber-50 text-amber-600 px-3 py-1.5 rounded-lg font-bold text-[9px] md:text-[10px] uppercase tracking-widest text-right border border-amber-200 leading-tight">
@@ -293,13 +359,89 @@
                 await _supabase.from('ilanlar').update({ durum: 'Takaslandı' }).eq('id', ilanId);
                 await _supabase.from('teklifler').update({ durum: 'Tamamlandı' }).eq('id', teklifId);
                 
-                modalAc("TEBRİKLER! 🎉", "Her iki taraf da onay verdi! Takas başarıyla tamamlandı ve ilan vitrinden kaldırıldı. Artık bu ekrandan konum ve buluşma detaylarını konuşmaya devam edebilirsiniz.", "basarili", false, () => {
-                    window.location.reload();
+                // Tamamlandığında sayfayı yenilemek yerine doğrudan değerlendirme açalım ki ticaretin sıcağı sıcağına puanlasın
+                modalAc("TEBRİKLER! 🎉", "Her iki taraf da onay verdi ve takas başarıyla tamamlandı! Lütfen şimdi karşı tarafın profilinde görünecek Güven Skorunu belirlemek için ticareti değerlendirin.", "basarili", false, () => {
+                    await sohbetListesiniCek(); // Arka planı güncelle
+                    degerlendirmeModalAc(); // Puanlama ekranını aç
                 });
             } catch (err) {
                 console.error("Kapatma işlemi başarısız:", err);
             }
         }
+
+        // YENİ: DEĞERLENDİRME (GÜVEN SKORU) SİSTEMİ FONKSİYONLARI
+        function degerlendirmeModalAc() {
+            secilenPuan = 0;
+            yildizCek(); // Yıldızları sıfırla
+            document.getElementById('degerlendirme-yorum').value = ""; // Yorumu sıfırla
+            
+            document.getElementById('degerlendirme-modal').classList.remove('hidden');
+            setTimeout(() => { document.getElementById('degerlendirme-modal-kutu').classList.remove('scale-95', 'opacity-0'); }, 10);
+        }
+
+        function degerlendirmeModalKapat() {
+            document.getElementById('degerlendirme-modal-kutu').classList.add('scale-95', 'opacity-0');
+            setTimeout(() => { document.getElementById('degerlendirme-modal').classList.add('hidden'); }, 300);
+        }
+
+        function yildizHover(puan) {
+            const yildizlar = document.querySelectorAll('.star-btn');
+            yildizlar.forEach((y, i) => {
+                if (i < puan) y.style.color = '#facc15';
+                else if (i >= secilenPuan) y.style.color = '#d1d5db';
+            });
+        }
+
+        function yildizCek() {
+            const yildizlar = document.querySelectorAll('.star-btn');
+            yildizlar.forEach((y, i) => {
+                if (i < secilenPuan) y.style.color = '#facc15';
+                else y.style.color = '#d1d5db';
+            });
+        }
+
+        function puanVer(puan) {
+            secilenPuan = puan;
+            yildizCek();
+        }
+
+        async function degerlendirmeGonder() {
+            if (secilenPuan === 0) {
+                alert("Lütfen bir yıldız puanı seçin.");
+                return;
+            }
+
+            const yorum = document.getElementById('degerlendirme-yorum').value.trim();
+            const btn = document.getElementById('degerlendirme-gonder-btn');
+            
+            btn.disabled = true;
+            btn.innerHTML = "KAYDEDİLİYOR...";
+
+            const sohbet = tumSohbetler.find(s => s.teklif_id == aktifTeklifId);
+            const isBenimIlanim = sohbet.ilan_detay.sahip_email === benimEmailim;
+            
+            // Eğer ilan benimse, ben teklif verene puan veriyorumdur. Tam tersi de geçerli.
+            const guncellemeData = isBenimIlanim 
+                ? { teklif_veren_puan: secilenPuan, teklif_veren_yorum: yorum } 
+                : { ilan_sahibi_puan: secilenPuan, ilan_sahibi_yorum: yorum };
+
+            try {
+                const { error } = await _supabase.from('teklifler').update(guncellemeData).eq('id', aktifTeklifId);
+                if (error) throw error;
+
+                degerlendirmeModalKapat();
+                modalAc("BAŞARILI", "Değerlendirmeniz kaydedildi! Karşı tarafın Güven Skoruna katkıda bulundunuz.", "basarili");
+                await sohbetListesiniCek(); // Arayüzü güncelle (Değerlendirildi yazısı gelsin)
+
+            } catch (err) {
+                console.error(err);
+                modalAc("HATA", "Değerlendirme kaydedilirken bir sorun oluştu.", "hata");
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>DEĞERLENDİRMEYİ GÖNDER`;
+            }
+        }
+        // DEĞERLENDİRME BİTİŞ
 
         function solaDon() {
             document.querySelector('.md\\:w-1\\/3').classList.remove('hidden');
