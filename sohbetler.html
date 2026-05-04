@@ -150,7 +150,6 @@
         let realtimeAbonelik = null; 
         let secilenPuan = 0;
 
-        // BÜTÜN HATALARI YAKALAYAN ZIRHLI BAŞLANGIÇ
         async function sitemiCalistir() {
             try {
                 const { data: { session }, error } = await _supabase.auth.getSession();
@@ -206,7 +205,6 @@
                 const { data: tumIlanDetaylari, error: detayErr } = await _supabase.from('ilanlar').select('id, baslik, resim_url, sahip_email').in('id', tumIlanIdleri);
                 if(detayErr) throw detayErr;
 
-                // ZIRH: Silinmiş ilanları filtrele ki sistem çökmesin
                 tumSohbetler = birlesikTeklifler.map(teklif => {
                     const ilan = tumIlanDetaylari?.find(i => i.id === teklif.ilan_id);
                     if(!ilan) return null; 
@@ -238,7 +236,6 @@
                     <div class="p-4 m-2 bg-red-50 border border-red-200 rounded-xl text-center shadow-sm">
                         <div class="text-red-600 font-black text-xs uppercase tracking-widest mb-2 border-b border-red-200 pb-2">Veritabanı Hatası!</div>
                         <div class="text-[10px] font-bold text-gray-700 break-words">${e.message}</div>
-                        <div class="text-[9px] font-bold text-gray-500 mt-3 pt-2">Lütfen Supabase SQL Editor'de o son verdiğim SQL komutunu başarıyla çalıştırdığından emin ol usta!</div>
                     </div>`;
             }
         }
@@ -379,7 +376,8 @@
                 await _supabase.from('ilanlar').update({ durum: 'Takaslandı' }).eq('id', ilanId);
                 await _supabase.from('teklifler').update({ durum: 'Tamamlandı' }).eq('id', teklifId);
                 
-                modalAc("TEBRİKLER! 🎉", "Her iki taraf da onay verdi ve takas başarıyla tamamlandı! Lütfen şimdi karşı tarafın profilinde görünecek Güven Skorunu belirlemek için ticareti değerlendirin.", "basarili", false, () => {
+                // DÜZELTME (HATA BURADAYDI): Fonksiyonun başına async eklendi.
+                modalAc("TEBRİKLER! 🎉", "Her iki taraf da onay verdi ve takas başarıyla tamamlandı! Lütfen şimdi karşı tarafın profilinde görünecek Güven Skorunu belirlemek için ticareti değerlendirin.", "basarili", false, async () => {
                     await sohbetListesiniCek(); 
                     degerlendirmeModalAc(); 
                 });
@@ -546,7 +544,6 @@
             const mobilTopDiv = document.getElementById('auth-menu-mobil');
             const mobileMenu = document.getElementById('mobile-menu');
             
-            // ZIRH: Kullanıcı adını çekerken metadata null ise çökmemesi için koruma
             let gorunenIsim = "KULLANICI";
             if(session && session.user) {
                 const meta = session.user.user_metadata || {};
