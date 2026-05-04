@@ -11,7 +11,6 @@
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
         .mesaj-giden { background-color: #0f172a; color: white; border-bottom-right-radius: 2px; }
         .mesaj-gelen { background-color: #f1f5f9; color: #0f172a; border-bottom-left-radius: 2px; }
-        /* YENİ: Yıldız Puanlama Animasyonları */
         .star-btn { transition: all 0.2s; cursor: pointer; color: #d1d5db; }
         .star-btn:hover, .star-btn.active { color: #facc15; transform: scale(1.1); }
     </style>
@@ -68,15 +67,11 @@
                     </div>
                 </div>
                 
-                <div id="header-sag-kisim" class="flex-shrink-0 flex items-center">
-                    <!-- Javascript ile dolacak -->
-                </div>
+                <div id="header-sag-kisim" class="flex-shrink-0 flex items-center"></div>
 
             </div>
 
-            <div id="mesajlar-kutusu" class="flex-grow p-4 overflow-y-auto bg-slate-50 flex flex-col gap-3 min-h-0">
-                <!-- Mesajlar Buraya Gelecek -->
-            </div>
+            <div id="mesajlar-kutusu" class="flex-grow p-4 overflow-y-auto bg-slate-50 flex flex-col gap-3 min-h-0"></div>
 
             <form id="mesaj-gonderme-formu" onsubmit="mesajGonder(event)" class="hidden p-3 md:p-4 border-t border-gray-200 bg-white flex gap-2 md:gap-3 flex-shrink-0 pb-6 md:pb-4 z-20">
                 <input type="text" id="mesaj-input" required autocomplete="off" placeholder="Mesajınızı yazın..." class="flex-grow bg-gray-100 border-none px-4 py-3 rounded-xl outline-none focus:ring-2 focus:ring-[#facc15] text-sm font-medium text-gray-800 transition-all">
@@ -105,7 +100,7 @@
         </div>
     </div>
 
-    <!-- YENİ: DEĞERLENDİRME (GÜVEN SKORU) MODALI -->
+    <!-- DEĞERLENDİRME (GÜVEN SKORU) MODALI -->
     <div id="degerlendirme-modal" class="hidden fixed inset-0 z-[1000] flex items-center justify-center px-4">
         <div class="absolute inset-0 bg-[#0f172a]/90 backdrop-blur-sm transition-opacity" onclick="degerlendirmeModalKapat()"></div>
         <div id="degerlendirme-modal-kutu" class="relative bg-white p-6 md:p-8 rounded-3xl shadow-2xl w-full max-w-md transform scale-95 opacity-0 transition-all duration-300 border border-gray-200">
@@ -119,7 +114,6 @@
             </div>
 
             <div class="space-y-6">
-                <!-- Yıldızlar -->
                 <div>
                     <label class="block text-center text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Güven Puanınız</label>
                     <div class="flex justify-center gap-2" id="yildiz-alani">
@@ -131,7 +125,6 @@
                     </div>
                 </div>
 
-                <!-- Yorum -->
                 <div>
                     <label class="block text-center text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Deneyiminizi Kısaca Yazın</label>
                     <textarea id="degerlendirme-yorum" rows="3" placeholder="Zamanında geldi mi? Ürün anlatıldığı gibi miydi?" class="w-full bg-gray-50 border border-gray-200 p-3 rounded-xl outline-none focus:border-[#facc15] text-sm font-medium transition-all resize-none text-gray-800 placeholder-gray-400"></textarea>
@@ -155,8 +148,6 @@
         let aktifTeklifId = null;
         let aktifKarsiEmail = "";
         let realtimeAbonelik = null; 
-
-        // YENİ: Değerlendirme Sistemi Değişkenleri
         let secilenPuan = 0;
 
         async function sitemiCalistir() {
@@ -169,20 +160,23 @@
 
         async function sohbetListesiniCek() {
             try {
-                const { data: gidenler } = await _supabase.from('teklifler')
+                const { data: gidenler, error: gidenErr } = await _supabase.from('teklifler')
                     .select('id, ilan_id, teklif_veren_email, durum, ilan_sahibi_onay, teklif_veren_onay, ilan_sahibi_puan, teklif_veren_puan')
                     .eq('teklif_veren_email', benimEmailim)
                     .in('durum', ['Kabul Edildi', 'Tamamlandı']);
+                
+                if(gidenErr) throw gidenErr;
                 
                 const { data: ilanlarim } = await _supabase.from('ilanlar').select('id, baslik, resim_url, sahip_email').eq('sahip_email', benimEmailim);
                 const benimIlanIdleri = ilanlarim ? ilanlarim.map(i => i.id) : [];
                 
                 let gelenler = [];
                 if(benimIlanIdleri.length > 0) {
-                    const { data } = await _supabase.from('teklifler')
+                    const { data, error: gelenErr } = await _supabase.from('teklifler')
                         .select('id, ilan_id, teklif_veren_email, durum, ilan_sahibi_onay, teklif_veren_onay, ilan_sahibi_puan, teklif_veren_puan')
                         .in('ilan_id', benimIlanIdleri)
                         .in('durum', ['Kabul Edildi', 'Tamamlandı']);
+                    if(gelenErr) throw gelenErr;
                     gelenler = data || [];
                 }
 
@@ -196,8 +190,11 @@
                 const tumIlanIdleri = birlesikTeklifler.map(t => t.ilan_id);
                 const { data: tumIlanDetaylari } = await _supabase.from('ilanlar').select('id, baslik, resim_url, sahip_email').in('id', tumIlanIdleri);
 
+                // ZIRH: Silinmiş ilanları filtrele ki sistem çökmesin
                 tumSohbetler = birlesikTeklifler.map(teklif => {
-                    const ilan = tumIlanDetaylari.find(i => i.id === teklif.ilan_id);
+                    const ilan = tumIlanDetaylari?.find(i => i.id === teklif.ilan_id);
+                    if(!ilan) return null; // İlan veritabanından silinmişse patlama
+                    
                     const isBenimIlanim = ilan.sahip_email === benimEmailim;
                     const karsiEmail = isBenimIlanim ? teklif.teklif_veren_email : ilan.sahip_email;
 
@@ -208,15 +205,26 @@
                         ilan_sahibi_onay: teklif.ilan_sahibi_onay,
                         teklif_veren_onay: teklif.teklif_veren_onay,
                         durum: teklif.durum,
-                        // Puan verilerini de alıyoruz
                         ben_puan_verdim_mi: isBenimIlanim ? (teklif.teklif_veren_puan != null) : (teklif.ilan_sahibi_puan != null) 
                     };
-                });
+                }).filter(s => s !== null);
+
+                if(tumSohbetler.length === 0) {
+                     document.getElementById('sohbet-listesi').innerHTML = `<div class="p-6 text-center text-gray-400 font-bold text-[10px] uppercase tracking-widest border-2 border-dashed border-gray-100 rounded-xl m-2">Tüm sohbetlere ait ilanlar silinmiş.</div>`;
+                     return;
+                }
 
                 listeyiCiz();
 
             } catch(e) {
-                console.error(e);
+                console.error("Sohbet çekme hatası:", e);
+                // Eğer hata varsa sonsuz dönen ikon yerine KIPKIRMIZI hata mesajı basar
+                document.getElementById('sohbet-listesi').innerHTML = `
+                    <div class="p-4 m-2 bg-red-50 border border-red-200 rounded-xl text-center">
+                        <div class="text-red-500 font-black text-xs uppercase mb-2">VERİTABANI HATASI!</div>
+                        <div class="text-[10px] font-bold text-gray-600">${e.message}</div>
+                        <div class="text-[9px] font-bold text-gray-400 mt-3 border-t border-red-100 pt-2">Büyük ihtimalle Supabase SQL Editor'de o son verdiğim SQL komutunu çalıştırmadın usta. Lütfen Supabase'e girip SQL komutunu "RUN"la!</div>
+                    </div>`;
             }
         }
 
@@ -281,7 +289,6 @@
             const sagKisim = document.getElementById('header-sag-kisim');
 
             if (sohbet.durum === 'Tamamlandı') {
-                // EĞER BEN PUAN VERDİYSEM ARTIK "DEĞERLENDİRİLDİ" YAZSIN
                 if (sohbet.ben_puan_verdim_mi) {
                     sagKisim.innerHTML = `
                         <div class="flex items-center gap-2">
@@ -292,7 +299,6 @@
                             </div>
                         </div>`;
                 } else {
-                    // EĞER PUAN VERMEDİYSEM "DEĞERLENDİR" BUTONU ÇIKSIN
                     sagKisim.innerHTML = `
                         <div class="flex items-center gap-2">
                             <button onclick="degerlendirmeModalAc()" class="bg-[#facc15] text-[#0f172a] px-3 py-1.5 rounded-lg font-black text-[9px] md:text-[10px] uppercase tracking-widest hover:bg-yellow-500 transition-colors shadow-md flex items-center gap-1 animate-pulse">
@@ -305,7 +311,6 @@
                             </div>
                         </div>`;
                 }
-
             } else if (benimOnayim) {
                 sagKisim.innerHTML = `
                     <div class="bg-amber-50 text-amber-600 px-3 py-1.5 rounded-lg font-bold text-[9px] md:text-[10px] uppercase tracking-widest text-right border border-amber-200 leading-tight">
@@ -359,21 +364,19 @@
                 await _supabase.from('ilanlar').update({ durum: 'Takaslandı' }).eq('id', ilanId);
                 await _supabase.from('teklifler').update({ durum: 'Tamamlandı' }).eq('id', teklifId);
                 
-                // Tamamlandığında sayfayı yenilemek yerine doğrudan değerlendirme açalım ki ticaretin sıcağı sıcağına puanlasın
                 modalAc("TEBRİKLER! 🎉", "Her iki taraf da onay verdi ve takas başarıyla tamamlandı! Lütfen şimdi karşı tarafın profilinde görünecek Güven Skorunu belirlemek için ticareti değerlendirin.", "basarili", false, () => {
-                    await sohbetListesiniCek(); // Arka planı güncelle
-                    degerlendirmeModalAc(); // Puanlama ekranını aç
+                    await sohbetListesiniCek(); 
+                    degerlendirmeModalAc(); 
                 });
             } catch (err) {
                 console.error("Kapatma işlemi başarısız:", err);
             }
         }
 
-        // YENİ: DEĞERLENDİRME (GÜVEN SKORU) SİSTEMİ FONKSİYONLARI
         function degerlendirmeModalAc() {
             secilenPuan = 0;
-            yildizCek(); // Yıldızları sıfırla
-            document.getElementById('degerlendirme-yorum').value = ""; // Yorumu sıfırla
+            yildizCek(); 
+            document.getElementById('degerlendirme-yorum').value = ""; 
             
             document.getElementById('degerlendirme-modal').classList.remove('hidden');
             setTimeout(() => { document.getElementById('degerlendirme-modal-kutu').classList.remove('scale-95', 'opacity-0'); }, 10);
@@ -406,21 +409,16 @@
         }
 
         async function degerlendirmeGonder() {
-            if (secilenPuan === 0) {
-                alert("Lütfen bir yıldız puanı seçin.");
-                return;
-            }
+            if (secilenPuan === 0) { alert("Lütfen bir yıldız puanı seçin."); return; }
 
             const yorum = document.getElementById('degerlendirme-yorum').value.trim();
             const btn = document.getElementById('degerlendirme-gonder-btn');
             
-            btn.disabled = true;
-            btn.innerHTML = "KAYDEDİLİYOR...";
+            btn.disabled = true; btn.innerHTML = "KAYDEDİLİYOR...";
 
             const sohbet = tumSohbetler.find(s => s.teklif_id == aktifTeklifId);
             const isBenimIlanim = sohbet.ilan_detay.sahip_email === benimEmailim;
             
-            // Eğer ilan benimse, ben teklif verene puan veriyorumdur. Tam tersi de geçerli.
             const guncellemeData = isBenimIlanim 
                 ? { teklif_veren_puan: secilenPuan, teklif_veren_yorum: yorum } 
                 : { ilan_sahibi_puan: secilenPuan, ilan_sahibi_yorum: yorum };
@@ -431,7 +429,7 @@
 
                 degerlendirmeModalKapat();
                 modalAc("BAŞARILI", "Değerlendirmeniz kaydedildi! Karşı tarafın Güven Skoruna katkıda bulundunuz.", "basarili");
-                await sohbetListesiniCek(); // Arayüzü güncelle (Değerlendirildi yazısı gelsin)
+                await sohbetListesiniCek(); 
 
             } catch (err) {
                 console.error(err);
@@ -441,7 +439,6 @@
                 btn.innerHTML = `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>DEĞERLENDİRMEYİ GÖNDER`;
             }
         }
-        // DEĞERLENDİRME BİTİŞ
 
         function solaDon() {
             document.querySelector('.md\\:w-1\\/3').classList.remove('hidden');
@@ -527,9 +524,7 @@
             }
         }
 
-        function toggleMobileMenu() {
-            document.getElementById('mobile-menu').classList.toggle('hidden');
-        }
+        function toggleMobileMenu() { document.getElementById('mobile-menu').classList.toggle('hidden'); }
 
         function menuOlusturGuncel(session) {
             const menuDiv = document.getElementById('auth-menu');
