@@ -13,7 +13,7 @@
         .mesaj-gelen { background-color: #f1f5f9; color: #0f172a; border-bottom-left-radius: 2px; }
     </style>
 </head>
-<body class="bg-gray-100 font-sans fixed inset-0 flex flex-col overflow-hidden w-full h-full">
+<body class="bg-gray-100 font-sans h-[100dvh] flex flex-col overflow-hidden w-full">
 
     <nav class="bg-[#0f172a] px-6 py-4 flex justify-between items-center w-full shadow-md z-50 flex-shrink-0 relative">
         <a href="index.html" class="text-3xl font-black text-white italic tracking-tighter uppercase">TRAKAS</a>
@@ -65,16 +65,9 @@
                     </div>
                 </div>
                 
+                <!-- YENİ: DİNAMİK MODERN ONAY ALANI -->
                 <div id="header-sag-kisim" class="flex-shrink-0 flex items-center">
-                    <button id="header-tamamla-btn" onclick="onayVer()" class="hidden bg-green-500 text-white px-2.5 py-1.5 md:px-4 md:py-2 rounded-lg font-black text-[9px] md:text-[10px] uppercase tracking-widest hover:bg-green-600 transition-colors shadow-md items-center gap-1 md:gap-2">
-                        <svg class="w-3.5 h-3.5 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
-                        <span class="hidden sm:inline">TAKASI ONAYLA</span>
-                        <span class="sm:hidden">ONAYLA</span>
-                    </button>
-                    
-                    <div id="header-bekleniyor-text" class="hidden text-[8px] md:text-[9px] font-bold text-gray-400 uppercase tracking-widest text-right leading-tight">
-                        KARŞI TARAFIN<br><span class="text-yellow-600">ONAYI BEKLENİYOR</span>
-                    </div>
+                    <!-- Javascript ile dolacak -->
                 </div>
 
             </div>
@@ -83,7 +76,7 @@
                 <!-- Mesajlar Buraya Gelecek -->
             </div>
 
-            <form id="mesaj-gonderme-formu" onsubmit="mesajGonder(event)" class="hidden p-3 md:p-4 border-t border-gray-200 bg-white flex gap-2 md:gap-3 flex-shrink-0 z-20">
+            <form id="mesaj-gonderme-formu" onsubmit="mesajGonder(event)" class="hidden p-3 md:p-4 border-t border-gray-200 bg-white flex gap-2 md:gap-3 flex-shrink-0 pb-6 md:pb-4 z-20">
                 <input type="text" id="mesaj-input" required autocomplete="off" placeholder="Mesajınızı yazın..." class="flex-grow bg-gray-100 border-none px-4 py-3 rounded-xl outline-none focus:ring-2 focus:ring-[#facc15] text-sm font-medium text-gray-800 transition-all">
                 <button type="submit" id="gonder-btn" class="bg-[#0f172a] text-[#facc15] px-4 md:px-6 py-3 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-black transition-colors shadow-md flex-shrink-0">
                     <span class="hidden md:inline">GÖNDER</span>
@@ -94,6 +87,7 @@
         </div>
     </main>
 
+    <!-- KURUMSAL MODAL -->
     <div id="ozel-modal" class="hidden fixed inset-0 z-[999] flex items-center justify-center px-4">
         <div class="absolute inset-0 bg-gray-900/80 backdrop-blur-sm transition-opacity" onclick="modalKapat()"></div>
         <div id="ozel-modal-kutu" class="relative bg-white p-8 rounded-3xl shadow-2xl w-full max-w-sm transform scale-95 opacity-0 transition-all duration-300">
@@ -130,22 +124,28 @@
 
         async function sohbetListesiniCek() {
             try {
-                // DÜZELTME: Veritabanından ilan_sahibi_onay ve teklif_veren_onay sütunlarını da çekiyoruz
-                const { data: gidenler } = await _supabase.from('teklifler').select('id, ilan_id, teklif_veren_email, durum, ilan_sahibi_onay, teklif_veren_onay').eq('teklif_veren_email', benimEmailim).eq('durum', 'Kabul Edildi');
+                // DÜZELTME: Artık hem 'Kabul Edildi' hem de 'Tamamlandı' (Bitmiş) sohbetleri çekiyoruz ki sohbet silinmesin!
+                const { data: gidenler } = await _supabase.from('teklifler')
+                    .select('id, ilan_id, teklif_veren_email, durum, ilan_sahibi_onay, teklif_veren_onay')
+                    .eq('teklif_veren_email', benimEmailim)
+                    .in('durum', ['Kabul Edildi', 'Tamamlandı']);
                 
                 const { data: ilanlarim } = await _supabase.from('ilanlar').select('id, baslik, resim_url, sahip_email').eq('sahip_email', benimEmailim);
                 const benimIlanIdleri = ilanlarim ? ilanlarim.map(i => i.id) : [];
                 
                 let gelenler = [];
                 if(benimIlanIdleri.length > 0) {
-                    const { data } = await _supabase.from('teklifler').select('id, ilan_id, teklif_veren_email, durum, ilan_sahibi_onay, teklif_veren_onay').in('ilan_id', benimIlanIdleri).eq('durum', 'Kabul Edildi');
+                    const { data } = await _supabase.from('teklifler')
+                        .select('id, ilan_id, teklif_veren_email, durum, ilan_sahibi_onay, teklif_veren_onay')
+                        .in('ilan_id', benimIlanIdleri)
+                        .in('durum', ['Kabul Edildi', 'Tamamlandı']);
                     gelenler = data || [];
                 }
 
                 const birlesikTeklifler = [...(gidenler || []), ...gelenler];
 
                 if(birlesikTeklifler.length === 0) {
-                    document.getElementById('sohbet-listesi').innerHTML = `<div class="p-6 text-center text-gray-400 font-bold text-[10px] uppercase tracking-widest border-2 border-dashed border-gray-100 rounded-xl m-2">Henüz onaylanmış bir takas işleminiz yok.</div>`;
+                    document.getElementById('sohbet-listesi').innerHTML = `<div class="p-6 text-center text-gray-400 font-bold text-[10px] uppercase tracking-widest border-2 border-dashed border-gray-100 rounded-xl m-2">Henüz sohbetiniz yok.</div>`;
                     return;
                 }
 
@@ -162,7 +162,8 @@
                         karsi_email: karsiEmail,
                         ilan_detay: ilan,
                         ilan_sahibi_onay: teklif.ilan_sahibi_onay,
-                        teklif_veren_onay: teklif.teklif_veren_onay
+                        teklif_veren_onay: teklif.teklif_veren_onay,
+                        durum: teklif.durum
                     };
                 });
 
@@ -179,13 +180,16 @@
                 const ilkResim = sohbet.ilan_detay.resim_url ? sohbet.ilan_detay.resim_url.split(',')[0] : "";
                 const karsiIsim = sohbet.karsi_email.split('@')[0].toUpperCase();
                 
+                // Eğer takas bittiyse yanına BİTTİ rozeti koyuyoruz.
+                const durumRozeti = sohbet.durum === 'Tamamlandı' ? `<span class="bg-green-100 text-green-700 px-1.5 py-0.5 rounded text-[8px] font-black ml-1.5 align-middle">✅ BİTTİ</span>` : '';
+                
                 html += `
                 <div onclick="sohbetiAc('${sohbet.teklif_id}', '${sohbet.karsi_email}', '${sohbet.ilan_detay.baslik.replace(/'/g, "\\'")}', '${ilkResim}')" class="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-100 cursor-pointer transition-colors border border-transparent hover:border-gray-200 sohbet-item" id="btn-sohbet-${sohbet.teklif_id}">
                     <div class="w-12 h-12 rounded-full bg-gray-200 overflow-hidden flex-shrink-0 border-2 border-white shadow-sm">
                         ${ilkResim ? `<img src="${ilkResim}" class="w-full h-full object-cover">` : `<div class="w-full h-full flex items-center justify-center text-[8px] font-bold text-gray-500">YOK</div>`}
                     </div>
                     <div class="flex-grow min-w-0">
-                        <h4 class="font-black text-sm text-[#0f172a] truncate">${karsiIsim}</h4>
+                        <h4 class="font-black text-sm text-[#0f172a] truncate">${karsiIsim}${durumRozeti}</h4>
                         <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest truncate mt-0.5">İlan: ${sohbet.ilan_detay.baslik}</p>
                     </div>
                 </div>`;
@@ -225,41 +229,46 @@
             canliYayinAboneligiBaslat(); 
         }
 
-        // YENİ: Dinamik Onay Butonu ve Bekleniyor Yazısı Ayarlama Fonksiyonu
+        // YENİ MODERN ARAYÜZ MOTORU: Duruma Göre Sağ Üst Köşeyi Değiştirir
         function onayDurumunuGuncelle(sohbet) {
             const isBenimIlanim = sohbet.ilan_detay.sahip_email === benimEmailim;
             const benimOnayim = isBenimIlanim ? sohbet.ilan_sahibi_onay : sohbet.teklif_veren_onay;
             const karsiOnay = isBenimIlanim ? sohbet.teklif_veren_onay : sohbet.ilan_sahibi_onay;
+            
+            const sagKisim = document.getElementById('header-sag-kisim');
 
-            const btn = document.getElementById('header-tamamla-btn');
-            const bekleniyorText = document.getElementById('header-bekleniyor-text');
-
-            btn.classList.remove('hidden');
-            btn.classList.add('flex');
-            bekleniyorText.classList.add('hidden');
-
-            if (benimOnayim) {
-                // Ben onayladıysam
-                btn.className = "flex bg-gray-400 text-white px-2.5 py-1.5 md:px-4 md:py-2 rounded-lg font-black text-[9px] md:text-[10px] uppercase tracking-widest shadow-md items-center gap-1 md:gap-2 flex-shrink-0 cursor-not-allowed";
-                btn.innerHTML = `<svg class="w-3.5 h-3.5 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg><span class="hidden sm:inline">ONAYLADIN</span><span class="sm:hidden">ONAYLADIN</span>`;
-                btn.disabled = true;
-                
-                if (!karsiOnay) {
-                    // Ben onayladım ama karşı taraf henüz onaylamadıysa butonu gizle, yazıyı göster
-                    bekleniyorText.innerHTML = `KARŞI TARAFIN<br><span class="text-yellow-600">ONAYI BEKLENİYOR</span>`;
-                    bekleniyorText.classList.remove('hidden');
-                    btn.classList.add('hidden');
-                    btn.classList.remove('flex');
-                }
+            if (sohbet.durum === 'Tamamlandı') {
+                // 1. İKİSİ DE ONAYLAMIŞ, TİCARET BİTMİŞ (Sadece rozet görünür)
+                sagKisim.innerHTML = `
+                    <div class="bg-green-100 text-green-700 px-3 py-1.5 rounded-lg font-black text-[10px] md:text-xs uppercase tracking-widest flex items-center gap-1 border border-green-200">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
+                        <span>TAKASLANDI</span>
+                    </div>`;
+            } else if (benimOnayim) {
+                // 2. BEN ONAYLADIM, KARŞIYI BEKLİYORUM (Sarı uyarı metni)
+                sagKisim.innerHTML = `
+                    <div class="bg-amber-50 text-amber-600 px-3 py-1.5 rounded-lg font-bold text-[9px] md:text-[10px] uppercase tracking-widest text-right border border-amber-200 leading-tight">
+                        KARŞI TARAFIN<br><span class="font-black text-amber-500">ONAYI BEKLENİYOR</span>
+                    </div>`;
+            } else if (karsiOnay) {
+                // 3. KARŞISI ONAYLAMIŞ, SIRA BENDE (Yeşil yanıp sönen aksiyon butonu)
+                sagKisim.innerHTML = `
+                    <button onclick="onayVer()" class="bg-green-500 text-white px-3 py-1.5 md:px-4 md:py-2 rounded-lg font-black text-[9px] md:text-[10px] uppercase tracking-widest hover:bg-green-600 transition-colors shadow-md flex items-center gap-1.5 animate-pulse">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
+                        <span class="hidden sm:inline">KARŞISI ONAYLADI! SIRA SENDE</span>
+                        <span class="sm:hidden">SIRA SENDE</span>
+                    </button>`;
             } else {
-                // Ben henüz onaylamadıysam butonu yeşil göster
-                btn.className = "flex bg-green-500 text-white px-2.5 py-1.5 md:px-4 md:py-2 rounded-lg font-black text-[9px] md:text-[10px] uppercase tracking-widest hover:bg-green-600 transition-colors shadow-md items-center gap-1 md:gap-2 flex-shrink-0";
-                btn.innerHTML = `<svg class="w-3.5 h-3.5 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg><span class="hidden sm:inline">TAKASI ONAYLA</span><span class="sm:hidden">ONAYLA</span>`;
-                btn.disabled = false;
+                // 4. KİMSE ONAYLAMAMIŞ, NORMAL DURUM (Siyah standart buton)
+                sagKisim.innerHTML = `
+                    <button onclick="onayVer()" class="bg-[#0f172a] text-[#facc15] px-3 py-1.5 md:px-4 md:py-2 rounded-lg font-black text-[9px] md:text-[10px] uppercase tracking-widest hover:bg-black transition-colors shadow-md flex items-center gap-1.5">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                        <span class="hidden sm:inline">TAKASI ONAYLA</span>
+                        <span class="sm:hidden">ONAYLA</span>
+                    </button>`;
             }
         }
 
-        // YENİ: Takası Onayla Butonuna Basıldığında Çalışacak Fonksiyon
         async function onayVer() {
             const sohbet = tumSohbetler.find(s => s.teklif_id == aktifTeklifId);
             const isBenimIlanim = sohbet.ilan_detay.sahip_email === benimEmailim;
@@ -267,9 +276,8 @@
             // Kimin onayını true yapacağız?
             const guncellemeData = isBenimIlanim ? { ilan_sahibi_onay: true } : { teklif_veren_onay: true };
             
-            const btn = document.getElementById('header-tamamla-btn');
-            btn.disabled = true;
-            btn.innerHTML = "ONAYLANIYOR...";
+            // Tıklanır tıklanmaz butonu gizleyip yükleniyor yazısı çıkart
+            document.getElementById('header-sag-kisim').innerHTML = '<span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">İŞLENİYOR...</span>';
 
             try {
                 const { error } = await _supabase.from('teklifler').update(guncellemeData).eq('id', aktifTeklifId);
@@ -283,8 +291,8 @@
                     finalKapatma(guncelTeklif.ilan_id, aktifTeklifId);
                 } else {
                     // Sadece ben onayladım
-                    modalAc("ONAY ALINDI", "Takas onayınız başarıyla sisteme kaydedildi. Karşı taraf da onayladığı an işlem tamamlanacak ve ilan vitrinden kaldırılacaktır.", "basarili");
-                    await sohbetListesiniCek(); // Menüyü ve butonu güncelle
+                    modalAc("ONAY ALINDI", "Takas onayınız başarıyla sisteme kaydedildi. Karşı taraf da onayladığı an ilan vitrinden kaldırılacaktır.", "basarili");
+                    await sohbetListesiniCek(); // Arayüzü güncelle (sarı bekleme yazısı gelsin)
                 }
             } catch (err) {
                 console.error(err);
@@ -300,7 +308,7 @@
                 // 2. Teklif durumunu "Tamamlandı" yap
                 await _supabase.from('teklifler').update({ durum: 'Tamamlandı' }).eq('id', teklifId);
                 
-                modalAc("TEBRİKLER! 🎉", "Her iki taraf da onay verdi! Takas başarıyla tamamlandı ve ilan vitrinden kaldırıldı.", "basarili", false, () => {
+                modalAc("TEBRİKLER! 🎉", "Her iki taraf da onay verdi! Takas başarıyla tamamlandı ve ilan vitrinden kaldırıldı. Artık bu ekrandan konum ve buluşma detaylarını konuşmaya devam edebilirsiniz.", "basarili", false, () => {
                     window.location.reload();
                 });
             } catch (err) {
