@@ -150,12 +150,25 @@
         let realtimeAbonelik = null; 
         let secilenPuan = 0;
 
+        // BÜTÜN HATALARI YAKALAYAN ZIRHLI BAŞLANGIÇ
         async function sitemiCalistir() {
-            const { data: { session } } = await _supabase.auth.getSession();
-            if (!session) { window.location.href = 'giris.html'; return; }
-            benimEmailim = session.user.email;
-            menuOlusturGuncel(session);
-            await sohbetListesiniCek();
+            try {
+                const { data: { session }, error } = await _supabase.auth.getSession();
+                if (error) throw error;
+                if (!session) { window.location.href = 'giris.html'; return; }
+                
+                benimEmailim = session.user.email;
+                menuOlusturGuncel(session);
+                
+                await sohbetListesiniCek();
+            } catch (err) {
+                console.error("Sistem Başlatma Hatası:", err);
+                document.getElementById('sohbet-listesi').innerHTML = `
+                    <div class="p-4 m-2 bg-red-50 border border-red-200 rounded-xl text-center shadow-sm">
+                        <div class="text-red-600 font-black text-xs uppercase tracking-widest mb-2 border-b border-red-200 pb-2">Kritik Bir Hata Oluştu!</div>
+                        <div class="text-[10px] font-bold text-gray-700 break-words">${err.message}</div>
+                    </div>`;
+            }
         }
 
         async function sohbetListesiniCek() {
@@ -167,7 +180,9 @@
                 
                 if(gidenErr) throw gidenErr;
                 
-                const { data: ilanlarim } = await _supabase.from('ilanlar').select('id, baslik, resim_url, sahip_email').eq('sahip_email', benimEmailim);
+                const { data: ilanlarim, error: ilanErr } = await _supabase.from('ilanlar').select('id, baslik, resim_url, sahip_email').eq('sahip_email', benimEmailim);
+                if(ilanErr) throw ilanErr;
+
                 const benimIlanIdleri = ilanlarim ? ilanlarim.map(i => i.id) : [];
                 
                 let gelenler = [];
@@ -188,12 +203,13 @@
                 }
 
                 const tumIlanIdleri = birlesikTeklifler.map(t => t.ilan_id);
-                const { data: tumIlanDetaylari } = await _supabase.from('ilanlar').select('id, baslik, resim_url, sahip_email').in('id', tumIlanIdleri);
+                const { data: tumIlanDetaylari, error: detayErr } = await _supabase.from('ilanlar').select('id, baslik, resim_url, sahip_email').in('id', tumIlanIdleri);
+                if(detayErr) throw detayErr;
 
                 // ZIRH: Silinmiş ilanları filtrele ki sistem çökmesin
                 tumSohbetler = birlesikTeklifler.map(teklif => {
                     const ilan = tumIlanDetaylari?.find(i => i.id === teklif.ilan_id);
-                    if(!ilan) return null; // İlan veritabanından silinmişse patlama
+                    if(!ilan) return null; 
                     
                     const isBenimIlanim = ilan.sahip_email === benimEmailim;
                     const karsiEmail = isBenimIlanim ? teklif.teklif_veren_email : ilan.sahip_email;
@@ -218,12 +234,11 @@
 
             } catch(e) {
                 console.error("Sohbet çekme hatası:", e);
-                // Eğer hata varsa sonsuz dönen ikon yerine KIPKIRMIZI hata mesajı basar
                 document.getElementById('sohbet-listesi').innerHTML = `
-                    <div class="p-4 m-2 bg-red-50 border border-red-200 rounded-xl text-center">
-                        <div class="text-red-500 font-black text-xs uppercase mb-2">VERİTABANI HATASI!</div>
-                        <div class="text-[10px] font-bold text-gray-600">${e.message}</div>
-                        <div class="text-[9px] font-bold text-gray-400 mt-3 border-t border-red-100 pt-2">Büyük ihtimalle Supabase SQL Editor'de o son verdiğim SQL komutunu çalıştırmadın usta. Lütfen Supabase'e girip SQL komutunu "RUN"la!</div>
+                    <div class="p-4 m-2 bg-red-50 border border-red-200 rounded-xl text-center shadow-sm">
+                        <div class="text-red-600 font-black text-xs uppercase tracking-widest mb-2 border-b border-red-200 pb-2">Veritabanı Hatası!</div>
+                        <div class="text-[10px] font-bold text-gray-700 break-words">${e.message}</div>
+                        <div class="text-[9px] font-bold text-gray-500 mt-3 pt-2">Lütfen Supabase SQL Editor'de o son verdiğim SQL komutunu başarıyla çalıştırdığından emin ol usta!</div>
                     </div>`;
             }
         }
@@ -530,7 +545,13 @@
             const menuDiv = document.getElementById('auth-menu');
             const mobilTopDiv = document.getElementById('auth-menu-mobil');
             const mobileMenu = document.getElementById('mobile-menu');
-            const gorunenIsim = session.user.user_metadata.ad_soyad ? session.user.user_metadata.ad_soyad.toUpperCase() : session.user.email.split('@')[0].toUpperCase();
+            
+            // ZIRH: Kullanıcı adını çekerken metadata null ise çökmemesi için koruma
+            let gorunenIsim = "KULLANICI";
+            if(session && session.user) {
+                const meta = session.user.user_metadata || {};
+                gorunenIsim = meta.ad_soyad ? meta.ad_soyad.toUpperCase() : session.user.email.split('@')[0].toUpperCase();
+            }
             
             menuDiv.innerHTML = `
                 <a href="profil.html" class="text-[#facc15] font-black text-xs uppercase tracking-widest border-b-2 border-[#facc15] hover:border-white transition-colors pb-0.5">${gorunenIsim}</a>
