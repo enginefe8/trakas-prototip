@@ -66,21 +66,22 @@
                 </div>
                 
                 <div id="header-sag-kisim" class="flex-shrink-0 flex items-center">
-                    <button id="header-tamamla-btn" onclick="takasiTamamlaAdiminaGec()" class="hidden bg-green-500 text-white px-2.5 py-1.5 md:px-4 md:py-2 rounded-lg font-black text-[9px] md:text-[10px] uppercase tracking-widest hover:bg-green-600 transition-colors shadow-md items-center gap-1 md:gap-2">
+                    <button id="header-tamamla-btn" onclick="onayVer()" class="hidden bg-green-500 text-white px-2.5 py-1.5 md:px-4 md:py-2 rounded-lg font-black text-[9px] md:text-[10px] uppercase tracking-widest hover:bg-green-600 transition-colors shadow-md items-center gap-1 md:gap-2">
                         <svg class="w-3.5 h-3.5 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
-                        <span class="hidden sm:inline">TAKASI TAMAMLA</span>
-                        <span class="sm:hidden">TAMAMLA</span>
+                        <span class="hidden sm:inline">TAKASI ONAYLA</span>
+                        <span class="sm:hidden">ONAYLA</span>
                     </button>
                     
                     <div id="header-bekleniyor-text" class="hidden text-[8px] md:text-[9px] font-bold text-gray-400 uppercase tracking-widest text-right leading-tight">
-                        İLAN SAHİBİNİN<br><span class="text-yellow-600">ONAYI BEKLENİYOR</span>
+                        KARŞI TARAFIN<br><span class="text-yellow-600">ONAYI BEKLENİYOR</span>
                     </div>
                 </div>
 
             </div>
 
             <div id="mesajlar-kutusu" class="flex-grow p-4 overflow-y-auto bg-slate-50 flex flex-col gap-3 min-h-0">
-                </div>
+                <!-- Mesajlar Buraya Gelecek -->
+            </div>
 
             <form id="mesaj-gonderme-formu" onsubmit="mesajGonder(event)" class="hidden p-3 md:p-4 border-t border-gray-200 bg-white flex gap-2 md:gap-3 flex-shrink-0 z-20">
                 <input type="text" id="mesaj-input" required autocomplete="off" placeholder="Mesajınızı yazın..." class="flex-grow bg-gray-100 border-none px-4 py-3 rounded-xl outline-none focus:ring-2 focus:ring-[#facc15] text-sm font-medium text-gray-800 transition-all">
@@ -129,14 +130,15 @@
 
         async function sohbetListesiniCek() {
             try {
-                const { data: gidenler } = await _supabase.from('teklifler').select('id, ilan_id, teklif_veren_email, durum').eq('teklif_veren_email', benimEmailim).eq('durum', 'Kabul Edildi');
+                // DÜZELTME: Veritabanından ilan_sahibi_onay ve teklif_veren_onay sütunlarını da çekiyoruz
+                const { data: gidenler } = await _supabase.from('teklifler').select('id, ilan_id, teklif_veren_email, durum, ilan_sahibi_onay, teklif_veren_onay').eq('teklif_veren_email', benimEmailim).eq('durum', 'Kabul Edildi');
                 
                 const { data: ilanlarim } = await _supabase.from('ilanlar').select('id, baslik, resim_url, sahip_email').eq('sahip_email', benimEmailim);
                 const benimIlanIdleri = ilanlarim ? ilanlarim.map(i => i.id) : [];
                 
                 let gelenler = [];
                 if(benimIlanIdleri.length > 0) {
-                    const { data } = await _supabase.from('teklifler').select('id, ilan_id, teklif_veren_email, durum').in('ilan_id', benimIlanIdleri).eq('durum', 'Kabul Edildi');
+                    const { data } = await _supabase.from('teklifler').select('id, ilan_id, teklif_veren_email, durum, ilan_sahibi_onay, teklif_veren_onay').in('ilan_id', benimIlanIdleri).eq('durum', 'Kabul Edildi');
                     gelenler = data || [];
                 }
 
@@ -158,7 +160,9 @@
                     return {
                         teklif_id: teklif.id,
                         karsi_email: karsiEmail,
-                        ilan_detay: ilan
+                        ilan_detay: ilan,
+                        ilan_sahibi_onay: teklif.ilan_sahibi_onay,
+                        teklif_veren_onay: teklif.teklif_veren_onay
                     };
                 });
 
@@ -193,19 +197,9 @@
             aktifTeklifId = teklifId;
             aktifKarsiEmail = karsiEmail;
 
-            // AKILLI KONTROL: Bu ilan benim mi? (Sadece bana yeşil butonu göster)
+            // YENİ: Arayüzdeki Çift Onay Durumunu Güncelle
             const seciliSohbet = tumSohbetler.find(s => s.teklif_id == teklifId);
-            const isBenimIlanim = seciliSohbet.ilan_detay.sahip_email === benimEmailim;
-
-            if (isBenimIlanim) {
-                document.getElementById('header-tamamla-btn').classList.remove('hidden');
-                document.getElementById('header-tamamla-btn').classList.add('flex');
-                document.getElementById('header-bekleniyor-text').classList.add('hidden');
-            } else {
-                document.getElementById('header-tamamla-btn').classList.add('hidden');
-                document.getElementById('header-tamamla-btn').classList.remove('flex');
-                document.getElementById('header-bekleniyor-text').classList.remove('hidden');
-            }
+            onayDurumunuGuncelle(seciliSohbet);
 
             const solPanel = document.querySelector('.md\\:w-1\\/3');
             if (window.innerWidth < 768) { solPanel.classList.add('hidden'); }
@@ -219,7 +213,6 @@
             document.getElementById('header-ilan-baslik').innerText = ilanBaslik;
             document.getElementById('header-karsi-isim').innerText = karsiEmail.split('@')[0].toUpperCase();
             
-            // Sohbet açıldığında mesaj gönderme formunu görünür yap
             document.getElementById('mesaj-gonderme-formu').classList.remove('hidden');
             document.getElementById('mesaj-gonderme-formu').classList.add('flex');
 
@@ -230,6 +223,89 @@
 
             eskiMesajlariGetir();
             canliYayinAboneligiBaslat(); 
+        }
+
+        // YENİ: Dinamik Onay Butonu ve Bekleniyor Yazısı Ayarlama Fonksiyonu
+        function onayDurumunuGuncelle(sohbet) {
+            const isBenimIlanim = sohbet.ilan_detay.sahip_email === benimEmailim;
+            const benimOnayim = isBenimIlanim ? sohbet.ilan_sahibi_onay : sohbet.teklif_veren_onay;
+            const karsiOnay = isBenimIlanim ? sohbet.teklif_veren_onay : sohbet.ilan_sahibi_onay;
+
+            const btn = document.getElementById('header-tamamla-btn');
+            const bekleniyorText = document.getElementById('header-bekleniyor-text');
+
+            btn.classList.remove('hidden');
+            btn.classList.add('flex');
+            bekleniyorText.classList.add('hidden');
+
+            if (benimOnayim) {
+                // Ben onayladıysam
+                btn.className = "flex bg-gray-400 text-white px-2.5 py-1.5 md:px-4 md:py-2 rounded-lg font-black text-[9px] md:text-[10px] uppercase tracking-widest shadow-md items-center gap-1 md:gap-2 flex-shrink-0 cursor-not-allowed";
+                btn.innerHTML = `<svg class="w-3.5 h-3.5 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg><span class="hidden sm:inline">ONAYLADIN</span><span class="sm:hidden">ONAYLADIN</span>`;
+                btn.disabled = true;
+                
+                if (!karsiOnay) {
+                    // Ben onayladım ama karşı taraf henüz onaylamadıysa butonu gizle, yazıyı göster
+                    bekleniyorText.innerHTML = `KARŞI TARAFIN<br><span class="text-yellow-600">ONAYI BEKLENİYOR</span>`;
+                    bekleniyorText.classList.remove('hidden');
+                    btn.classList.add('hidden');
+                    btn.classList.remove('flex');
+                }
+            } else {
+                // Ben henüz onaylamadıysam butonu yeşil göster
+                btn.className = "flex bg-green-500 text-white px-2.5 py-1.5 md:px-4 md:py-2 rounded-lg font-black text-[9px] md:text-[10px] uppercase tracking-widest hover:bg-green-600 transition-colors shadow-md items-center gap-1 md:gap-2 flex-shrink-0";
+                btn.innerHTML = `<svg class="w-3.5 h-3.5 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg><span class="hidden sm:inline">TAKASI ONAYLA</span><span class="sm:hidden">ONAYLA</span>`;
+                btn.disabled = false;
+            }
+        }
+
+        // YENİ: Takası Onayla Butonuna Basıldığında Çalışacak Fonksiyon
+        async function onayVer() {
+            const sohbet = tumSohbetler.find(s => s.teklif_id == aktifTeklifId);
+            const isBenimIlanim = sohbet.ilan_detay.sahip_email === benimEmailim;
+            
+            // Kimin onayını true yapacağız?
+            const guncellemeData = isBenimIlanim ? { ilan_sahibi_onay: true } : { teklif_veren_onay: true };
+            
+            const btn = document.getElementById('header-tamamla-btn');
+            btn.disabled = true;
+            btn.innerHTML = "ONAYLANIYOR...";
+
+            try {
+                const { error } = await _supabase.from('teklifler').update(guncellemeData).eq('id', aktifTeklifId);
+                if (error) throw error;
+
+                // Veritabanından en güncel halini tekrar çekip her ikisi de onayladı mı kontrol et
+                const { data: guncelTeklif } = await _supabase.from('teklifler').select('*').eq('id', aktifTeklifId).single();
+                
+                if (guncelTeklif.ilan_sahibi_onay && guncelTeklif.teklif_veren_onay) {
+                    // İkisi de onayladı, ilanı ve teklifi kapat
+                    finalKapatma(guncelTeklif.ilan_id, aktifTeklifId);
+                } else {
+                    // Sadece ben onayladım
+                    modalAc("ONAY ALINDI", "Takas onayınız başarıyla sisteme kaydedildi. Karşı taraf da onayladığı an işlem tamamlanacak ve ilan vitrinden kaldırılacaktır.", "basarili");
+                    await sohbetListesiniCek(); // Menüyü ve butonu güncelle
+                }
+            } catch (err) {
+                console.error(err);
+                modalAc("HATA", "Onay verilirken bir sorun oluştu.", "hata");
+            }
+        }
+
+        // YENİ: İki Taraf da Onaylayınca Ticareti Bitiren Fonksiyon
+        async function finalKapatma(ilanId, teklifId) {
+            try {
+                // 1. İlan durumunu "Takaslandı" yap
+                await _supabase.from('ilanlar').update({ durum: 'Takaslandı' }).eq('id', ilanId);
+                // 2. Teklif durumunu "Tamamlandı" yap
+                await _supabase.from('teklifler').update({ durum: 'Tamamlandı' }).eq('id', teklifId);
+                
+                modalAc("TEBRİKLER! 🎉", "Her iki taraf da onay verdi! Takas başarıyla tamamlandı ve ilan vitrinden kaldırıldı.", "basarili", false, () => {
+                    window.location.reload();
+                });
+            } catch (err) {
+                console.error("Kapatma işlemi başarısız:", err);
+            }
         }
 
         function solaDon() {
@@ -314,13 +390,6 @@
             } finally {
                 input.disabled = false; btn.disabled = false; input.focus();
             }
-        }
-
-        function takasiTamamlaAdiminaGec() {
-            modalAc("Takası Tamamla", "Diğer kullanıcıyla anlaştınız ve takas gerçekleşti mi? Bu işlem ilanı vitrinden kaldıracaktır.", "uyari", true, () => {
-                modalAc("HARİKA HABER!", "Bir sonraki komutunda bu butona bastığında ilanı vitrinden kaldırıp üzerine 'TAKASLANDI' damgası vuran motoru kuracağız usta!", "basarili");
-            });
-            document.getElementById('modal-btn-ana').innerText = "EVET, ANLAŞTIK";
         }
 
         function toggleMobileMenu() {
