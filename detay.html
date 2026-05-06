@@ -79,7 +79,6 @@
                         <svg id="detay-kalp-ikon" class="w-6 h-6 transition-colors duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
                     </button>
 
-                    <!-- DEĞİŞİKLİK BURADA: Artık doğrudan göndermiyor, masayı açıyor -->
                     <button id="teklif-btn" onclick="teklifHazirlaModalAc()" class="flex-grow bg-[#0f172a] text-[#facc15] py-4 rounded-xl font-black text-sm uppercase tracking-widest shadow-lg hover:bg-black hover:-translate-y-0.5 transition-all flex justify-center items-center gap-2">
                         TAKAS TEKLİFİ GÖNDER
                     </button>
@@ -331,7 +330,7 @@
             }
         }
 
-        // YENİ: TEKLİF MASASI AÇMA FONKSİYONU
+        // ZIRHLI TEKLİF MASASI AÇMA FONKSİYONU
         async function teklifHazirlaModalAc() {
             if (!aktifSession) { 
                 modalAc("GİRİŞ GEREKLİ", "Teklif göndermek için giriş yapmalısınız.", "uyari", true, () => window.location.href = 'giris.html'); 
@@ -344,39 +343,39 @@
             btn.disabled = true; btn.innerText = "İLANLARINIZ YÜKLENİYOR...";
 
             try {
-                // Sadece kullanıcının kendi olan ve "Takaslandı" olmayan ilanlarını çekiyoruz
-                const { data: ilanlarim, error } = await _supabase.from('ilanlar')
-                    .select('id, baslik')
-                    .eq('sahip_email', aktifSession.user.email)
-                    .neq('durum', 'Takaslandı');
+                // Supabase'i yormadan tüm ilanları dümdüz çekiyoruz
+                const { data: tumIlanlarim, error } = await _supabase.from('ilanlar')
+                    .select('id, baslik, durum')
+                    .eq('sahip_email', aktifSession.user.email);
                 
                 if(error) throw error;
 
-                if(!ilanlarim || ilanlarim.length === 0) {
+                // Takaslanmamış (aktif) olanları JavaScript ile güvenle ayıklıyoruz
+                const aktifIlanlarim = tumIlanlarim ? tumIlanlarim.filter(i => i.durum !== 'Takaslandı') : [];
+
+                if(aktifIlanlarim.length === 0) {
                     modalAc("İLANINIZ BULUNMUYOR", "Takas teklifi yapabilmek için vitrinde kendinize ait aktif bir ilanınızın olması gerekmektedir. Karşı tarafa sunacak bir eşyanız yoksa takas yapamazsınız.", "uyari", false, () => window.location.href = 'ilan-ver.html');
                     document.getElementById('modal-btn-ana').innerText = "İLAN VER";
                     btn.disabled = false; btn.innerText = eskiYazi;
                     return;
                 }
 
-                // Seçim kutusunu (select) kullanıcının ilanlarıyla doldur
                 const select = document.getElementById('teklif-ilan-secim');
                 select.innerHTML = '<option value="" disabled selected>Teklif edeceğiniz ilanı seçin</option>';
-                ilanlarim.forEach(ilan => {
+                aktifIlanlarim.forEach(ilan => {
                     select.innerHTML += `<option value="${ilan.id}">${ilan.baslik.toUpperCase()}</option>`;
                 });
 
                 document.getElementById('teklif-nakit-input').value = "0";
 
-                // Modalı aç
                 document.getElementById('teklif-modal').classList.remove('hidden');
                 setTimeout(() => { document.getElementById('teklif-modal-kutu').classList.remove('scale-95', 'opacity-0'); }, 10);
                 
                 btn.disabled = false; btn.innerText = eskiYazi;
 
             } catch(e) {
-                console.error(e);
-                modalAc("HATA", "Kendi ilanlarınız çekilirken bir sorun oluştu.", "hata");
+                console.error("İlan çekme hatası:", e);
+                modalAc("HATA DETAYI", "Sistemsel Hata: " + e.message, "hata");
                 btn.disabled = false; btn.innerText = eskiYazi;
             }
         }
@@ -386,7 +385,6 @@
             setTimeout(() => { document.getElementById('teklif-modal').classList.add('hidden'); }, 300);
         }
 
-        // YENİ: İÇİ DOLU GERÇEK TEKLİFİ VERİTABANINA YAZMA
         async function gercekTeklifiGonder(event) {
             event.preventDefault();
             const secilenIlanId = document.getElementById('teklif-ilan-secim').value;
@@ -401,7 +399,6 @@
             btn.disabled = true; btn.innerHTML = "GÖNDERİLİYOR...";
 
             try {
-                // Teklifler tablosuna hem seçilen ilanı hem de nakiti kaydediyoruz
                 const { error } = await _supabase.from('teklifler').insert([{ 
                     ilan_id: ilanId, 
                     teklif_veren_email: aktifSession.user.email, 
@@ -422,7 +419,7 @@
                 
             } catch (err) {
                 console.error(err);
-                modalAc("HATA", "Teklif gönderilemedi.", "hata");
+                modalAc("HATA", "Teklif kaydedilemedi: " + err.message, "hata");
             } finally {
                 btn.disabled = false; btn.innerHTML = "GÖNDER";
             }
