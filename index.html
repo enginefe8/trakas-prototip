@@ -10,17 +10,15 @@
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 10px; }
         .kalp-btn:active svg { transform: scale(1.3); transition: transform 0.1s; }
+        .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
     </style>
 </head>
 <body class="bg-gray-50 font-sans min-h-screen flex flex-col text-gray-900">
 
     <nav class="bg-[#0f172a] px-6 py-4 flex justify-between items-center w-full shadow-md z-50 relative">
         <a href="index.html" class="text-3xl font-black text-white italic tracking-tighter uppercase">TRAKAS</a>
-        
         <div id="auth-menu" class="hidden lg:flex items-center gap-6"></div>
-        
         <div id="auth-menu-mobil" class="lg:hidden flex items-center gap-3"></div>
-
         <div id="mobile-menu" class="hidden absolute top-full left-0 w-full bg-[#0f172a] border-t border-gray-800 shadow-2xl flex-col z-50"></div>
     </nav>
 
@@ -43,12 +41,10 @@
                 
                 <div class="md:w-56 flex-shrink-0 relative" id="ozel-kategori-kapsayici">
                     <input type="hidden" id="kategori-filtresi" value="">
-                    
                     <button type="button" onclick="kategoriMenusuGosterGizle()" class="w-full bg-gray-50 rounded-xl px-4 py-4 border border-gray-100 outline-none focus:border-[#facc15] focus:ring-1 focus:ring-[#facc15] text-xs font-black text-gray-700 uppercase tracking-widest cursor-pointer h-full transition-all flex justify-between items-center text-left">
                         <span id="kategori-buton-metin" class="truncate pr-2">TÜM KATEGORİLER</span>
                         <svg class="w-4 h-4 text-gray-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                     </button>
-
                     <div id="kategori-liste" class="absolute w-full bg-white shadow-2xl rounded-xl mt-2 hidden max-h-60 overflow-y-auto border border-gray-100 top-full left-0 z-50 py-2">
                         <div onclick="kategoriSec('', 'TÜM KATEGORİLER')" class="px-5 py-3 hover:bg-gray-50 cursor-pointer text-xs font-black text-gray-700 border-b border-gray-50 uppercase tracking-widest transition-colors">TÜM KATEGORİLER</div>
                         <div onclick="kategoriSec('Elektronik', 'ELEKTRONİK')" class="px-5 py-3 hover:bg-gray-50 cursor-pointer text-xs font-black text-gray-700 border-b border-gray-50 uppercase tracking-widest transition-colors">ELEKTRONİK</div>
@@ -115,15 +111,11 @@
             const { data: { session } } = await _supabase.auth.getSession();
             aktifSession = session;
             menuOlustur();
-            
             if(aktifSession) { await favorileriHafizayaAl(); }
             await tumIlanlariCek();
         }
 
-        // HAMBURGER MENÜ TETİKLEYİCİSİ
-        function toggleMobileMenu() {
-            document.getElementById('mobile-menu').classList.toggle('hidden');
-        }
+        function toggleMobileMenu() { document.getElementById('mobile-menu').classList.toggle('hidden'); }
 
         function menuOlustur() {
             const menuDiv = document.getElementById('auth-menu');
@@ -136,42 +128,33 @@
                 const gorunenIsim = meta.ad_soyad ? meta.ad_soyad.toUpperCase() : user.email.split('@')[0].toUpperCase();
                 
                 menuDiv.innerHTML = `
-                    <a href="profil.html" class="text-[#facc15] font-black text-xs uppercase tracking-widest hover:text-white transition-colors border-b-2 border-[#facc15] hover:border-white pb-0.5 flex items-center gap-1.5" title="Profilime Git"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>${gorunenIsim}</a>
+                    <a href="profil.html" class="text-[#facc15] font-black text-xs uppercase tracking-widest border-b-2 border-[#facc15] pb-0.5 flex items-center gap-1.5"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>${gorunenIsim}</a>
                     <a href="favorilerim.html" class="text-gray-400 font-bold text-[11px] uppercase tracking-widest hover:text-white transition-colors">FAVORİLERİM</a>
                     <a href="ilanlarim.html" class="text-gray-400 font-bold text-[11px] uppercase tracking-widest hover:text-white transition-colors">İLANLARIM</a>
                     <a href="sohbetler.html" class="text-gray-400 font-bold text-[11px] uppercase tracking-widest hover:text-white transition-colors">MESAJLARIM</a>
                     <a href="teklifler.html" class="text-gray-400 font-bold text-[11px] uppercase tracking-widest hover:text-white transition-colors">TEKLİFLERİM</a>
                     <span class="text-gray-700">|</span>
                     <button onclick="cikisYap()" class="text-red-500 font-bold text-[11px] uppercase tracking-widest hover:text-red-400">ÇIKIŞ</button>
-                    <a href="ilan-ver.html" class="ml-2 bg-[#facc15] text-[#0f172a] px-6 py-2.5 rounded-lg font-black text-[11px] uppercase tracking-widest hover:bg-yellow-500 transition-colors shadow-sm">İLAN VER</a>
+                    <a href="ilan-ver.html" class="ml-2 bg-[#facc15] text-[#0f172a] px-6 py-2.5 rounded-lg font-black text-[11px] uppercase tracking-widest shadow-sm">İLAN VER</a>
                 `;
 
                 mobilTopDiv.innerHTML = `
                     <a href="ilan-ver.html" class="bg-[#facc15] text-[#0f172a] px-3 py-1.5 rounded-lg font-black text-[10px] uppercase tracking-widest shadow-sm">İLAN VER</a>
-                    <button onclick="toggleMobileMenu()" class="text-white p-1 hover:text-[#facc15] transition-colors focus:outline-none">
-                        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
-                    </button>
+                    <button onclick="toggleMobileMenu()" class="text-white p-1 focus:outline-none"><svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg></button>
                 `;
 
                 mobileMenu.innerHTML = `
-                    <a href="profil.html" class="block px-6 py-4 text-[#facc15] font-black text-[11px] uppercase tracking-widest border-b border-gray-800 flex items-center gap-2 hover:bg-gray-800 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>${gorunenIsim}</a>
-                    <a href="favorilerim.html" class="block px-6 py-4 text-gray-300 font-bold text-[11px] uppercase tracking-widest border-b border-gray-800 hover:bg-gray-800 transition-colors">FAVORİLERİM</a>
-                    <a href="ilanlarim.html" class="block px-6 py-4 text-gray-300 font-bold text-[11px] uppercase tracking-widest border-b border-gray-800 hover:bg-gray-800 transition-colors">İLANLARIM</a>
-                    <a href="sohbetler.html" class="block px-6 py-4 text-gray-300 font-bold text-[11px] uppercase tracking-widest border-b border-gray-800 hover:bg-gray-800 transition-colors">MESAJLARIM</a>
-                    <a href="teklifler.html" class="block px-6 py-4 text-gray-300 font-bold text-[11px] uppercase tracking-widest border-b border-gray-800 hover:bg-gray-800 transition-colors">TEKLİFLERİM</a>
+                    <a href="profil.html" class="block px-6 py-4 text-[#facc15] font-black text-[11px] uppercase tracking-widest border-b border-gray-800 flex items-center gap-2 hover:bg-gray-800 transition-colors">${gorunenIsim}</a>
+                    <a href="favorilerim.html" class="block px-6 py-4 text-gray-300 font-bold text-[11px] uppercase tracking-widest border-b border-gray-800">FAVORİLERİM</a>
+                    <a href="ilanlarim.html" class="block px-6 py-4 text-gray-300 font-bold text-[11px] uppercase tracking-widest border-b border-gray-800">İLANLARIM</a>
+                    <a href="sohbetler.html" class="block px-6 py-4 text-gray-300 font-bold text-[11px] uppercase tracking-widest border-b border-gray-800">MESAJLARIM</a>
+                    <a href="teklifler.html" class="block px-6 py-4 text-gray-300 font-bold text-[11px] uppercase tracking-widest border-b border-gray-800">TEKLİFLERİM</a>
                     <button onclick="cikisYap()" class="w-full text-left block px-6 py-4 text-red-500 font-bold text-[11px] uppercase tracking-widest hover:bg-gray-800 transition-colors">ÇIKIŞ</button>
                 `;
             } else {
-                menuDiv.innerHTML = `<a href="giris.html" class="bg-[#facc15] text-[#0f172a] px-6 py-2.5 rounded-lg font-black text-xs uppercase tracking-widest hover:bg-yellow-500 transition-colors shadow-sm">GİRİŞ YAP / KAYIT OL</a>`;
-                
-                mobilTopDiv.innerHTML = `
-                    <a href="giris.html" class="text-[#facc15] font-bold text-[10px] uppercase tracking-widest mr-2">GİRİŞ YAP</a>
-                    <button onclick="toggleMobileMenu()" class="text-white p-1 hover:text-[#facc15] transition-colors focus:outline-none">
-                        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
-                    </button>
-                `;
-
-                mobileMenu.innerHTML = `<a href="giris.html" class="block px-6 py-4 text-[#facc15] font-black text-[11px] uppercase tracking-widest text-center hover:bg-gray-800 transition-colors">GİRİŞ YAP / KAYIT OL</a>`;
+                menuDiv.innerHTML = `<a href="giris.html" class="bg-[#facc15] text-[#0f172a] px-6 py-2.5 rounded-lg font-black text-xs uppercase tracking-widest shadow-sm">GİRİŞ YAP / KAYIT OL</a>`;
+                mobilTopDiv.innerHTML = `<a href="giris.html" class="text-[#facc15] font-bold text-[10px] uppercase tracking-widest mr-2">GİRİŞ YAP</a><button onclick="toggleMobileMenu()" class="text-white p-1 focus:outline-none"><svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg></button>`;
+                mobileMenu.innerHTML = `<a href="giris.html" class="block px-6 py-4 text-[#facc15] font-black text-[11px] uppercase tracking-widest text-center">GİRİŞ YAP / KAYIT OL</a>`;
             }
         }
 
@@ -181,28 +164,20 @@
         }
 
         async function favoriTetikle(event, ilanId) {
-            event.preventDefault(); 
-            event.stopPropagation(); 
-
-            if (!aktifSession) {
-                modalAc("GİRİŞ GEREKLİ", "İlanları favorinize eklemek için giriş yapmanız veya kayıt olmanız gerekmektedir.", "uyari", true, () => window.location.href='giris.html');
-                document.getElementById('modal-btn-ana').innerText = "GİRİŞ YAP";
-                return;
-            }
-
+            event.preventDefault(); event.stopPropagation(); 
+            if (!aktifSession) { modalAc("GİRİŞ GEREKLİ", "Favoriye eklemek için giriş yapmalısınız.", "uyari", true, () => window.location.href='giris.html'); return; }
+            
             const ikon = document.getElementById(`kalp-ikon-${ilanId}`);
-            const isFavori = benimFavorilerim.includes(ilanId);
+            const isFavori = benimFavorilerim.includes(parseInt(ilanId));
 
             if (isFavori) {
-                benimFavorilerim = benimFavorilerim.filter(id => id !== ilanId);
-                ikon.classList.remove('text-red-500', 'fill-current');
-                ikon.classList.add('text-gray-400');
+                benimFavorilerim = benimFavorilerim.filter(id => id !== parseInt(ilanId));
+                ikon.className = "w-5 h-5 text-gray-400 transition-colors duration-300";
                 ikon.setAttribute('fill', 'none');
                 _supabase.from('favoriler').delete().eq('ilan_id', ilanId).eq('kullanici_email', aktifSession.user.email).then();
             } else {
-                benimFavorilerim.push(ilanId);
-                ikon.classList.remove('text-gray-400');
-                ikon.classList.add('text-red-500', 'fill-current');
+                benimFavorilerim.push(parseInt(ilanId));
+                ikon.className = "w-5 h-5 text-red-500 fill-current transition-colors duration-300";
                 ikon.setAttribute('fill', 'currentColor');
                 _supabase.from('favoriler').insert([{ ilan_id: ilanId, kullanici_email: aktifSession.user.email }]).then();
             }
@@ -228,20 +203,13 @@
             const oneriKutusu = document.getElementById('arama-onerileri');
             if(kelime.trim().length < 1) { oneriKutusu.classList.add('hidden'); return; }
             const temizAranan = turkceTemizle(kelime);
-            const eslesenBasliklar = [];
-            tumIlanlarVeritabani.forEach(ilan => {
-                if(turkceTemizle(ilan.baslik).includes(temizAranan)) {
-                    if(!eslesenBasliklar.includes(ilan.baslik)) eslesenBasliklar.push(ilan.baslik);
-                }
-            });
-            const kisaListe = eslesenBasliklar.slice(0, 5);
-            if(kisaListe.length > 0) {
+            const eslesenBasliklar = [...new Set(tumIlanlarVeritabani.filter(ilan => turkceTemizle(ilan.baslik).includes(temizAranan)).map(i => i.baslik))].slice(0, 5);
+            if(eslesenBasliklar.length > 0) {
                 let html = '<ul class="py-2">';
-                kisaListe.forEach(baslik => {
+                eslesenBasliklar.forEach(baslik => {
                     html += `<li onclick="oneriSec('${baslik.replace(/'/g, "\\'")}')" class="px-5 py-3 hover:bg-gray-50 cursor-pointer text-sm font-bold text-gray-700 border-b border-gray-50 last:border-0 flex items-center gap-3 transition-colors"><svg class="w-4 h-4 text-[#facc15]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>${baslik}</li>`;
                 });
-                html += '</ul>';
-                oneriKutusu.innerHTML = html;
+                oneriKutusu.innerHTML = html + '</ul>';
                 oneriKutusu.classList.remove('hidden');
             } else { oneriKutusu.classList.add('hidden'); }
         }
@@ -252,47 +220,33 @@
             filtreleVeAra(); 
         }
 
-        // YENİ: ÖZEL KATEGORİ MENÜSÜ FONKSİYONLARI
-        function kategoriMenusuGosterGizle() {
-            document.getElementById('kategori-liste').classList.toggle('hidden');
-        }
+        function kategoriMenusuGosterGizle() { document.getElementById('kategori-liste').classList.toggle('hidden'); }
 
         function kategoriSec(deger, metin) {
-            document.getElementById('kategori-filtresi').value = deger; // Gizli inputu güncelle
-            document.getElementById('kategori-buton-metin').innerText = metin; // Buton yazısını değiştir
-            document.getElementById('kategori-liste').classList.add('hidden'); // Menüyü kapat
-            filtreleVeAra(); // Tıklar tıklamaz otomatik ara!
+            document.getElementById('kategori-filtresi').value = deger;
+            document.getElementById('kategori-buton-metin').innerText = metin;
+            document.getElementById('kategori-liste').classList.add('hidden');
+            filtreleVeAra(); 
         }
 
-        // Sayfada boş bir yere tıklayınca açılır menülerin kapanması
         document.addEventListener('click', function(e) {
-            // Arama önerileri kapanma kuralı
-            if(!document.getElementById('arama-kutusu').contains(e.target) && !document.getElementById('arama-onerileri').contains(e.target)) {
-                document.getElementById('arama-onerileri').classList.add('hidden');
-            }
-            // Kategori menüsü kapanma kuralı
-            if(!document.getElementById('ozel-kategori-kapsayici').contains(e.target)) {
-                document.getElementById('kategori-liste').classList.add('hidden');
-            }
-        });
-
-        document.getElementById('arama-kutusu').addEventListener('keypress', function (e) {
-            if (e.key === 'Enter') { document.getElementById('arama-onerileri').classList.add('hidden'); filtreleVeAra(); }
+            if(!document.getElementById('arama-kutusu').contains(e.target) && !document.getElementById('arama-onerileri').contains(e.target)) { document.getElementById('arama-onerileri').classList.add('hidden'); }
+            if(!document.getElementById('ozel-kategori-kapsayici').contains(e.target)) { document.getElementById('kategori-liste').classList.add('hidden'); }
         });
 
         function filtreleVeAra() {
-            const arama = document.getElementById('arama-kutusu').value;
+            const arama = turkceTemizle(document.getElementById('arama-kutusu').value.trim());
             const kategori = document.getElementById('kategori-filtresi').value;
             document.getElementById('ilan-vitrini').innerHTML = "";
             document.getElementById('yukleniyor').classList.remove('hidden');
 
             setTimeout(() => { 
-                let filtrelenmis = tumIlanlarVeritabani;
-                if (kategori && kategori !== "") filtrelenmis = filtrelenmis.filter(ilan => ilan.kategori === kategori);
-                if (arama && arama.trim() !== "") {
-                    const temizArama = turkceTemizle(arama);
-                    filtrelenmis = filtrelenmis.filter(ilan => turkceTemizle(ilan.baslik).includes(temizArama) || turkceTemizle(ilan.aciklama).includes(temizArama));
-                }
+                let filtrelenmis = tumIlanlarVeritabani.filter(ilan => {
+                    const matchesKategori = !kategori || kategori === "" || ilan.kategori === kategori;
+                    const matchesArama = !arama || turkceTemizle(ilan.baslik).includes(arama) || turkceTemizle(ilan.aciklama).includes(arama);
+                    const isAktif = ilan.durum !== 'Takaslandı';
+                    return matchesKategori && matchesArama && isAktif;
+                });
                 ekranaBas(filtrelenmis);
             }, 300);
         }
@@ -300,72 +254,41 @@
         function ekranaBas(ilanlar) {
             const vitrin = document.getElementById('ilan-vitrini');
             document.getElementById('yukleniyor').classList.add('hidden');
-            
             if (!ilanlar || ilanlar.length === 0) {
-                vitrin.innerHTML = `<div class="col-span-full flex flex-col items-center justify-center py-16 text-center bg-white rounded-2xl border border-gray-200 shadow-sm mt-4"><svg class="w-16 h-16 text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg><h3 class="font-black text-gray-900 text-lg uppercase tracking-widest mb-2">SONUÇ BULUNAMADI</h3><p class="text-gray-500 font-medium text-sm">Arama kriterlerinize uygun bir ilan bulamadık. Lütfen farklı kelimelerle tekrar deneyin.</p><button onclick="document.getElementById('arama-kutusu').value=''; document.getElementById('kategori-filtresi').value=''; kategoriSec('', 'TÜM KATEGORİLER');" class="mt-6 bg-[#facc15] text-[#0f172a] px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-yellow-500 transition-colors shadow-sm">FİLTRELERİ TEMİZLE</button></div>`;
+                vitrin.innerHTML = `<div class="col-span-full flex flex-col items-center justify-center py-16 text-center bg-white rounded-2xl border border-gray-200 shadow-sm mt-4"><h3 class="font-black text-gray-900 text-lg uppercase tracking-widest mb-2">SONUÇ BULUNAMADI</h3><p class="text-gray-500 font-medium text-sm">Lütfen farklı kelimelerle deneyin.</p></div>`;
                 return;
             }
-
             let html = "";
             ilanlar.forEach(ilan => {
-                let ilkResim = "";
-                if(ilan.resim_url) ilkResim = ilan.resim_url.split(',')[0].trim();
-                
-                const isFavori = benimFavorilerim.includes(ilan.id);
-                const kalpRengi = isFavori ? "text-red-500 fill-current" : "text-gray-400";
-                const kalpTipi = isFavori ? "currentColor" : "none";
-
+                let ilkResim = ilan.resim_url ? ilan.resim_url.split(',')[0].trim() : "";
+                const isFavori = benimFavorilerim.includes(parseInt(ilan.id));
                 html += `
                 <a href="detay.html?id=${ilan.id}" class="group bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col relative">
-                    <div class="w-full h-64 sm:h-48 bg-gray-100 relative overflow-hidden flex items-center justify-center">
-                        
-                        <button onclick="favoriTetikle(event, '${ilan.id}')" class="kalp-btn absolute top-3 right-3 bg-white/80 backdrop-blur-md p-2.5 rounded-full shadow-md hover:bg-white hover:shadow-lg transition-all z-20 focus:outline-none">
-                            <svg id="kalp-ikon-${ilan.id}" class="w-5 h-5 ${kalpRengi} transition-colors duration-300" fill="${kalpTipi}" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
+                    <div class="w-full h-48 bg-gray-100 relative overflow-hidden flex items-center justify-center">
+                        <button onclick="favoriTetikle(event, '${ilan.id}')" class="absolute top-3 right-3 bg-white/80 backdrop-blur-md p-2.5 rounded-full shadow-md z-20 focus:outline-none">
+                            <svg id="kalp-ikon-${ilan.id}" class="w-5 h-5 ${isFavori ? 'text-red-500 fill-current' : 'text-gray-400'} transition-colors duration-300" fill="${isFavori ? 'currentColor' : 'none'}" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
                         </button>
-
-                        ${ilkResim ? `<img src="${ilkResim}" class="w-full h-full object-contain sm:object-cover transition-transform duration-500 group-hover:scale-110">` : `<span class="text-[10px] font-black uppercase tracking-widest text-gray-400">GÖRSEL YOK</span>`}
+                        ${ilkResim ? `<img src="${ilkResim}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">` : `<span class="text-[10px] text-gray-400 font-black">GÖRSEL YOK</span>`}
                     </div>
                     <div class="p-5 flex flex-col flex-grow">
                         <span class="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-1">${ilan.kategori || 'DİĞER'}</span>
                         <h3 class="font-black text-gray-900 text-base uppercase tracking-tight line-clamp-2 mb-2 group-hover:text-yellow-500 transition-colors">${ilan.baslik}</h3>
-                        <div class="mt-auto pt-4 border-t border-gray-100">
-                            <span class="font-black text-[#0f172a] text-lg">${ilan.deger} ₺</span>
-                        </div>
+                        <div class="mt-auto pt-4 border-t border-gray-100"><span class="font-black text-[#0f172a] text-lg">${ilan.deger} ₺</span></div>
                     </div>
                 </a>`;
             });
-
             vitrin.innerHTML = html;
         }
 
-        let modalOnayFonk = null;
         function modalAc(baslik, mesaj, tip, isIptal = false, onayFonk = null) {
-            document.getElementById('modal-baslik').innerText = baslik;
-            document.getElementById('modal-mesaj').innerText = mesaj;
-            modalOnayFonk = onayFonk;
-            const ikon = document.getElementById('modal-ikon');
-            if(tip === 'basarili') { ikon.className = "mx-auto h-16 w-16 rounded-full bg-green-50 flex items-center justify-center text-green-500 font-bold text-2xl border border-green-100"; ikon.innerHTML = "✓"; }
-            else if(tip === 'hata') { ikon.className = "mx-auto h-16 w-16 rounded-full bg-red-50 flex items-center justify-center text-red-500 font-bold text-2xl border border-red-100"; ikon.innerHTML = "!"; }
-            else { ikon.className = "mx-auto h-16 w-16 rounded-full bg-yellow-50 flex items-center justify-center text-yellow-500 font-bold text-2xl border border-yellow-100"; ikon.innerHTML = "?"; }
-            
-            if(isIptal) {
-                document.getElementById('modal-btn-ikincil').classList.remove('hidden');
-                document.getElementById('modal-btn-ana').onclick = () => { modalKapat(); if(modalOnayFonk) modalOnayFonk(); };
-            } else {
-                document.getElementById('modal-btn-ikincil').classList.add('hidden');
-                document.getElementById('modal-btn-ana').innerText = "TAMAM";
-                document.getElementById('modal-btn-ana').onclick = () => { modalKapat(); if(modalOnayFonk) modalOnayFonk(); };
-            }
-
+            document.getElementById('modal-baslik').innerText = baslik; document.getElementById('modal-mesaj').innerText = mesaj;
+            if(isIptal) { document.getElementById('modal-btn-ikincil').classList.remove('hidden'); document.getElementById('modal-btn-ana').onclick = () => { modalKapat(); if(onayFonk) onayFonk(); }; } 
+            else { document.getElementById('modal-btn-ikincil').classList.add('hidden'); document.getElementById('modal-btn-ana').onclick = () => { modalKapat(); if(onayFonk) onayFonk(); }; }
             document.getElementById('ozel-modal').classList.remove('hidden');
             setTimeout(() => { document.getElementById('ozel-modal-kutu').classList.remove('scale-95', 'opacity-0'); }, 10);
         }
 
-        function modalKapat() {
-            document.getElementById('ozel-modal-kutu').classList.add('scale-95', 'opacity-0');
-            setTimeout(() => { document.getElementById('ozel-modal').classList.add('hidden'); }, 300);
-        }
-
+        function modalKapat() { document.getElementById('ozel-modal-kutu').classList.add('scale-95', 'opacity-0'); setTimeout(() => { document.getElementById('ozel-modal').classList.add('hidden'); }, 300); }
         async function cikisYap() { await _supabase.auth.signOut(); window.location.href = 'index.html'; }
 
         sitemiCalistir();
