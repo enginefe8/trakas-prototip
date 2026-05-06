@@ -156,6 +156,7 @@
                 menuOlusturGuncel(session);
                 
                 await sohbetListesiniCek();
+                await bildirimleriKontrolEt(); // YENİ: Sayfa açılır açılmaz radarı çalıştır
             } catch (err) {
                 console.error("Sistem Başlatma Hatası:", err);
                 document.getElementById('sohbet-listesi').innerHTML = `
@@ -163,6 +164,55 @@
                         <div class="text-red-600 font-black text-xs uppercase tracking-widest mb-2 border-b border-red-200 pb-2">Kritik Bir Hata Oluştu!</div>
                         <div class="text-[10px] font-bold text-gray-700 break-words">${err.message}</div>
                     </div>`;
+            }
+        }
+
+        // YENİ: Radar Sistemi - Rozetleri Günceller
+        async function bildirimleriKontrolEt() {
+            if (!benimEmailim) return;
+            try {
+                const { data: myIlans } = await _supabase.from('ilanlar').select('id').eq('sahip_email', benimEmailim);
+                let bekleyenTeklif = 0;
+                if (myIlans && myIlans.length > 0) {
+                    const myIlanIds = myIlans.map(i => i.id);
+                    const { count } = await _supabase.from('teklifler')
+                        .select('*', { count: 'exact', head: true })
+                        .in('ilan_id', myIlanIds)
+                        .eq('durum', 'Bekliyor')
+                        .neq('teklif_veren_email', benimEmailim);
+                    bekleyenTeklif = count || 0;
+                }
+
+                const { count: mesajCount } = await _supabase.from('mesajlar')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('alici_email', benimEmailim)
+                    .is('okundu', false);
+                const okunmamisMesaj = mesajCount || 0;
+
+                const teklifRozetler = document.querySelectorAll('.nav-teklif-badge');
+                teklifRozetler.forEach(el => {
+                    el.innerHTML = bekleyenTeklif > 0 ? `<span class="bg-red-500 text-white rounded-full px-1.5 py-0.5 text-[8px] ml-1.5 flex items-center justify-center animate-pulse shadow-sm font-bold">${bekleyenTeklif}</span>` : '';
+                });
+
+                const mesajRozetler = document.querySelectorAll('.nav-mesaj-badge');
+                mesajRozetler.forEach(el => {
+                    el.innerHTML = okunmamisMesaj > 0 ? `<span class="bg-red-500 text-white rounded-full px-1.5 py-0.5 text-[8px] ml-1.5 flex items-center justify-center animate-pulse shadow-sm font-bold">${okunmamisMesaj}</span>` : '';
+                });
+            } catch (err) {
+                console.error("Radar hatası:", err);
+            }
+        }
+
+        // YENİ: Tıklanan Sohbetin Mesajlarını "Okundu" Yapıp Zili Söndürür
+        async function mesajlariOkunduIsaretle(teklifId) {
+            try {
+                await _supabase.from('mesajlar')
+                    .update({ okundu: true })
+                    .eq('teklif_id', teklifId)
+                    .eq('alici_email', benimEmailim)
+                    .is('okundu', false);
+            } catch (err) {
+                console.error("Okundu isaretleme hatasi", err);
             }
         }
 
@@ -267,7 +317,8 @@
             document.getElementById('sohbet-listesi').innerHTML = html;
         }
 
-        function sohbetiAc(teklifId, karsiEmail, ilanBaslik, ilanResim) {
+        // DÜZELTME: Artık sohbete tıklandığında mesajlar okundu sayılır ve zil söner
+        async function sohbetiAc(teklifId, karsiEmail, ilanBaslik, ilanResim) {
             aktifTeklifId = teklifId;
             aktifKarsiEmail = karsiEmail;
 
@@ -293,6 +344,10 @@
             else { document.getElementById('header-ilan-resim').src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" fill="none"><rect width="100%" height="100%" fill="%23f3f4f6"/></svg>'; }
 
             document.getElementById('mesajlar-kutusu').innerHTML = `<div class="text-center text-xs font-bold text-gray-400 mt-10">Mesajlar Yükleniyor...</div>`;
+
+            // Mesajları okundu olarak işaretle ve kırmızı zili anında güncelle
+            await mesajlariOkunduIsaretle(teklifId);
+            bildirimleriKontrolEt();
 
             eskiMesajlariGetir(seciliSohbet);
             canliYayinAboneligiBaslat(); 
@@ -470,13 +525,25 @@
         function canliYayinAboneligiBaslat() {
             if (realtimeAbonelik) { _supabase.removeChannel(realtimeAbonelik); }
             realtimeAbonelik = _supabase.channel('custom-all-channel')
-                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'mesajlar' }, (payload) => {
-                        if (payload.new.teklif_id == aktifTeklifId) { mesajiEkranaCiz(payload.new); }
+                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'mesajlar' }, async (payload) => {
+                        if (payload.new.teklif_id == aktifTeklifId) { 
+                            mesajiEkranaCiz(payload.new); 
+                            
+                            // YENİ: Sen sohbetteyken mesaj gelirse zili yakma, direkt okundu yap!
+                            if (payload.new.alici_email === benimEmailim) {
+                                await mesajlariOkunduIsaretle(aktifTeklifId);
+                                bildirimleriKontrolEt();
+                            }
+                        } else {
+                            // Başka sohbete gelirse radarı güncelle (Kırmızı zil yansın)
+                            if (payload.new.alici_email === benimEmailim) {
+                                bildirimleriKontrolEt();
+                            }
+                        }
                     }
                 ).subscribe();
         }
 
-        // YENİ VE İYİLEŞTİRİLMİŞ: Tıklanabilir Teklif Kartı
         async function eskiMesajlariGetir(seciliSohbet) {
             if(!aktifTeklifId) return;
             const kutu = document.getElementById('mesajlar-kutusu');
@@ -492,7 +559,6 @@
                     ? `SİZE SUNULAN TAKAS TEKLİFİ` 
                     : `SİZİN SUNDUĞUNUZ TAKAS TEKLİFİ`;
 
-                // DÜZELTME BURADA: a etiketi kullanıldı ve tıklanınca yeni sekmede (target="_blank") ilana gitmesi sağlandı
                 teklifKartHtml = `
                 <div class="w-full bg-[#0f172a] rounded-2xl shadow-md border border-gray-800 p-4 mb-6 relative overflow-hidden flex-shrink-0">
                     <div class="absolute -right-4 -top-4 opacity-10"><svg class="w-24 h-24 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path></svg></div>
@@ -601,12 +667,13 @@
                 gorunenIsim = meta.ad_soyad ? meta.ad_soyad.toUpperCase() : session.user.email.split('@')[0].toUpperCase();
             }
             
+            // DÜZELTME: Rozetler (Badge) menu icine eklendi
             menuDiv.innerHTML = `
                 <a href="profil.html" class="text-[#facc15] font-black text-xs uppercase tracking-widest border-b-2 border-[#facc15] hover:border-white transition-colors pb-0.5">${gorunenIsim}</a>
                 <a href="favorilerim.html" class="text-gray-400 font-bold text-[11px] uppercase tracking-widest hover:text-white transition-colors">FAVORİLERİM</a>
                 <a href="ilanlarim.html" class="text-gray-400 font-bold text-[11px] uppercase tracking-widest hover:text-white transition-colors">İLANLARIM</a>
-                <a href="sohbetler.html" class="text-white font-black text-[11px] uppercase tracking-widest transition-colors">MESAJLARIM</a>
-                <a href="teklifler.html" class="text-gray-400 font-bold text-[11px] uppercase tracking-widest hover:text-white transition-colors">TEKLİFLERİM</a>
+                <a href="sohbetler.html" class="text-white font-black text-[11px] uppercase tracking-widest transition-colors flex items-center">MESAJLARIM <span class="nav-mesaj-badge"></span></a>
+                <a href="teklifler.html" class="text-gray-400 font-bold text-[11px] uppercase tracking-widest hover:text-white transition-colors flex items-center">TEKLİFLERİM <span class="nav-teklif-badge"></span></a>
                 <span class="text-gray-700">|</span>
                 <button onclick="cikisYap()" class="text-red-500 font-bold text-[11px] uppercase tracking-widest hover:text-red-400">ÇIKIŞ</button>
                 <a href="ilan-ver.html" class="ml-2 bg-[#facc15] text-[#0f172a] px-6 py-2.5 rounded-lg font-black text-[11px] uppercase tracking-widest shadow-sm">İLAN VER</a>
@@ -620,8 +687,9 @@
             mobileMenu.innerHTML = `
                 <a href="profil.html" class="block px-6 py-4 text-[#facc15] font-black text-[11px] uppercase tracking-widest border-b border-gray-800">${gorunenIsim}</a>
                 <a href="favorilerim.html" class="block px-6 py-4 text-gray-300 font-bold text-[11px] uppercase tracking-widest border-b border-gray-800 hover:bg-gray-800 transition-colors">FAVORİLERİM</a>
-                <a href="sohbetler.html" class="block px-6 py-4 text-[#facc15] font-black text-[11px] uppercase tracking-widest border-b border-gray-800">MESAJLARIM</a>
-                <a href="teklifler.html" class="block px-6 py-4 text-gray-300 font-bold text-[11px] uppercase tracking-widest border-b border-gray-800 hover:bg-gray-800 transition-colors">TEKLİFLERİM</a>
+                <a href="ilanlarim.html" class="block px-6 py-4 text-gray-300 font-bold text-[11px] uppercase tracking-widest border-b border-gray-800 hover:bg-gray-800 transition-colors">İLANLARIM</a>
+                <a href="sohbetler.html" class="px-6 py-4 text-[#facc15] font-black text-[11px] uppercase tracking-widest border-b border-gray-800 flex items-center justify-between"><span>MESAJLARIM</span> <span class="nav-mesaj-badge"></span></a>
+                <a href="teklifler.html" class="px-6 py-4 text-gray-300 font-bold text-[11px] uppercase tracking-widest border-b border-gray-800 hover:bg-gray-800 transition-colors flex items-center justify-between"><span>TEKLİFLERİM</span> <span class="nav-teklif-badge"></span></a>
                 <button onclick="cikisYap()" class="w-full text-left block px-6 py-4 text-red-500 font-bold text-[11px] uppercase tracking-widest border-b border-gray-800 hover:bg-gray-800 transition-colors">ÇIKIŞ</button>
             `;
         }
