@@ -168,11 +168,10 @@
 
         async function sohbetListesiniCek() {
             try {
-                // 1. DÜZELTME: Veritabanından teklif_edilen_ilan_id ve teklif_nakit sütunlarını da çekiyoruz
                 const { data: gidenler, error: gidenErr } = await _supabase.from('teklifler')
                     .select('id, ilan_id, teklif_veren_email, durum, ilan_sahibi_onay, teklif_veren_onay, ilan_sahibi_puan, teklif_veren_puan, teklif_edilen_ilan_id, teklif_nakit')
                     .eq('teklif_veren_email', benimEmailim)
-                    .in('durum', ['Kabul Edildi', 'Tamamlandı', 'Bekliyor']); // Bekleyen teklifleri de mesaja düşürebilirsin istersen, ama biz mevcut sistemi bozmayalım
+                    .in('durum', ['Kabul Edildi', 'Tamamlandı', 'Bekliyor']);
                 
                 if(gidenErr) throw gidenErr;
                 
@@ -198,7 +197,6 @@
                     return;
                 }
 
-                // 2. DÜZELTME: Hem asıl ilanların hem de TEKLİF EDİLEN ilanların detaylarını tek seferde çekelim
                 const tumİlgiliIlanIdleri = [...new Set([
                     ...birlesikTeklifler.map(t => t.ilan_id),
                     ...birlesikTeklifler.map(t => t.teklif_edilen_ilan_id).filter(id => id != null)
@@ -209,7 +207,7 @@
 
                 tumSohbetler = birlesikTeklifler.map(teklif => {
                     const ilan = tumIlanDetaylari?.find(i => i.id === teklif.ilan_id);
-                    const teklifEdilenIlan = tumIlanDetaylari?.find(i => i.id === teklif.teklif_edilen_ilan_id); // Teklif edilen eşya detayı
+                    const teklifEdilenIlan = tumIlanDetaylari?.find(i => i.id === teklif.teklif_edilen_ilan_id); 
                     
                     if(!ilan) return null; 
                     
@@ -296,7 +294,6 @@
 
             document.getElementById('mesajlar-kutusu').innerHTML = `<div class="text-center text-xs font-bold text-gray-400 mt-10">Mesajlar Yükleniyor...</div>`;
 
-            // YENİ: Eski mesajları ve TEKLİF KARTINI getir
             eskiMesajlariGetir(seciliSohbet);
             canliYayinAboneligiBaslat(); 
         }
@@ -368,7 +365,7 @@
                 const { data: guncelTeklif } = await _supabase.from('teklifler').select('*').eq('id', aktifTeklifId).single();
                 
                 if (guncelTeklif.ilan_sahibi_onay && guncelTeklif.teklif_veren_onay) {
-                    finalKapatma(guncelTeklif.ilan_id, aktifTeklifId, guncelTeklif.teklif_edilen_ilan_id); // Teklif edilen eşya id'sini de gönder
+                    finalKapatma(guncelTeklif.ilan_id, aktifTeklifId, guncelTeklif.teklif_edilen_ilan_id); 
                 } else {
                     modalAc("ONAY ALINDI", "Takas onayınız başarıyla sisteme kaydedildi. Karşı taraf da onayladığı an ilan vitrinden kaldırılacaktır.", "basarili");
                     await sohbetListesiniCek(); 
@@ -381,7 +378,6 @@
 
         async function finalKapatma(ilanId, teklifId, teklifEdilenIlanId) {
             try {
-                // Hem asıl ilanı hem de teklif edilen eşyayı (ilanı) "Takaslandı" yapıyoruz
                 await _supabase.from('ilanlar').update({ durum: 'Takaslandı' }).eq('id', ilanId);
                 if(teklifEdilenIlanId) {
                     await _supabase.from('ilanlar').update({ durum: 'Takaslandı' }).eq('id', teklifEdilenIlanId);
@@ -480,41 +476,46 @@
                 ).subscribe();
         }
 
-        // YENİ: Teklif Sözleşme Kartını ve Eski Mesajları Çiz
+        // YENİ VE İYİLEŞTİRİLMİŞ: Tıklanabilir Teklif Kartı
         async function eskiMesajlariGetir(seciliSohbet) {
             if(!aktifTeklifId) return;
             const kutu = document.getElementById('mesajlar-kutusu');
 
-            // 1. Önce en tepeye o meşhur "Teklif Sözleşmesi" kartını iğneliyoruz.
             let teklifKartHtml = "";
             if (seciliSohbet.teklif_edilen_ilan_detay) {
-                const sunulanEsyaResim = seciliSohbet.teklif_edilen_ilan_detay.resim_url ? seciliSohbet.teklif_edilen_ilan_detay.resim_url.split(',')[0] : '';
-                const sunulanEsyaBaslik = seciliSohbet.teklif_edilen_ilan_detay.baslik;
+                const sunulanEsya = seciliSohbet.teklif_edilen_ilan_detay;
+                const sunulanEsyaResim = sunulanEsya.resim_url ? sunulanEsya.resim_url.split(',')[0] : '';
+                const sunulanEsyaBaslik = sunulanEsya.baslik;
                 const nakitMetni = seciliSohbet.teklif_nakit > 0 ? `<div class="bg-green-50 text-green-700 px-3 py-1.5 rounded-lg border border-green-200 font-black text-[10px] md:text-xs tracking-widest mt-3 flex items-center justify-center gap-1.5"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> + ${seciliSohbet.teklif_nakit} TL NAKİT EKLENDİ</div>` : '';
                 
                 const kartBaslik = seciliSohbet.is_benim_ilanim 
                     ? `SİZE SUNULAN TAKAS TEKLİFİ` 
                     : `SİZİN SUNDUĞUNUZ TAKAS TEKLİFİ`;
 
+                // DÜZELTME BURADA: a etiketi kullanıldı ve tıklanınca yeni sekmede (target="_blank") ilana gitmesi sağlandı
                 teklifKartHtml = `
                 <div class="w-full bg-[#0f172a] rounded-2xl shadow-md border border-gray-800 p-4 mb-6 relative overflow-hidden flex-shrink-0">
                     <div class="absolute -right-4 -top-4 opacity-10"><svg class="w-24 h-24 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path></svg></div>
                     <div class="relative z-10">
                         <div class="text-[9px] md:text-[10px] font-black text-[#facc15] uppercase tracking-widest mb-3">${kartBaslik}</div>
-                        <div class="flex items-center gap-3 bg-white/10 p-3 rounded-xl border border-white/10 backdrop-blur-sm">
+                        
+                        <a href="detay.html?id=${sunulanEsya.id}" target="_blank" class="flex items-center gap-3 bg-white/10 p-3 rounded-xl border border-white/10 backdrop-blur-sm hover:bg-white/20 transition-colors cursor-pointer group">
                             <div class="w-12 h-12 rounded-lg bg-gray-200 overflow-hidden flex-shrink-0">
                                 ${sunulanEsyaResim ? `<img src="${sunulanEsyaResim}" class="w-full h-full object-cover">` : `<div class="w-full h-full flex items-center justify-center text-[8px] text-gray-500 font-bold">YOK</div>`}
                             </div>
-                            <div class="text-white min-w-0 flex-1">
-                                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-0.5">VERİLECEK EŞYA</p>
-                                <h4 class="font-black text-xs md:text-sm truncate uppercase">${sunulanEsyaBaslik}</h4>
+                            <div class="text-white min-w-0 flex-1 pr-2">
+                                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-0.5 group-hover:text-gray-300 transition-colors">VERİLECEK EŞYA</p>
+                                <h4 class="font-black text-xs md:text-sm truncate uppercase group-hover:text-[#facc15] transition-colors">${sunulanEsyaBaslik}</h4>
                             </div>
-                        </div>
+                            <div class="flex-shrink-0 text-gray-500 group-hover:text-[#facc15] transition-colors">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path></svg>
+                            </div>
+                        </a>
+
                         ${nakitMetni}
                     </div>
                 </div>`;
             } else {
-                // Eğer çok eskiden kalma "boş" bir teklifse
                 teklifKartHtml = `
                 <div class="w-full bg-gray-100 rounded-2xl border border-gray-200 p-4 mb-6 text-center text-[10px] font-bold text-gray-500 uppercase tracking-widest">
                     Bu teklifte eşya seçimi yapılmamış (Eski sistem).
@@ -530,8 +531,8 @@
                     return;
                 }
                 
-                kutu.innerHTML = teklifKartHtml; // Önce kartı bas
-                data.forEach(m => mesajiEkranaCiz(m)); // Sonra mesajları altına diz
+                kutu.innerHTML = teklifKartHtml; 
+                data.forEach(m => mesajiEkranaCiz(m));
 
             } catch (err) {
                 console.error("Mesajlar alınamadı: ", err);
