@@ -9,8 +9,8 @@
     <style>
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 10px; }
-        .tab-content { display: none; animation: fadeIn 0.3s; }
-        .tab-content.active { display: block; }
+        /* DÜZELTME: Eski sorunlu CSS tab-content kaldırıldı, yerine sadece yumuşak geçiş animasyonu eklendi */
+        .tab-icerik { animation: fadeIn 0.3s ease-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
@@ -49,9 +49,10 @@
                 </button>
             </div>
 
+            <!-- DÜZELTME: İlk açılışta Gelen flex, Giden hidden -->
             <div class="p-4 md:p-8 bg-gray-50/30">
-                <div id="icerik-gelen" class="tab-content active flex flex-col gap-6"></div>
-                <div id="icerik-giden" class="tab-content flex flex-col gap-6"></div>
+                <div id="icerik-gelen" class="tab-icerik flex flex-col gap-6"></div>
+                <div id="icerik-giden" class="tab-icerik hidden flex-col gap-6"></div>
             </div>
 
         </div>
@@ -93,16 +94,25 @@
             const icerikGelen = document.getElementById('icerik-gelen');
             const icerikGiden = document.getElementById('icerik-giden');
 
+            // DÜZELTME: Tailwind'in hidden ve flex classları Javascript ile değiştirilerek çakışma bitirildi
             if(sekmeAdi === 'gelen') {
                 btnGelen.className = "flex-1 py-4 text-xs font-black uppercase tracking-widest text-[#0f172a] border-b-2 border-[#facc15] transition-colors focus:outline-none";
                 btnGiden.className = "flex-1 py-4 text-xs font-black uppercase tracking-widest text-gray-400 border-b-2 border-transparent hover:text-gray-600 transition-colors focus:outline-none";
-                icerikGelen.classList.add('active');
-                icerikGiden.classList.remove('active');
+                
+                icerikGelen.classList.remove('hidden');
+                icerikGelen.classList.add('flex');
+                
+                icerikGiden.classList.remove('flex');
+                icerikGiden.classList.add('hidden');
             } else {
                 btnGiden.className = "flex-1 py-4 text-xs font-black uppercase tracking-widest text-[#0f172a] border-b-2 border-[#facc15] transition-colors focus:outline-none";
                 btnGelen.className = "flex-1 py-4 text-xs font-black uppercase tracking-widest text-gray-400 border-b-2 border-transparent hover:text-gray-600 transition-colors focus:outline-none";
-                icerikGiden.classList.add('active');
-                icerikGelen.classList.remove('active');
+                
+                icerikGiden.classList.remove('hidden');
+                icerikGiden.classList.add('flex');
+                
+                icerikGelen.classList.remove('flex');
+                icerikGelen.classList.add('hidden');
             }
         }
 
@@ -116,12 +126,19 @@
                 // 2. GELEN TEKLİFLER (Bana atılanlar)
                 let gelenTeklifler = [];
                 if(benimIlanIdleri.length > 0) {
-                    const { data } = await _supabase.from('teklifler').select('*').in('ilan_id', benimIlanIdleri).order('created_at', { ascending: false });
+                    const { data } = await _supabase.from('teklifler')
+                        .select('*')
+                        .in('ilan_id', benimIlanIdleri)
+                        .neq('teklif_veren_email', benimEmailim) // Kendi kendine teklif atma bug'ı önlemi
+                        .order('created_at', { ascending: false });
                     gelenTeklifler = data || [];
                 }
 
                 // 3. GİDEN TEKLİFLER (Benim attıklarım)
-                const { data: gidenTekliflerData } = await _supabase.from('teklifler').select('*').eq('teklif_veren_email', benimEmailim).order('created_at', { ascending: false });
+                const { data: gidenTekliflerData } = await _supabase.from('teklifler')
+                    .select('*')
+                    .eq('teklif_veren_email', benimEmailim)
+                    .order('created_at', { ascending: false });
                 let gidenTeklifler = gidenTekliflerData || [];
 
                 // 4. İLGİLİ TÜM İLANLARI ÇEK (Asıl ilanlar ve teklif edilen ilanlar)
