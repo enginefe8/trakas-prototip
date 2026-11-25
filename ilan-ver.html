@@ -2,112 +2,196 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Yeni İlan Ekle - Trakas Pazaryeri</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Yeni İlan Oluştur — Trakas</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 10px; }
+        body { font-family: 'Inter', system-ui, -apple-system, sans-serif; -webkit-tap-highlight-color: transparent; }
+        ::-webkit-scrollbar { width: 6px; height: 4px; }
+        ::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 3px; }
     </style>
 </head>
-<body class="bg-gray-100 font-sans min-h-screen flex flex-col text-gray-900">
+<body class="bg-[#f1f5f9] min-h-[100dvh] flex flex-col text-slate-900 antialiased overflow-x-hidden">
 
-    <nav class="bg-[#111827] px-6 py-4 flex justify-between items-center shadow-md">
-        <a href="index.html" class="text-3xl font-black text-white italic tracking-tighter uppercase">TRAKAS</a>
-        <div class="flex items-center gap-6">
-            <span id="user-name" class="text-yellow-500 font-bold text-sm uppercase tracking-widest hidden md:block"></span>
-            <a href="index.html" class="text-white font-bold text-sm uppercase tracking-wider hover:text-gray-300 transition-colors flex items-center gap-2">
-                <span>←</span> VİTRİNE DÖN
+    <!-- ÜST MENÜ -->
+    <nav class="bg-[#0b1120] border-b border-slate-800 sticky top-0 z-50 w-full">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex justify-between items-center">
+            <a href="index.html" class="flex items-center gap-2">
+                <span class="bg-[#facc15] text-[#0b1120] font-black text-sm px-2 py-0.5 rounded-sm tracking-tighter">TR</span>
+                <span class="text-2xl font-black text-white tracking-tight uppercase">TRAKAS</span>
             </a>
+            <div id="auth-menu" class="hidden lg:flex items-center gap-6"></div>
+            <div id="auth-menu-mobil" class="lg:hidden flex items-center gap-3"></div>
         </div>
+        <div id="mobile-menu" class="hidden absolute top-full left-0 w-full bg-[#0b1120] border-t border-slate-800 shadow-2xl flex-col z-50"></div>
     </nav>
 
-    <main class="max-w-4xl mx-auto p-4 md:p-8 w-full flex-grow flex items-start justify-center mt-4 md:mt-8">
-        
-        <div class="bg-white rounded-2xl shadow-sm border border-gray-200 w-full p-8 md:p-12">
-            
-            <div class="mb-8">
-                <h1 class="text-3xl md:text-4xl font-black text-[#111827] italic tracking-tight uppercase mb-2">YENİ İLAN OLUŞTUR</h1>
-                <p class="text-gray-500 font-medium text-sm">Takas etmek istediğiniz ürünün detaylarını eksiksiz doldurun.</p>
-                <div class="h-px bg-gray-100 w-full mt-6"></div>
+    <!-- KOYU BAŞLIK BANDI -->
+    <section class="bg-[#0f172a] border-b border-slate-800 w-full">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 py-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+                <h1 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+                    Yeni İlan Oluştur <span class="text-[#facc15]">.</span>
+                </h1>
+                <p class="text-slate-400 font-medium text-xs sm:text-sm mt-1">
+                    Takas etmek istediğin ürünün bilgilerini ve net fotoğraflarını ekle.
+                </p>
+            </div>
+            <a href="index.html" class="w-fit text-xs font-bold text-slate-300 hover:text-white uppercase tracking-wider flex items-center gap-1.5 transition-colors">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M15 19l-7-7 7-7"></path></svg>
+                Vitrine Dön
+            </a>
+        </div>
+    </section>
+
+    <!-- FORM ALANI -->
+    <main class="max-w-4xl mx-auto px-4 sm:px-6 py-6 w-full flex-grow">
+
+        <form id="ilan-formu" onsubmit="ilanGonder(event)" class="space-y-5">
+
+            <!-- BÖLÜM 1: TEMEL BİLGİLER -->
+            <div class="bg-white rounded-md border border-slate-200 p-5 sm:p-6">
+                <h2 class="text-xs font-extrabold text-slate-900 uppercase tracking-wider pb-3 mb-5 border-b border-slate-100 flex items-center gap-2">
+                    <span class="w-1.5 h-4 bg-[#0f172a] inline-block rounded-xs"></span>
+                    İlan Bilgileri
+                </h2>
+
+                <div class="space-y-5">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
+                        <div>
+                            <label for="baslik" class="block text-[11px] font-extrabold text-slate-600 uppercase tracking-wider mb-1.5">
+                                İlan Başlığı <span class="text-red-600">*</span>
+                            </label>
+                            <input
+                                type="text"
+                                id="baslik"
+                                required
+                                placeholder="Örn: Temiz iPhone 13 Pro 256GB"
+                                class="w-full bg-slate-50 border border-slate-300 px-3.5 py-3 min-h-[46px] rounded outline-none focus:bg-white focus:border-[#0f172a] text-base md:text-sm font-semibold text-slate-900 placeholder-slate-400 transition-colors"
+                            >
+                        </div>
+
+                        <div>
+                            <label for="kategori" class="block text-[11px] font-extrabold text-slate-600 uppercase tracking-wider mb-1.5">
+                                Kategori <span class="text-red-600">*</span>
+                            </label>
+                            <div class="relative">
+                                <select
+                                    id="kategori"
+                                    required
+                                    class="w-full bg-slate-50 border border-slate-300 px-3.5 py-3 min-h-[46px] rounded outline-none focus:bg-white focus:border-[#0f172a] text-base md:text-sm font-semibold text-slate-900 appearance-none cursor-pointer pr-10 transition-colors"
+                                >
+                                    <option value="" disabled selected>Kategori Seçiniz</option>
+                                    <option value="Elektronik">Elektronik</option>
+                                    <option value="Giyim & Aksesuar">Giyim & Aksesuar</option>
+                                    <option value="Araç">Araç</option>
+                                    <option value="Ev & Yaşam">Ev & Yaşam</option>
+                                    <option value="Eğlence & Hobi">Eğlence & Hobi</option>
+                                    <option value="Diğer">Diğer</option>
+                                </select>
+                                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-500">
+                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M19 9l-7 7-7-7"></path></svg>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="w-full md:w-1/2 md:pr-2.5">
+                        <label for="deger" class="block text-[11px] font-extrabold text-slate-600 uppercase tracking-wider mb-1.5">
+                            Tahmini Takas Değeri (₺) <span class="text-red-600">*</span>
+                        </label>
+                        <input
+                            type="number"
+                            id="deger"
+                            min="1"
+                            inputmode="numeric"
+                            required
+                            placeholder="Örn: 35000"
+                            class="w-full bg-slate-50 border border-slate-300 px-3.5 py-3 min-h-[46px] rounded outline-none focus:bg-white focus:border-[#0f172a] text-base md:text-sm font-extrabold text-slate-950 placeholder-slate-400 transition-colors"
+                        >
+                        <p class="text-[11px] text-slate-500 mt-1.5 font-medium">Dengeli takas teklifleri gelmesi için gerçekçi bir değer girin.</p>
+                    </div>
+
+                    <div>
+                        <label for="aciklama" class="block text-[11px] font-extrabold text-slate-600 uppercase tracking-wider mb-1.5">
+                            Ürün Açıklaması ve Takas Tercihleri <span class="text-red-600">*</span>
+                        </label>
+                        <textarea
+                            id="aciklama"
+                            required
+                            rows="4"
+                            placeholder="Ürünün durumunu, varsa kusurlarını ve hangi ürünlerle takas düşündüğünüzü yazın."
+                            class="w-full bg-slate-50 border border-slate-300 p-3.5 rounded outline-none focus:bg-white focus:border-[#0f172a] text-base md:text-sm font-medium transition-colors resize-y text-slate-900 placeholder-slate-400"
+                        ></textarea>
+                    </div>
+                </div>
             </div>
 
-            <form id="ilan-formu" onsubmit="ilanGonder(event)" class="space-y-8">
-                
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <div>
-                        <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest mb-3">
-                            İLAN BAŞLIĞI <span class="text-red-500">*</span>
-                        </label>
-                        <input type="text" id="baslik" required placeholder="Örn: Temiz iPhone 13 Pro" class="w-full bg-gray-50 border border-gray-100 p-4 rounded-xl outline-none focus:border-yellow-500 focus:ring-1 focus:ring-yellow-500 text-sm font-medium transition-all text-gray-800 placeholder-gray-400">
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest mb-3">
-                            KATEGORİ <span class="text-red-500">*</span>
-                        </label>
-                        <select id="kategori" required class="w-full bg-gray-50 border border-gray-100 p-4 rounded-xl outline-none focus:border-yellow-500 focus:ring-1 focus:ring-yellow-500 text-sm font-medium transition-all text-gray-800 appearance-none cursor-pointer">
-                            <option value="" disabled selected>Kategori Seçiniz</option>
-                            <option value="Elektronik">Elektronik</option>
-                            <option value="Giyim & Aksesuar">Giyim & Aksesuar</option>
-                            <option value="Araç">Araç</option>
-                            <option value="Ev & Yaşam">Ev & Yaşam</option>
-                            <option value="Eğlence & Hobi">Eğlence & Hobi</option>
-                            <option value="Diğer">Diğer</option>
-                        </select>
-                    </div>
+            <!-- BÖLÜM 2: GÖRSELLER -->
+            <div class="bg-white rounded-md border border-slate-200 p-5 sm:p-6">
+                <div class="flex items-center justify-between gap-2 pb-3 mb-4 border-b border-slate-100">
+                    <h2 class="text-xs font-extrabold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                        <span class="w-1.5 h-4 bg-[#facc15] inline-block rounded-xs"></span>
+                        Ürün Görselleri <span class="text-red-600">*</span>
+                    </h2>
+                    <span class="text-[11px] font-semibold text-slate-400">En fazla 8 fotoğraf</span>
                 </div>
 
-                <div class="w-full md:w-1/2 md:pr-4">
-                    <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest mb-3">
-                        TAHMİNİ DEĞER (TL) <span class="text-red-500">*</span>
-                    </label>
-                    <input type="number" id="deger" required placeholder="Örn: 35000" class="w-full bg-gray-50 border border-gray-100 p-4 rounded-xl outline-none focus:border-yellow-500 focus:ring-1 focus:ring-yellow-500 text-sm font-medium transition-all text-gray-800 placeholder-gray-400">
-                    <p class="text-[10px] text-gray-400 mt-2 font-medium">Bu değer, takas tekliflerinin dengeli olması için referans olarak kullanılacaktır.</p>
+                <div class="relative w-full bg-slate-50 border-2 border-dashed border-slate-300 rounded p-6 transition-colors hover:border-[#0f172a] hover:bg-slate-100/70">
+                    <input
+                        type="file"
+                        id="resim_dosyalar"
+                        multiple
+                        accept="image/*"
+                        class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                        onchange="resimOnizleme(this)"
+                    >
+                    <div id="resim-secici-icerik" class="flex flex-col items-center justify-center text-center pointer-events-none min-h-[76px]"></div>
                 </div>
 
-                <div>
-                    <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest mb-3">
-                        ÜRÜN AÇIKLAMASI VE TAKAS TERCİHLERİ <span class="text-red-500">*</span>
-                    </label>
-                    <textarea id="aciklama" required rows="4" placeholder="Ürününüzün durumunu, varsa kusurlarını ve ne tür ürünlerle takas düşündüğünüzü detaylıca yazın." class="w-full bg-gray-50 border border-gray-100 p-4 rounded-xl outline-none focus:border-yellow-500 focus:ring-1 focus:ring-yellow-500 text-sm font-medium transition-all resize-none text-gray-800 placeholder-gray-400"></textarea>
-                </div>
+                <div id="resim-grid-alani" class="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4 hidden"></div>
+            </div>
 
-                <div>
-                    <label class="block text-xs font-bold text-gray-700 uppercase tracking-widest mb-3">
-                        ÜRÜN GÖRSELLERİ <span class="text-red-500">*</span>
-                    </label>
-                    
-                    <div class="relative w-full bg-white border-2 border-dashed border-gray-300 rounded-2xl p-6 transition-all hover:border-gray-400 hover:bg-gray-50">
-                        
-                        <input type="file" id="resim_dosyalar" multiple accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" onchange="resimOnizleme(this)">
-                        
-                        <div id="resim-secici-icerik" class="flex flex-col items-center justify-center text-center transition-all duration-300 pointer-events-none min-h-[80px]">
-                            </div>
-                    </div>
+            <!-- GÖNDERİM ALANI -->
+            <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-1">
+                <p class="text-xs text-slate-500 font-medium">Görseller otomatik sıkıştırılarak hızlı şekilde yüklenir.</p>
+                <button
+                    type="submit"
+                    id="submit-btn"
+                    class="w-full sm:w-auto sm:px-10 bg-[#0f172a] hover:bg-black text-[#facc15] py-3.5 min-h-[48px] rounded font-extrabold text-xs uppercase tracking-wider transition-colors flex justify-center items-center gap-2 cursor-pointer"
+                >
+                    İlanı Yayına Al →
+                </button>
+            </div>
 
-                    <div id="resim-grid-alani" class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6 hidden">
-                        </div>
-                </div>
-
-                <div class="pt-6 border-t border-gray-100">
-                    <button type="submit" id="submit-btn" class="w-full md:w-auto md:px-12 bg-[#111827] text-white py-4 rounded-xl font-black text-sm uppercase tracking-widest shadow-lg hover:bg-black hover:-translate-y-0.5 transition-all flex justify-center items-center gap-2">
-                        İlanı Yayına Al
-                    </button>
-                </div>
-            </form>
-        </div>
+        </form>
     </main>
 
+    <!-- FOOTER -->
+    <footer class="bg-[#0b1120] border-t-2 border-[#facc15] pt-7 pb-[max(1.75rem,env(safe-area-inset-bottom))] w-full mt-auto">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row justify-between items-center gap-3">
+            <div class="flex items-center gap-2">
+                <span class="bg-[#facc15] text-[#0b1120] font-black text-xs px-1.5 py-0.5 rounded-sm">TR</span>
+                <span class="text-lg font-black text-white tracking-tight uppercase">TRAKAS</span>
+                <span class="text-slate-500 text-xs font-medium ml-2">Takas Pazaryeri</span>
+            </div>
+            <p class="text-slate-500 text-xs font-medium">© 2026 TRAKAS. Tüm hakları saklıdır.</p>
+        </div>
+    </footer>
+
+    <!-- MODAL -->
     <div id="ozel-modal" class="hidden fixed inset-0 z-[999] flex items-center justify-center px-4">
-        <div class="absolute inset-0 bg-gray-900/80 backdrop-blur-sm transition-opacity" onclick="modalKapat()"></div>
-        <div id="ozel-modal-kutu" class="relative bg-white p-8 rounded-3xl shadow-2xl w-full max-w-sm transform scale-95 opacity-0 transition-all duration-300">
+        <div class="absolute inset-0 bg-slate-950/75" onclick="modalKapat()"></div>
+        <div id="ozel-modal-kutu" class="relative bg-white p-6 rounded-md border border-slate-300 shadow-2xl w-full max-w-sm transform scale-95 opacity-0 transition-all duration-200">
             <div class="text-center">
-                <div id="modal-ikon" class="mx-auto flex items-center justify-center h-16 w-16 rounded-full mb-6"></div>
-                <h3 id="modal-baslik" class="text-xl font-black text-gray-900 mb-2 uppercase tracking-wide">Bilgi</h3>
-                <p id="modal-mesaj" class="text-gray-600 font-medium text-sm mb-8 leading-relaxed"></p>
-                <button id="modal-btn-ana" onclick="modalKapat()" class="w-full bg-[#111827] text-white font-black px-4 py-4 rounded-xl hover:bg-black transition-colors uppercase text-[10px] tracking-widest shadow-md">Tamam</button>
+                <div id="modal-ikon" class="mx-auto flex items-center justify-center h-12 w-12 rounded-md mb-4"></div>
+                <h3 id="modal-baslik" class="text-base font-extrabold text-slate-900 mb-2 uppercase tracking-wide">Bilgi</h3>
+                <p id="modal-mesaj" class="text-slate-600 font-medium text-sm mb-6 leading-relaxed"></p>
+                <button id="modal-btn-ana" onclick="modalKapat()" class="w-full bg-[#0f172a] hover:bg-black text-[#facc15] font-extrabold px-4 py-3 min-h-[44px] rounded transition-colors uppercase text-xs tracking-wider cursor-pointer">Tamam</button>
             </div>
         </div>
     </div>
@@ -124,12 +208,54 @@
             const { data: { session } } = await _supabase.auth.getSession();
             if (!session) { window.location.href = 'giris.html'; return; }
             benimEmailim = session.user.email;
-            document.getElementById('user-name').innerText = benimEmailim.split('@')[0].toUpperCase();
-            
+            menuOlustur(session);
             renderPreviews();
         }
 
-        // --- YENİ: GÖRSEL SIKIŞTIRMA MOTORU BAŞLANGIÇ ---
+        function toggleMobileMenu() { document.getElementById('mobile-menu').classList.toggle('hidden'); }
+
+        function menuOlustur(session) {
+            const menuDiv = document.getElementById('auth-menu');
+            const mobilTopDiv = document.getElementById('auth-menu-mobil');
+            const mobileMenu = document.getElementById('mobile-menu');
+            const user = session.user;
+            const meta = user.user_metadata || {};
+            const gorunenIsim = meta.ad_soyad ? meta.ad_soyad : user.email.split('@')[0];
+
+            menuDiv.innerHTML = `
+                <a href="profil.html" class="text-[#facc15] font-bold text-xs uppercase tracking-wider flex items-center gap-1.5 hover:text-yellow-300">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                    ${gorunenIsim}
+                </a>
+                <a href="favorilerim.html" class="text-slate-300 font-semibold text-xs hover:text-white transition-colors">Favorilerim</a>
+                <a href="ilanlarim.html" class="text-slate-300 font-semibold text-xs hover:text-white transition-colors">İlanlarım</a>
+                <a href="sohbetler.html" class="text-slate-300 font-semibold text-xs hover:text-white transition-colors">Mesajlar</a>
+                <a href="teklifler.html" class="text-slate-300 font-semibold text-xs hover:text-white transition-colors">Teklifler</a>
+                <span class="text-slate-700">|</span>
+                <button onclick="cikisYap()" class="text-slate-400 font-semibold text-xs hover:text-red-400 transition-colors cursor-pointer">Çıkış</button>
+                <a href="ilan-ver.html" class="bg-[#facc15] text-[#0b1120] px-4 py-2 rounded font-extrabold text-xs uppercase tracking-wider">+ İlan Ver</a>
+            `;
+
+            mobilTopDiv.innerHTML = `
+                <a href="index.html" class="text-slate-300 font-bold text-xs uppercase">Vitrin</a>
+                <button onclick="toggleMobileMenu()" class="text-white p-1.5 focus:outline-none">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                </button>
+            `;
+
+            mobileMenu.innerHTML = `
+                <a href="profil.html" class="block px-5 py-3.5 text-[#facc15] font-bold text-xs uppercase border-b border-slate-800">${gorunenIsim}</a>
+                <a href="favorilerim.html" class="block px-5 py-3.5 text-slate-300 font-semibold text-xs border-b border-slate-800">Favorilerim</a>
+                <a href="ilanlarim.html" class="block px-5 py-3.5 text-slate-300 font-semibold text-xs border-b border-slate-800">İlanlarım</a>
+                <a href="sohbetler.html" class="block px-5 py-3.5 text-slate-300 font-semibold text-xs border-b border-slate-800">Mesajlar</a>
+                <a href="teklifler.html" class="block px-5 py-3.5 text-slate-300 font-semibold text-xs border-b border-slate-800">Teklifler</a>
+                <button onclick="cikisYap()" class="w-full text-left block px-5 py-3.5 text-red-400 font-semibold text-xs">Çıkış Yap</button>
+            `;
+        }
+
+        async function cikisYap() { await _supabase.auth.signOut(); window.location.href = 'index.html'; }
+
+        // GÖRSEL SIKIŞTIRMA MOTORU
         function resmiSikistir(file, maxWidth, maxHeight, quality) {
             return new Promise((resolve, reject) => {
                 const reader = new FileReader();
@@ -141,7 +267,6 @@
                         let width = img.width;
                         let height = img.height;
 
-                        // Oranları koruyarak boyutları hesapla
                         if (width > height) {
                             if (width > maxWidth) {
                                 height = Math.round((height *= maxWidth / width));
@@ -154,19 +279,14 @@
                             }
                         }
 
-                        // Görünmez bir tuval (canvas) oluştur
                         const canvas = document.createElement('canvas');
                         canvas.width = width;
                         canvas.height = height;
                         const ctx = canvas.getContext('2d');
-                        
-                        // Resmi tuvale çiz
                         ctx.drawImage(img, 0, 0, width, height);
 
-                        // Tuvaldeki resmi JPEG formatında belirtilen kalitede sıkıştırarak al
                         canvas.toBlob((blob) => {
                             if (blob) {
-                                // Orijinal dosya adıyla yeni bir File objesi oluştur
                                 const compressedFile = new File([blob], file.name.replace(/\.[^/.]+$/, ".jpg"), {
                                     type: 'image/jpeg',
                                     lastModified: Date.now()
@@ -182,33 +302,28 @@
                 reader.onerror = function(error) { reject(error); };
             });
         }
-        // --- YENİ: GÖRSEL SIKIŞTIRMA MOTORU BİTİŞ ---
 
-        // Resim önizleme fonksiyonu güncellendi (Seçildiği anda sıkıştırıyor)
         async function resimOnizleme(input) {
             if (input.files) {
                 const newFiles = Array.from(input.files);
-                if(secilenDosyalar.length + newFiles.length > 8) {
+                if (secilenDosyalar.length + newFiles.length > 8) {
                     modalAc("Sınır Aşıldı", "Maksimum 8 resim yükleyebilirsiniz.", "uyari");
                     input.value = "";
                     return;
                 }
-                
-                // Seçilen dosyaları döngüye al ve her birini sıkıştır
+
                 for (let i = 0; i < newFiles.length; i++) {
                     const originalFile = newFiles[i];
                     try {
-                        // Maksimum genişlik 1024px, Maksimum Yükseklik 1024px, Kalite %80 (0.8)
                         const compressedFile = await resmiSikistir(originalFile, 1024, 1024, 0.8);
                         secilenDosyalar.push(compressedFile);
                     } catch (error) {
                         console.error("Resim sıkıştırma hatası:", error);
-                        // Eğer sıkıştırma hata verirse orijinalini yükle
-                        secilenDosyalar.push(originalFile); 
+                        secilenDosyalar.push(originalFile);
                     }
                 }
-                
-                input.value = ""; 
+
+                input.value = "";
                 renderPreviews();
             }
         }
@@ -221,52 +336,56 @@
         function renderPreviews() {
             const grid = document.getElementById('resim-grid-alani');
             const seciciIcerik = document.getElementById('resim-secici-icerik');
-            
+
             grid.innerHTML = "";
-            
-            if(secilenDosyalar.length === 0) {
+
+            if (secilenDosyalar.length === 0) {
                 grid.classList.add('hidden');
                 seciciIcerik.innerHTML = `
-                    <svg class="w-10 h-10 text-gray-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
-                    <p class="text-sm font-bold text-gray-600">Görsel Seç / Sürükle Bırak</p>
-                    <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">Maksimum 8 Görsel Yükleyebilirsiniz</p>
+                    <svg class="w-8 h-8 text-slate-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                    <p class="text-sm font-bold text-slate-800">Fotoğraf Seç veya Sürükle</p>
+                    <p class="text-xs font-medium text-slate-500 mt-1">JPG, PNG, WEBP — İlk fotoğraf kapak görseli olur</p>
                 `;
                 return;
             } else {
                 grid.classList.remove('hidden');
                 seciciIcerik.innerHTML = `
-                    <svg class="w-8 h-8 text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                    <p class="text-xs font-bold text-gray-500 uppercase tracking-widest">Daha Fazla Görsel Ekle</p>
+                    <svg class="w-6 h-6 text-slate-500 mb-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M12 4v16m8-8H4"></path></svg>
+                    <p class="text-xs font-extrabold text-slate-700 uppercase tracking-wider">Daha Fazla Fotoğraf Ekle (${secilenDosyalar.length}/8)</p>
                 `;
             }
 
             secilenDosyalar.forEach((dosya, index) => {
                 const reader = new FileReader();
                 reader.onload = function(e) {
+                    const kapakRozet = index === 0
+                        ? `<span class="absolute bottom-1.5 left-1.5 bg-[#0b1120]/90 text-[#facc15] px-1.5 py-0.5 rounded-sm text-[9px] font-extrabold uppercase tracking-wider">Kapak</span>`
+                        : '';
                     const thumbnailHtml = `
-                    <div class="relative group aspect-square bg-gray-50 border border-gray-200 rounded-xl overflow-hidden shadow-sm">
+                    <div class="relative group aspect-square bg-slate-100 border border-slate-300 rounded overflow-hidden">
                         <img src="${e.target.result}" class="w-full h-full object-cover">
-                        <button type="button" onclick="resimSil(${index})" class="absolute top-2 right-2 bg-red-500 text-white w-6 h-6 rounded-full flex items-center justify-center font-bold text-sm opacity-0 group-hover:opacity-100 transition-opacity z-20 shadow-md">×</button>
+                        ${kapakRozet}
+                        <button type="button" onclick="resimSil(${index})" class="absolute top-1.5 right-1.5 bg-red-600 hover:bg-red-700 text-white w-7 h-7 rounded-sm flex items-center justify-center font-extrabold text-sm opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity z-20 cursor-pointer">×</button>
                     </div>`;
                     grid.insertAdjacentHTML('beforeend', thumbnailHtml);
-                }
+                };
                 reader.readAsDataURL(dosya);
             });
         }
 
         async function ilanGonder(event) {
             event.preventDefault();
-            
-            if(secilenDosyalar.length === 0) {
+
+            if (secilenDosyalar.length === 0) {
                 modalAc("Eksik Bilgi", "Lütfen en az bir adet ürün görseli ekleyin.", "uyari");
                 return;
             }
 
             const btn = document.getElementById('submit-btn');
             const orijinalHTML = btn.innerHTML;
-            
+
             btn.disabled = true;
-            btn.innerHTML = `<svg class="animate-spin h-5 w-5 text-white mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> İŞLENİYOR...`;
+            btn.innerHTML = `<svg class="animate-spin h-4 w-4 text-[#facc15]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Yükleniyor...`;
             btn.classList.add('cursor-not-allowed', 'opacity-90');
 
             try {
@@ -274,16 +393,15 @@
                 const aciklama = document.getElementById('aciklama').value.trim();
                 const kategori = document.getElementById('kategori').value;
                 const deger = document.getElementById('deger').value;
-                
+
                 let yuklenenUrlDizisi = [];
                 const storageBucket = _supabase.storage.from('ilan-resimleri');
 
-                for(const dosya of secilenDosyalar) {
+                for (const dosya of secilenDosyalar) {
                     const dosyaUzantisi = dosya.name.split('.').pop();
                     const dosyaAdi = `${Date.now()}-${Math.random().toString(36).substring(7)}.${dosyaUzantisi}`;
-                    
-                    const { data: uploadData, error: uploadError } = await storageBucket.upload(dosyaAdi, dosya);
 
+                    const { data: uploadData, error: uploadError } = await storageBucket.upload(dosyaAdi, dosya);
                     if (uploadError) throw new Error(`${dosya.name} yüklenemedi: ${uploadError.message}`);
 
                     const { data: urlData } = storageBucket.getPublicUrl(dosyaAdi);
@@ -309,17 +427,17 @@
                 secilenDosyalar = [];
                 renderPreviews();
                 modalAc("Başarılı", "İlanınız ve tüm görselleriniz başarıyla yüklendi. Vitrine yönlendiriliyorsunuz...", "basarili", () => window.location.href = 'index.html');
-                
+
             } catch (err) {
                 btn.disabled = false;
                 btn.innerHTML = orijinalHTML;
                 btn.classList.remove('cursor-not-allowed', 'opacity-90');
-                
+
                 let hataMesaji = err.message;
-                if(hataMesaji.includes('Bucket not found')) {
+                if (hataMesaji.includes('Bucket not found')) {
                     hataMesaji = "Supabase panelinde 'ilan-resimleri' adında bir Storage (Kova) oluşturmanız gerekiyor.";
                 }
-                
+
                 modalAc("Hata", hataMesaji, "hata");
             }
         }
@@ -329,29 +447,29 @@
             document.getElementById('modal-baslik').innerText = baslik;
             document.getElementById('modal-mesaj').innerText = mesaj;
             modalOnayFonk = onayFonk;
-            
+
             const ikon = document.getElementById('modal-ikon');
-            if(tip === 'basarili') { 
-                ikon.className = "mx-auto h-16 w-16 rounded-full bg-green-50 flex items-center justify-center text-green-500 font-bold text-2xl border border-green-100"; 
-                ikon.innerHTML = "✓"; 
-            } else if (tip === 'hata') { 
-                ikon.className = "mx-auto h-16 w-16 rounded-full bg-red-50 flex items-center justify-center text-red-500 font-bold text-2xl border border-red-100"; 
-                ikon.innerHTML = "!"; 
-            } else { 
-                 ikon.className = "mx-auto h-16 w-16 rounded-full bg-yellow-50 flex items-center justify-center text-yellow-500 font-bold text-2xl border border-yellow-100"; 
-                ikon.innerHTML = "?"; 
+            if (tip === 'basarili') {
+                ikon.className = "mx-auto h-12 w-12 rounded-md bg-emerald-50 flex items-center justify-center text-emerald-600 font-extrabold text-xl border border-emerald-200 mb-4";
+                ikon.innerHTML = "✓";
+            } else if (tip === 'hata') {
+                ikon.className = "mx-auto h-12 w-12 rounded-md bg-red-50 flex items-center justify-center text-red-600 font-extrabold text-xl border border-red-200 mb-4";
+                ikon.innerHTML = "!";
+            } else {
+                ikon.className = "mx-auto h-12 w-12 rounded-md bg-amber-50 flex items-center justify-center text-amber-600 font-extrabold text-xl border border-amber-200 mb-4";
+                ikon.innerHTML = "?";
             }
-            
+
             document.getElementById('ozel-modal').classList.remove('hidden');
             setTimeout(() => { document.getElementById('ozel-modal-kutu').classList.remove('scale-95', 'opacity-0'); }, 10);
 
-            if(tip === 'basarili' && onayFonk) setTimeout(() => { modalKapat(); onayFonk(); }, 2500);
+            if (tip === 'basarili' && onayFonk) setTimeout(() => { modalKapat(); onayFonk(); }, 2500);
         }
 
         function modalKapat() {
             document.getElementById('ozel-modal-kutu').classList.add('scale-95', 'opacity-0');
-            setTimeout(() => { document.getElementById('ozel-modal').classList.add('hidden'); }, 300);
-            if(modalOnayFonk && (document.getElementById('modal-ikon').innerText === '!' || document.getElementById('modal-ikon').innerText === '?')) modalOnayFonk = null;
+            setTimeout(() => { document.getElementById('ozel-modal').classList.add('hidden'); }, 200);
+            if (modalOnayFonk && (document.getElementById('modal-ikon').innerText === '!' || document.getElementById('modal-ikon').innerText === '?')) modalOnayFonk = null;
         }
 
         yetkiKontrol();
