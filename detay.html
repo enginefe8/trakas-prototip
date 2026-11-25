@@ -35,73 +35,134 @@
 
     <!-- ÜST GEZİNTİ ŞERİDİ -->
     <div class="bg-white border-b border-slate-200 w-full">
-        <div class="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex justify-between items-center">
-            <a href="index.html" class="text-xs font-bold text-slate-600 hover:text-slate-950 uppercase tracking-wider transition-colors flex items-center gap-1.5">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M15 19l-7-7 7-7"></path></svg>
-                Vitrine Dön
-            </a>
-            <span id="ilan-no" class="text-xs font-bold text-slate-400 uppercase tracking-wider">İlan #--</span>
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex flex-wrap justify-between items-center gap-2">
+            <div class="flex items-center gap-2 text-xs font-semibold text-slate-500 min-w-0">
+                <a href="index.html" class="text-slate-700 hover:text-slate-950 font-bold flex items-center gap-1 transition-colors flex-shrink-0">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M15 19l-7-7 7-7"></path></svg>
+                    Vitrin
+                </a>
+                <span class="text-slate-300">/</span>
+                <span id="ilan-kategori" class="text-slate-600 font-semibold truncate">Yükleniyor...</span>
+            </div>
+            <div class="flex items-center gap-2.5 flex-shrink-0">
+                <span id="vitrin-rozet" class="hidden bg-[#0b1120] text-[#facc15] border border-[#facc15] text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-sm">★ Vitrin</span>
+                <span id="ilan-no" class="text-xs font-bold text-slate-400">İlan #--</span>
+            </div>
         </div>
     </div>
 
-    <!-- ANA İÇERİK -->
-    <main class="max-w-6xl mx-auto px-4 sm:px-6 py-6 w-full flex-grow">
+    <!-- ANA İÇERİK (2 SÜTUNLU PAZARYERİ MİMARİSİ) -->
+    <main id="detay-alani" class="max-w-7xl mx-auto px-4 sm:px-6 py-5 sm:py-6 w-full flex-grow opacity-0 transition-opacity duration-300">
 
-        <div class="bg-white rounded-md border border-slate-200 w-full p-4 sm:p-6 lg:p-8 flex flex-col lg:flex-row gap-6 lg:gap-10">
+        <!-- BAŞLIK SATIRI -->
+        <div class="mb-4 sm:mb-5">
+            <h1 id="ilan-baslik" class="text-xl sm:text-2xl font-extrabold text-slate-950 tracking-tight leading-snug break-words">Yükleniyor...</h1>
+        </div>
 
-            <!-- SOL: GALERİ -->
-            <div class="w-full lg:w-1/2 flex flex-col gap-3">
-                <div class="w-full aspect-[4/3] sm:aspect-square bg-slate-100 rounded border border-slate-200 flex items-center justify-center overflow-hidden relative">
-                    <img id="ana-resim" src="" class="w-full h-full object-contain p-1 transition-opacity duration-200">
-                    <div id="resim-yok-ikon" class="hidden text-slate-400 flex-col items-center gap-2">
-                        <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                        <span class="text-xs font-bold uppercase tracking-wider">Görsel Yok</span>
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+
+            <!-- SOL KOLON: GALERİ + AÇIKLAMA (8/12) -->
+            <div class="lg:col-span-8 flex flex-col gap-5 min-w-0">
+
+                <!-- GALERİ KARTI -->
+                <div class="bg-white rounded-md border border-slate-200 overflow-hidden">
+                    <div class="w-full h-[260px] sm:h-[400px] lg:h-[460px] bg-[#0b1120] flex items-center justify-center overflow-hidden relative">
+                        <img id="ana-resim" src="" class="w-full h-full object-contain transition-opacity duration-200">
+                        <div id="resim-yok-ikon" class="hidden text-slate-500 flex-col items-center gap-2">
+                            <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                            <span class="text-xs font-bold uppercase tracking-wider">Görsel Yok</span>
+                        </div>
+                        <span id="galeri-sayac" class="hidden absolute bottom-3 right-3 bg-black/75 text-white text-[11px] font-bold px-2.5 py-1 rounded-sm tracking-wider">1 / 1</span>
                     </div>
+
+                    <div id="kucuk-resimler-alani" class="hidden p-3 bg-slate-50 border-t border-slate-200 flex gap-2 overflow-x-auto no-scrollbar scroll-smooth"></div>
                 </div>
-                <div id="kucuk-resimler-alani" class="flex gap-2.5 overflow-x-auto no-scrollbar pb-1 hidden scroll-smooth"></div>
+
+                <!-- TAKAS TERCİHİ (VARSA) -->
+                <div id="takas-tercihi-kutu" class="hidden bg-white rounded-md border border-slate-200 p-5">
+                    <h2 class="text-xs font-extrabold text-slate-900 uppercase tracking-wider pb-3 mb-3 border-b border-slate-100 flex items-center gap-2">
+                        <span class="w-1.5 h-4 bg-[#facc15] inline-block rounded-xs"></span>
+                        Takas Tercihi
+                    </h2>
+                    <p id="ilan-takas-tercihi" class="text-sm font-semibold text-slate-700 leading-relaxed break-words"></p>
+                </div>
+
+                <!-- İLAN AÇIKLAMASI KARTI -->
+                <div class="bg-white rounded-md border border-slate-200 p-5">
+                    <h2 class="text-xs font-extrabold text-slate-900 uppercase tracking-wider pb-3 mb-3 border-b border-slate-100 flex items-center gap-2">
+                        <span class="w-1.5 h-4 bg-[#0f172a] inline-block rounded-xs"></span>
+                        İlan Açıklaması
+                    </h2>
+                    <p id="ilan-aciklama" class="text-slate-700 font-normal leading-relaxed text-sm whitespace-pre-line break-words">--</p>
+                </div>
+
             </div>
 
-            <!-- SAĞ: BİLGİLER VE AKSİYON -->
-            <div class="w-full lg:w-1/2 flex flex-col justify-between">
-                <div id="detay-alani" class="opacity-0 transition-opacity duration-300">
-                    <div class="flex flex-wrap items-center gap-2 mb-3">
-                        <span id="ilan-kategori" class="bg-[#0f172a] text-[#facc15] text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-1 rounded-sm">Yükleniyor...</span>
-                        <span id="vitrin-rozet" class="hidden bg-amber-100 text-amber-900 border border-amber-300 text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-1 rounded-sm">★ Vitrin İlanı</span>
-                    </div>
+            <!-- SAĞ KOLON: FİYAT, ÖZELLİKLER, AKSİYON VE SATICI (4/12 - STICKY) -->
+            <div class="lg:col-span-4 flex flex-col gap-4 lg:sticky lg:top-20 min-w-0">
 
-                    <h1 id="ilan-baslik" class="text-xl sm:text-2xl lg:text-3xl font-extrabold text-slate-950 tracking-tight leading-snug mb-5">Yükleniyor...</h1>
+                <!-- FİYAT + İLAN ÖZETİ + BUTONLAR KARTI -->
+                <div class="bg-white rounded-md border border-slate-200 overflow-hidden">
 
-                    <!-- FİYAT KUTUSU -->
-                    <div class="bg-[#0f172a] border border-slate-800 rounded p-4 mb-5 flex items-center justify-between gap-4">
-                        <div>
-                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Tahmini Takas Değeri</p>
-                            <span id="ilan-deger" class="text-2xl sm:text-3xl font-black text-[#facc15] tracking-tight">-- ₺</span>
+                    <!-- FİYAT ÜST BÖLÜMÜ -->
+                    <div class="p-5 border-b border-slate-200">
+                        <div class="flex items-center justify-between gap-2 mb-1">
+                            <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Tahmini Takas Değeri</span>
+                            <span id="durum-etiket" class="bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-sm">Takasa Açık</span>
                         </div>
-                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider bg-slate-800/80 px-2.5 py-1 rounded-sm">Takasa Açık</span>
+                        <div id="ilan-deger" class="text-3xl font-black text-slate-950 tracking-tight">-- ₺</div>
                     </div>
 
-                    <!-- TAKAS TERCİHİ (VARSA) -->
-                    <div id="takas-tercihi-kutu" class="hidden bg-slate-50 border border-slate-200 rounded p-3.5 mb-5">
-                        <p class="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider mb-1">Takas Tercihi</p>
-                        <p id="ilan-takas-tercihi" class="text-sm font-semibold text-slate-800 break-words"></p>
+                    <!-- KURUMSAL İLAN BİLGİ TABLOSU -->
+                    <div class="px-5 py-2 divide-y divide-slate-100 text-xs">
+                        <div class="py-2.5 flex justify-between items-center gap-3">
+                            <span class="text-slate-500 font-medium">İlan No</span>
+                            <span id="spec-no" class="font-bold text-slate-900">--</span>
+                        </div>
+                        <div class="py-2.5 flex justify-between items-center gap-3">
+                            <span class="text-slate-500 font-medium">Kategori</span>
+                            <span id="spec-kategori" class="font-bold text-slate-900 truncate">--</span>
+                        </div>
+                        <div class="py-2.5 flex justify-between items-center gap-3">
+                            <span class="text-slate-500 font-medium">İlan Tarihi</span>
+                            <span id="spec-tarih" class="font-bold text-slate-900">--</span>
+                        </div>
+                        <div class="py-2.5 flex justify-between items-center gap-3">
+                            <span class="text-slate-500 font-medium">Durum</span>
+                            <span id="spec-durum" class="font-bold text-slate-900">Aktif</span>
+                        </div>
                     </div>
 
-                    <!-- AÇIKLAMA -->
-                    <div class="mb-6">
-                        <h3 class="text-[11px] font-extrabold text-slate-500 uppercase tracking-wider mb-2 pb-2 border-b border-slate-200">İlan Açıklaması</h3>
-                        <p id="ilan-aciklama" class="text-slate-700 font-medium leading-relaxed text-sm whitespace-pre-line break-words">--</p>
-                    </div>
+                    <!-- AKSİYON ALANI -->
+                    <div class="p-5 pt-3 border-t border-slate-100 bg-slate-50/70">
+                        <div id="aksiyon-alani" class="flex gap-2.5 opacity-0 transition-opacity duration-300">
+                            <button id="detay-kalp-btn" onclick="favoriTetikleDetay()" title="Favorilere Ekle" class="kalp-btn-detay w-12 min-w-[48px] min-h-[46px] flex-shrink-0 bg-white border border-slate-300 text-slate-500 rounded flex items-center justify-center hover:border-red-400 hover:text-red-600 transition-colors focus:outline-none cursor-pointer">
+                                <svg id="detay-kalp-ikon" class="w-5 h-5 text-gray-400 transition-colors duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
+                            </button>
 
-                    <!-- İLAN SAHİBİ KARTI -->
-                    <div class="flex items-center gap-3.5 bg-slate-50 border border-slate-200 p-3.5 rounded mb-6">
+                            <button id="teklif-btn" onclick="teklifHazirlaModalAc()" class="flex-grow bg-[#0f172a] hover:bg-black text-[#facc15] py-3 min-h-[46px] rounded font-extrabold text-xs uppercase tracking-wider transition-colors flex justify-center items-center gap-2 cursor-pointer">
+                                Takas Teklifi Gönder
+                            </button>
+                        </div>
+
+                        <div id="kendi-ilanin-uyarisi" class="hidden">
+                            <div class="w-full bg-slate-100 text-slate-500 py-3 min-h-[46px] rounded font-bold text-xs uppercase tracking-wider border border-slate-200 text-center flex items-center justify-center">
+                                Bu Sizin İlanınız
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SATICI / İLAN SAHİBİ KARTI -->
+                <div class="bg-white rounded-md border border-slate-200 p-4">
+                    <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-3">İlan Sahibi</p>
+                    <div class="flex items-center gap-3">
                         <div class="w-11 h-11 bg-[#0f172a] rounded-sm flex items-center justify-center text-[#facc15] font-black text-base flex-shrink-0" id="sahip-harf">?</div>
-                        <div class="flex-grow min-w-0 flex flex-col justify-center">
-                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">İlan Sahibi</p>
-                            <div class="flex items-center gap-2.5 flex-wrap">
-                                <h4 id="sahip-email" class="font-extrabold text-slate-900 text-sm truncate uppercase tracking-tight">--</h4>
-
-                                <div id="guven-skoru-rozet" class="hidden items-center gap-1 bg-[#0f172a] text-[#facc15] px-2 py-0.5 rounded-sm text-[10px] font-extrabold tracking-wider">
-                                    <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
+                        <div class="flex-grow min-w-0">
+                            <h4 id="sahip-email" class="font-extrabold text-slate-900 text-sm truncate uppercase tracking-tight">--</h4>
+                            <div class="mt-1">
+                                <div id="guven-skoru-rozet" class="hidden items-center gap-1 bg-slate-900 text-[#facc15] px-2 py-0.5 rounded-sm text-[10px] font-bold tracking-wide">
+                                    <svg class="w-3 h-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
                                     <span id="guven-skoru-metin">Hesaplanıyor...</span>
                                 </div>
                             </div>
@@ -109,22 +170,11 @@
                     </div>
                 </div>
 
-                <!-- AKSİYON BUTONLARI -->
-                <div id="aksiyon-alani" class="mt-auto pt-4 border-t border-slate-200 flex gap-2.5 opacity-0 transition-opacity duration-300">
-                    <button id="detay-kalp-btn" onclick="favoriTetikleDetay()" class="kalp-btn-detay w-13 min-w-[52px] min-h-[48px] flex-shrink-0 bg-white border border-slate-300 text-slate-500 rounded flex items-center justify-center hover:bg-slate-50 hover:text-red-600 transition-colors focus:outline-none cursor-pointer">
-                        <svg id="detay-kalp-ikon" class="w-5 h-5 text-gray-400 transition-colors duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
-                    </button>
-
-                    <button id="teklif-btn" onclick="teklifHazirlaModalAc()" class="flex-grow bg-[#facc15] hover:bg-[#eab308] text-[#0b1120] py-3.5 min-h-[48px] rounded font-extrabold text-xs sm:text-sm uppercase tracking-wider transition-colors flex justify-center items-center gap-2 cursor-pointer">
-                        Takas Teklifi Gönder
-                    </button>
+                <!-- GÜVENLİK İPUCU KUTUSU -->
+                <div class="bg-slate-50 rounded-md border border-slate-200 px-4 py-3 text-[11px] text-slate-500 leading-relaxed">
+                    <span class="font-bold text-slate-700">Güvenli Takas:</span> Teklif kabul edildikten sonra görüşmeleri Trakas Mesajlar üzerinden yürütün ve ürünleri kontrol ederek teslim alın.
                 </div>
 
-                <div id="kendi-ilanin-uyarisi" class="mt-auto pt-4 border-t border-slate-200 hidden">
-                    <div class="w-full bg-slate-100 text-slate-500 py-3.5 min-h-[48px] rounded font-extrabold text-xs uppercase tracking-wider border border-slate-200 text-center flex items-center justify-center">
-                        Bu Sizin İlanınız
-                    </div>
-                </div>
             </div>
         </div>
     </main>
@@ -329,12 +379,28 @@
         function ekraniDoldur() {
             const degerSayi = Number(ilanVerisi.deger);
             const formatliDeger = isNaN(degerSayi) ? ilanVerisi.deger : degerSayi.toLocaleString('tr-TR');
+            const kategoriMetin = ilanVerisi.kategori || "Diğer";
+            const tarihMetin = ilanVerisi.created_at
+                ? new Date(ilanVerisi.created_at).toLocaleDateString('tr-TR', { day: '2-digit', month: 'long', year: 'numeric' })
+                : "-";
+            const durumMetin = ilanVerisi.durum || "Aktif";
 
             document.getElementById('ilan-baslik').innerText = ilanVerisi.baslik;
-            document.getElementById('ilan-aciklama').innerText = ilanVerisi.aciklama || "Açıklama girilmemiş.";
+            document.getElementById('ilan-aciklama').innerText = ilanVerisi.aciklama || "Satıcı tarafından açıklama eklenmemiş.";
             document.getElementById('ilan-deger').innerText = formatliDeger + " ₺";
-            document.getElementById('ilan-kategori').innerText = ilanVerisi.kategori || "Diğer";
+            document.getElementById('ilan-kategori').innerText = kategoriMetin;
             document.getElementById('ilan-no').innerText = "İlan #" + ilanVerisi.id;
+
+            document.getElementById('spec-no').innerText = "#" + ilanVerisi.id;
+            document.getElementById('spec-kategori').innerText = kategoriMetin;
+            document.getElementById('spec-tarih').innerText = tarihMetin;
+            document.getElementById('spec-durum').innerText = durumMetin;
+
+            if (durumMetin === 'Takaslandı') {
+                const etiket = document.getElementById('durum-etiket');
+                etiket.innerText = 'Takaslandı';
+                etiket.className = 'bg-slate-100 text-slate-600 border border-slate-300 text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-sm';
+            }
 
             if (ilanVerisi.vitrin_bitis && new Date(ilanVerisi.vitrin_bitis).getTime() > Date.now()) {
                 document.getElementById('vitrin-rozet').classList.remove('hidden');
@@ -374,26 +440,32 @@
         function galeriyiOlustur() {
             const anaResim = document.getElementById('ana-resim');
             const kucukResimlerAlani = document.getElementById('kucuk-resimler-alani');
+            const sayac = document.getElementById('galeri-sayac');
             anaResim.src = resimDizisi[0];
 
             if (resimDizisi.length > 1) {
+                sayac.innerText = `1 / ${resimDizisi.length}`;
+                sayac.classList.remove('hidden');
                 kucukResimlerAlani.classList.remove('hidden');
                 let html = "";
                 resimDizisi.forEach((url, index) => {
-                    const activeClass = index === 0 ? 'border-[#0f172a] opacity-100' : 'border-slate-200 opacity-65 hover:opacity-100';
-                    html += `<div onclick="resimDegistir('${url}', this)" class="thumbnail-item w-18 h-18 sm:w-20 sm:h-20 flex-shrink-0 rounded-sm overflow-hidden cursor-pointer border-2 ${activeClass} bg-slate-100 transition-opacity"><img src="${url}" class="w-full h-full object-cover"></div>`;
+                    const activeClass = index === 0 ? 'border-[#0f172a] opacity-100' : 'border-slate-200 opacity-60 hover:opacity-100';
+                    html += `<div onclick="resimDegistir('${url}', this, ${index})" class="thumbnail-item w-18 h-14 sm:w-20 sm:h-16 flex-shrink-0 rounded-sm overflow-hidden cursor-pointer border-2 ${activeClass} bg-slate-900 transition-opacity"><img src="${url}" class="w-full h-full object-cover"></div>`;
                 });
                 kucukResimlerAlani.innerHTML = html;
             }
         }
 
-        window.resimDegistir = function(url, tiklananElement) {
+        window.resimDegistir = function(url, tiklananElement, index) {
             const anaResim = document.getElementById('ana-resim');
             anaResim.style.opacity = 0;
             setTimeout(() => { anaResim.src = url; anaResim.style.opacity = 1; }, 120);
+            if (typeof index === 'number') {
+                document.getElementById('galeri-sayac').innerText = `${index + 1} / ${resimDizisi.length}`;
+            }
             const tumThumbnails = document.querySelectorAll('.thumbnail-item');
-            tumThumbnails.forEach(el => { el.className = "thumbnail-item w-18 h-18 sm:w-20 sm:h-20 flex-shrink-0 rounded-sm overflow-hidden cursor-pointer border-2 border-slate-200 opacity-65 hover:opacity-100 bg-slate-100 transition-opacity"; });
-            tiklananElement.className = "thumbnail-item w-18 h-18 sm:w-20 sm:h-20 flex-shrink-0 rounded-sm overflow-hidden cursor-pointer border-2 border-[#0f172a] opacity-100 bg-slate-100 transition-opacity";
+            tumThumbnails.forEach(el => { el.className = "thumbnail-item w-18 h-14 sm:w-20 sm:h-16 flex-shrink-0 rounded-sm overflow-hidden cursor-pointer border-2 border-slate-200 opacity-60 hover:opacity-100 bg-slate-900 transition-opacity"; });
+            tiklananElement.className = "thumbnail-item w-18 h-14 sm:w-20 sm:h-16 flex-shrink-0 rounded-sm overflow-hidden cursor-pointer border-2 border-[#0f172a] opacity-100 bg-slate-900 transition-opacity";
         }
 
         async function favoriTetikleDetay() {
@@ -512,7 +584,7 @@
                 const anaBtn = document.getElementById('teklif-btn');
                 anaBtn.innerText = "Teklif Gönderildi ✓";
                 anaBtn.disabled = true;
-                anaBtn.className = "flex-grow bg-emerald-600 text-white py-3.5 min-h-[48px] rounded font-extrabold text-xs sm:text-sm uppercase tracking-wider cursor-not-allowed text-center";
+                anaBtn.className = "flex-grow bg-emerald-600 text-white py-3 min-h-[46px] rounded font-extrabold text-xs uppercase tracking-wider cursor-not-allowed text-center";
 
             } catch (err) {
                 console.error(err);
