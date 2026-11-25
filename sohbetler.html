@@ -2,82 +2,113 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mesajlarım - Trakas</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Mesajlarım — Trakas</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-        .mesaj-giden { background-color: #0f172a; color: white; border-bottom-right-radius: 2px; }
-        .mesaj-gelen { background-color: #f1f5f9; color: #0f172a; border-bottom-left-radius: 2px; }
-        .star-btn { transition: all 0.2s; cursor: pointer; color: #d1d5db; }
-        .star-btn:hover, .star-btn.active { color: #facc15; transform: scale(1.1); }
+        body { font-family: 'Inter', system-ui, -apple-system, sans-serif; -webkit-tap-highlight-color: transparent; }
+        ::-webkit-scrollbar { width: 5px; height: 4px; }
+        ::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 3px; }
+        .mesaj-giden { background-color: #0f172a; color: #ffffff; border-bottom-right-radius: 2px; }
+        .mesaj-gelen { background-color: #ffffff; color: #0f172a; border-bottom-left-radius: 2px; }
+        .star-btn { transition: color 0.15s, transform 0.15s; cursor: pointer; color: #cbd5e1; }
+        .star-btn:hover, .star-btn.active { color: #facc15; transform: scale(1.08); }
     </style>
 </head>
-<body class="bg-gray-100 font-sans h-[100dvh] flex flex-col overflow-hidden w-full">
+<body class="bg-[#f1f5f9] h-[100dvh] flex flex-col overflow-hidden w-full text-slate-900 antialiased">
 
-    <nav class="bg-[#0f172a] px-6 py-4 flex justify-between items-center w-full shadow-md z-50 flex-shrink-0 relative">
-        <a href="index.html" class="text-3xl font-black text-white italic tracking-tighter uppercase">TRAKAS</a>
-        <div id="auth-menu" class="hidden lg:flex items-center gap-6"></div>
-        <div id="auth-menu-mobil" class="lg:hidden flex items-center gap-3"></div>
-        <div id="mobile-menu" class="hidden absolute top-full left-0 w-full bg-[#0f172a] border-t border-gray-800 shadow-2xl flex-col z-50"></div>
+    <!-- ÜST MENÜ -->
+    <nav class="bg-[#0b1120] border-b border-slate-800 w-full z-50 flex-shrink-0 relative">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex justify-between items-center">
+            <a href="index.html" class="flex items-center gap-2">
+                <span class="bg-[#facc15] text-[#0b1120] font-black text-sm px-2 py-0.5 rounded-sm tracking-tighter">TR</span>
+                <span class="text-2xl font-black text-white tracking-tight uppercase">TRAKAS</span>
+            </a>
+            <div id="auth-menu" class="hidden lg:flex items-center gap-6"></div>
+            <div id="auth-menu-mobil" class="lg:hidden flex items-center gap-3"></div>
+        </div>
+        <div id="mobile-menu" class="hidden absolute top-full left-0 w-full bg-[#0b1120] border-t border-slate-800 shadow-2xl flex-col z-50"></div>
     </nav>
 
-    <main class="flex-1 flex max-w-7xl mx-auto w-full p-2 md:p-4 gap-4 overflow-hidden min-h-0">
-        
-        <div class="w-full md:w-1/3 bg-white rounded-2xl shadow-sm border border-gray-200 flex flex-col h-full overflow-hidden">
-            <div class="p-4 border-b border-gray-100 bg-gray-50 flex-shrink-0">
-                <h2 class="text-lg font-black text-[#0f172a] tracking-widest uppercase">Mesajlarım</h2>
+    <!-- SOHBET ANA ALANI -->
+    <main class="flex-1 flex max-w-7xl mx-auto w-full p-0 md:p-4 gap-0 md:gap-4 overflow-hidden min-h-0">
+
+        <!-- SOL PANEL: SOHBET LİSTESİ (JS .md:w-1/3 seçicisi korundu) -->
+        <div class="w-full md:w-1/3 bg-white md:rounded-md border-r md:border border-slate-200 flex flex-col h-full overflow-hidden">
+            <div class="px-4 py-3.5 border-b border-slate-800 bg-[#0f172a] flex-shrink-0 flex items-center justify-between">
+                <h2 class="text-sm font-extrabold text-white tracking-wider uppercase">Mesajlarım</h2>
+                <span class="text-[10px] font-bold text-[#facc15] uppercase tracking-wider">Canlı</span>
             </div>
-            
-            <div id="sohbet-listesi" class="flex-grow overflow-y-auto p-2 space-y-1">
-                <div class="flex flex-col items-center justify-center py-10 text-gray-400">
-                    <svg class="animate-spin h-6 w-6 mb-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                    <span class="text-[10px] font-bold uppercase tracking-widest">Sohbetler Aranıyor...</span>
+
+            <div id="sohbet-listesi" class="flex-grow overflow-y-auto p-2 space-y-1.5 bg-white">
+                <div class="flex flex-col items-center justify-center py-12 text-slate-400">
+                    <svg class="animate-spin h-6 w-6 mb-2 text-[#0f172a]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span class="text-[11px] font-bold uppercase tracking-wider">Sohbetler yükleniyor...</span>
                 </div>
             </div>
         </div>
 
-        <div class="hidden md:flex flex-col w-full md:w-2/3 bg-white rounded-2xl shadow-sm border border-gray-200 h-full overflow-hidden relative" id="sohbet-alani">
-            
-            <div id="sohbet-bos" class="absolute inset-0 flex flex-col items-center justify-center bg-gray-50 z-10">
-                <div class="w-20 h-20 bg-gray-200 rounded-full flex items-center justify-center mb-4">
-                    <svg class="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
+        <!-- SAĞ PANEL: AKTİF SOHBET -->
+        <div class="hidden md:flex flex-col w-full md:w-2/3 bg-white md:rounded-md md:border border-slate-200 h-full overflow-hidden relative" id="sohbet-alani">
+
+            <div id="sohbet-bos" class="absolute inset-0 flex flex-col items-center justify-center bg-slate-50 z-10 px-6 text-center">
+                <div class="w-16 h-16 bg-[#0f172a] text-[#facc15] rounded-md flex items-center justify-center mb-4">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
                 </div>
-                <h3 class="text-xl font-black text-gray-800 uppercase tracking-widest">TRAKAS MESAJLAŞMA</h3>
-                <p class="text-xs text-gray-500 font-bold uppercase tracking-widest mt-2">Mesajlaşmaya başlamak için soldan bir sohbet seçin.</p>
+                <h3 class="text-base font-extrabold text-slate-900 uppercase tracking-wider">Trakas Mesajlaşma</h3>
+                <p class="text-xs text-slate-500 font-medium mt-1.5">Görüşmeye başlamak için soldan bir sohbet seçin.</p>
             </div>
 
-            <div id="sohbet-header" class="p-2 md:p-4 border-b border-gray-100 bg-white flex justify-between items-center shadow-sm z-0 flex-shrink-0 gap-2 w-full">
-                
-                <div class="flex items-center gap-2 md:gap-4 flex-1 min-w-0">
-                    <button onclick="solaDon()" class="md:hidden text-gray-500 hover:text-gray-900 flex-shrink-0 p-1">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+            <!-- SOHBET ÜST BİLGİ -->
+            <div id="sohbet-header" class="px-3 py-2.5 md:px-4 md:py-3 border-b border-slate-200 bg-white flex justify-between items-center z-0 flex-shrink-0 gap-2 w-full">
+
+                <div class="flex items-center gap-2.5 md:gap-3 flex-1 min-w-0">
+                    <button onclick="solaDon()" class="md:hidden text-slate-700 hover:text-slate-950 bg-slate-100 hover:bg-slate-200 rounded flex-shrink-0 p-2 min-w-[38px] min-h-[38px] flex items-center justify-center cursor-pointer">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M15 19l-7-7 7-7"></path></svg>
                     </button>
-                    <div class="w-10 h-10 md:w-12 md:h-12 bg-gray-100 rounded-md md:rounded-lg overflow-hidden border border-gray-200 flex-shrink-0">
+                    <div class="w-10 h-10 md:w-11 md:h-11 bg-slate-100 rounded-sm overflow-hidden border border-slate-200 flex-shrink-0">
                         <img id="header-ilan-resim" src="" class="w-full h-full object-cover">
                     </div>
                     <div class="flex-1 min-w-0 flex flex-col justify-center">
-                        <h3 id="header-ilan-baslik" class="font-black text-gray-900 uppercase tracking-tight text-[11px] md:text-sm truncate w-full">--</h3>
-                        <p class="text-[9px] md:text-[10px] font-bold text-gray-500 uppercase tracking-widest mt-0.5 truncate w-full">
-                            <span id="header-karsi-isim" class="text-[#0f172a]">--</span>
-                            <span class="hidden md:inline"> ile sohbet ediyorsunuz</span>
+                        <h3 id="header-ilan-baslik" class="font-extrabold text-slate-900 tracking-tight text-xs md:text-sm truncate w-full">--</h3>
+                        <p class="text-[11px] font-semibold text-slate-500 truncate w-full mt-0.5">
+                            <span id="header-karsi-isim" class="font-bold text-slate-900">--</span>
+                            <span class="hidden md:inline"> ile görüşüyorsunuz</span>
                         </p>
                     </div>
                 </div>
-                
+
                 <div id="header-sag-kisim" class="flex-shrink-0 flex items-center"></div>
 
             </div>
 
-            <div id="mesajlar-kutusu" class="flex-grow p-4 overflow-y-auto bg-slate-50 flex flex-col gap-3 min-h-0 relative"></div>
+            <!-- MESAJ LİSTESİ -->
+            <div id="mesajlar-kutusu" class="flex-grow p-3 sm:p-4 overflow-y-auto bg-[#f1f5f9] flex flex-col gap-2.5 min-h-0 relative"></div>
 
-            <form id="mesaj-gonderme-formu" onsubmit="mesajGonder(event)" class="hidden p-3 md:p-4 border-t border-gray-200 bg-white flex gap-2 md:gap-3 flex-shrink-0 pb-6 md:pb-4 z-20">
-                <input type="text" id="mesaj-input" required autocomplete="off" placeholder="Mesajınızı yazın..." class="flex-grow bg-gray-100 border-none px-4 py-3 rounded-xl outline-none focus:ring-2 focus:ring-[#facc15] text-sm font-medium text-gray-800 transition-all">
-                <button type="submit" id="gonder-btn" class="bg-[#0f172a] text-[#facc15] px-4 md:px-6 py-3 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-black transition-colors shadow-md flex-shrink-0">
-                    <span class="hidden md:inline">GÖNDER</span>
-                    <svg class="w-4 h-4 md:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>
+            <!-- MESAJ GÖNDERME FORMU (iOS zoom engeli + safe-area) -->
+            <form id="mesaj-gonderme-formu" onsubmit="mesajGonder(event)" class="hidden px-3 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] md:p-3.5 border-t border-slate-200 bg-white flex items-center gap-2 flex-shrink-0 z-20">
+                <input
+                    type="text"
+                    id="mesaj-input"
+                    required
+                    autocomplete="off"
+                    placeholder="Mesajınızı yazın..."
+                    class="flex-grow min-w-0 bg-slate-100 border border-slate-300 px-3.5 py-2.5 min-h-[44px] rounded outline-none focus:bg-white focus:border-[#0f172a] text-base md:text-sm font-medium text-slate-900 placeholder-slate-400 transition-colors"
+                >
+                <button
+                    type="submit"
+                    id="gonder-btn"
+                    class="bg-[#0f172a] hover:bg-black text-[#facc15] px-4 md:px-6 min-h-[44px] rounded font-extrabold text-xs uppercase tracking-wider transition-colors flex-shrink-0 flex items-center justify-center cursor-pointer"
+                >
+                    <span class="hidden md:inline">Gönder</span>
+                    <svg class="w-5 h-5 md:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>
                 </button>
             </form>
 
@@ -86,15 +117,15 @@
 
     <!-- KURUMSAL MODAL -->
     <div id="ozel-modal" class="hidden fixed inset-0 z-[999] flex items-center justify-center px-4">
-        <div class="absolute inset-0 bg-gray-900/80 backdrop-blur-sm transition-opacity" onclick="modalKapat()"></div>
-        <div id="ozel-modal-kutu" class="relative bg-white p-8 rounded-3xl shadow-2xl w-full max-w-sm transform scale-95 opacity-0 transition-all duration-300">
+        <div class="absolute inset-0 bg-slate-950/75" onclick="modalKapat()"></div>
+        <div id="ozel-modal-kutu" class="relative bg-white p-6 rounded-md border border-slate-300 shadow-2xl w-full max-w-sm transform scale-95 opacity-0 transition-all duration-200">
             <div class="text-center">
-                <div id="modal-ikon" class="mx-auto flex items-center justify-center h-16 w-16 rounded-full mb-6"></div>
-                <h3 id="modal-baslik" class="text-xl font-black text-gray-900 mb-2 uppercase tracking-wide">Bilgi</h3>
-                <p id="modal-mesaj" class="text-gray-600 font-medium text-sm mb-8 leading-relaxed"></p>
-                <div class="flex justify-center gap-3">
-                    <button id="modal-btn-ikincil" onclick="modalKapat()" class="hidden flex-1 bg-gray-100 text-gray-900 font-black px-4 py-4 rounded-xl hover:bg-gray-200 transition-colors uppercase text-[10px] tracking-widest">İPTAL</button>
-                    <button id="modal-btn-ana" onclick="modalKapat()" class="flex-1 bg-[#0f172a] text-white font-black px-4 py-4 rounded-xl hover:bg-black transition-colors uppercase text-[10px] tracking-widest shadow-md">TAMAM</button>
+                <div id="modal-ikon" class="mx-auto flex items-center justify-center h-12 w-12 rounded-md mb-4"></div>
+                <h3 id="modal-baslik" class="text-base font-extrabold text-slate-900 mb-2 uppercase tracking-wide">Bilgi</h3>
+                <p id="modal-mesaj" class="text-slate-600 font-medium text-sm mb-6 leading-relaxed"></p>
+                <div class="flex justify-center gap-2.5">
+                    <button id="modal-btn-ikincil" onclick="modalKapat()" class="hidden flex-1 bg-slate-100 text-slate-800 font-bold px-4 py-3 min-h-[44px] rounded hover:bg-slate-200 transition-colors uppercase text-xs tracking-wider cursor-pointer">İptal</button>
+                    <button id="modal-btn-ana" onclick="modalKapat()" class="flex-1 bg-[#0f172a] text-[#facc15] font-extrabold px-4 py-3 min-h-[44px] rounded hover:bg-black transition-colors uppercase text-xs tracking-wider cursor-pointer">Tamam</button>
                 </div>
             </div>
         </div>
@@ -102,18 +133,18 @@
 
     <!-- DEĞERLENDİRME (GÜVEN SKORU) MODALI -->
     <div id="degerlendirme-modal" class="hidden fixed inset-0 z-[1000] flex items-center justify-center px-4">
-        <div class="absolute inset-0 bg-[#0f172a]/90 backdrop-blur-sm transition-opacity" onclick="degerlendirmeModalKapat()"></div>
-        <div id="degerlendirme-modal-kutu" class="relative bg-white p-6 md:p-8 rounded-3xl shadow-2xl w-full max-w-md transform scale-95 opacity-0 transition-all duration-300 border border-gray-200">
-            <div class="text-center mb-6">
-                <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-[#0f172a] text-[#facc15] mb-4 shadow-md">
-                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path></svg>
+        <div class="absolute inset-0 bg-slate-950/85" onclick="degerlendirmeModalKapat()"></div>
+        <div id="degerlendirme-modal-kutu" class="relative bg-white p-6 rounded-md shadow-2xl w-full max-w-md transform scale-95 opacity-0 transition-all duration-200 border border-slate-300">
+            <div class="text-center mb-5">
+                <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-md bg-[#0f172a] text-[#facc15] mb-3">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path></svg>
                 </div>
-                <h3 class="text-2xl font-black text-[#0f172a] tracking-tight uppercase">TİCARETİ DEĞERLENDİR</h3>
-                <p class="text-gray-500 font-medium text-[11px] uppercase tracking-widest mt-2">Bu değerlendirme karşı tarafın Güven Skorunu etkileyecektir.</p>
+                <h3 class="text-lg font-extrabold text-slate-900 tracking-tight uppercase">Ticareti Değerlendir</h3>
+                <p class="text-slate-500 font-medium text-xs mt-1">Bu puan karşı tarafın Güven Skorunu etkiler.</p>
             </div>
-            <div class="space-y-6">
+            <div class="space-y-5">
                 <div>
-                    <label class="block text-center text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Güven Puanınız</label>
+                    <label class="block text-center text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2.5">Güven Puanınız</label>
                     <div class="flex justify-center gap-2" id="yildiz-alani">
                         <svg class="w-10 h-10 star-btn" onclick="puanVer(1)" onmouseover="yildizHover(1)" onmouseout="yildizCek()" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
                         <svg class="w-10 h-10 star-btn" onclick="puanVer(2)" onmouseover="yildizHover(2)" onmouseout="yildizCek()" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
@@ -123,12 +154,12 @@
                     </div>
                 </div>
                 <div>
-                    <label class="block text-center text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Deneyiminizi Kısaca Yazın</label>
-                    <textarea id="degerlendirme-yorum" rows="3" placeholder="Zamanında geldi mi? Ürün anlatıldığı gibi miydi?" class="w-full bg-gray-50 border border-gray-200 p-3 rounded-xl outline-none focus:border-[#facc15] text-sm font-medium transition-all resize-none text-gray-800 placeholder-gray-400"></textarea>
+                    <label class="block text-center text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">Deneyiminizi Kısaca Yazın</label>
+                    <textarea id="degerlendirme-yorum" rows="3" placeholder="Zamanında geldi mi? Ürün anlatıldığı gibi miydi?" class="w-full bg-slate-50 border border-slate-300 p-3 rounded outline-none focus:bg-white focus:border-[#0f172a] text-base md:text-sm font-medium transition-colors resize-none text-slate-900 placeholder-slate-400"></textarea>
                 </div>
-                <button id="degerlendirme-gonder-btn" onclick="degerlendirmeGonder()" class="w-full bg-[#0f172a] text-[#facc15] font-black px-4 py-4 rounded-xl hover:bg-black transition-colors uppercase text-xs tracking-widest shadow-md flex items-center justify-center gap-2">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                    DEĞERLENDİRMEYİ GÖNDER
+                <button id="degerlendirme-gonder-btn" onclick="degerlendirmeGonder()" class="w-full bg-[#0f172a] hover:bg-black text-[#facc15] font-extrabold px-4 py-3.5 min-h-[46px] rounded transition-colors uppercase text-xs tracking-wider flex items-center justify-center gap-2 cursor-pointer">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    Değerlendirmeyi Gönder
                 </button>
             </div>
         </div>
@@ -143,7 +174,7 @@
         let tumSohbetler = [];
         let aktifTeklifId = null;
         let aktifKarsiEmail = "";
-        let realtimeAbonelik = null; 
+        let realtimeAbonelik = null;
         let secilenPuan = 0;
 
         async function sitemiCalistir() {
@@ -151,18 +182,18 @@
                 const { data: { session }, error } = await _supabase.auth.getSession();
                 if (error) throw error;
                 if (!session) { window.location.href = 'giris.html'; return; }
-                
+
                 benimEmailim = session.user.email;
                 menuOlusturGuncel(session);
-                
+
                 await sohbetListesiniCek();
-                await bildirimleriKontrolEt(); 
+                await bildirimleriKontrolEt();
             } catch (err) {
                 console.error("Sistem Başlatma Hatası:", err);
                 document.getElementById('sohbet-listesi').innerHTML = `
-                    <div class="p-4 m-2 bg-red-50 border border-red-200 rounded-xl text-center shadow-sm">
-                        <div class="text-red-600 font-black text-xs uppercase tracking-widest mb-2 border-b border-red-200 pb-2">Kritik Bir Hata Oluştu!</div>
-                        <div class="text-[10px] font-bold text-gray-700 break-words">${err.message}</div>
+                    <div class="p-4 m-2 bg-red-50 border border-red-200 rounded text-center">
+                        <div class="text-red-700 font-extrabold text-xs uppercase tracking-wider mb-1.5 border-b border-red-200 pb-1.5">Kritik Bir Hata Oluştu</div>
+                        <div class="text-xs font-medium text-slate-700 break-words">${err.message}</div>
                     </div>`;
             }
         }
@@ -190,12 +221,12 @@
 
                 const teklifRozetler = document.querySelectorAll('.nav-teklif-badge');
                 teklifRozetler.forEach(el => {
-                    el.innerHTML = bekleyenTeklif > 0 ? `<span class="bg-red-500 text-white rounded-full px-1.5 py-0.5 text-[8px] ml-1.5 flex items-center justify-center animate-pulse shadow-sm font-bold">${bekleyenTeklif}</span>` : '';
+                    el.innerHTML = bekleyenTeklif > 0 ? `<span class="bg-red-600 text-white rounded px-1.5 py-0.5 text-[10px] ml-1.5 font-bold">${bekleyenTeklif}</span>` : '';
                 });
 
                 const mesajRozetler = document.querySelectorAll('.nav-mesaj-badge');
                 mesajRozetler.forEach(el => {
-                    el.innerHTML = okunmamisMesaj > 0 ? `<span class="bg-red-500 text-white rounded-full px-1.5 py-0.5 text-[8px] ml-1.5 flex items-center justify-center animate-pulse shadow-sm font-bold">${okunmamisMesaj}</span>` : '';
+                    el.innerHTML = okunmamisMesaj > 0 ? `<span class="bg-red-600 text-white rounded px-1.5 py-0.5 text-[10px] ml-1.5 font-bold">${okunmamisMesaj}</span>` : '';
                 });
             } catch (err) {
                 console.error("Radar hatası:", err);
@@ -220,39 +251,38 @@
                     .select('id, ilan_id, teklif_veren_email, durum, ilan_sahibi_onay, teklif_veren_onay, ilan_sahibi_puan, teklif_veren_puan, teklif_edilen_ilan_id, teklif_nakit')
                     .eq('teklif_veren_email', benimEmailim)
                     .in('durum', ['Kabul Edildi', 'Tamamlandı', 'Bekliyor']);
-                
-                if(gidenErr) throw gidenErr;
-                
+
+                if (gidenErr) throw gidenErr;
+
                 const { data: ilanlarim, error: ilanErr } = await _supabase.from('ilanlar').select('id, baslik, resim_url, sahip_email').eq('sahip_email', benimEmailim);
-                if(ilanErr) throw ilanErr;
+                if (ilanErr) throw ilanErr;
 
                 const benimIlanIdleri = ilanlarim ? ilanlarim.map(i => i.id) : [];
-                
+
                 let gelenler = [];
-                if(benimIlanIdleri.length > 0) {
+                if (benimIlanIdleri.length > 0) {
                     const { data, error: gelenErr } = await _supabase.from('teklifler')
                         .select('id, ilan_id, teklif_veren_email, durum, ilan_sahibi_onay, teklif_veren_onay, ilan_sahibi_puan, teklif_veren_puan, teklif_edilen_ilan_id, teklif_nakit')
                         .in('ilan_id', benimIlanIdleri)
                         .in('durum', ['Kabul Edildi', 'Tamamlandı', 'Bekliyor']);
-                    if(gelenErr) throw gelenErr;
+                    if (gelenErr) throw gelenErr;
                     gelenler = data || [];
                 }
 
                 const birlesikTeklifler = [...(gidenler || []), ...gelenler];
 
-                if(birlesikTeklifler.length === 0) {
-                    document.getElementById('sohbet-listesi').innerHTML = `<div class="p-6 text-center text-gray-400 font-bold text-[10px] uppercase tracking-widest border-2 border-dashed border-gray-100 rounded-xl m-2">Henüz sohbetiniz yok.</div>`;
+                if (birlesikTeklifler.length === 0) {
+                    document.getElementById('sohbet-listesi').innerHTML = `<div class="p-6 text-center text-slate-500 font-bold text-xs uppercase tracking-wider border border-slate-200 rounded m-2 bg-slate-50">Henüz sohbetiniz yok.</div>`;
                     return;
                 }
 
-                // YENİ: Okunmamış mesajları teklif id'sine göre gruplayarak say
                 const { data: okunmamisData } = await _supabase.from('mesajlar')
                     .select('teklif_id')
                     .eq('alici_email', benimEmailim)
                     .is('okundu', false);
-                
+
                 const okunmamisMap = {};
-                if(okunmamisData) {
+                if (okunmamisData) {
                     okunmamisData.forEach(m => { okunmamisMap[m.teklif_id] = (okunmamisMap[m.teklif_id] || 0) + 1; });
                 }
 
@@ -262,14 +292,14 @@
                 ])];
 
                 const { data: tumIlanDetaylari, error: detayErr } = await _supabase.from('ilanlar').select('id, baslik, resim_url, sahip_email').in('id', tumİlgiliIlanIdleri);
-                if(detayErr) throw detayErr;
+                if (detayErr) throw detayErr;
 
                 tumSohbetler = birlesikTeklifler.map(teklif => {
                     const ilan = tumIlanDetaylari?.find(i => i.id === teklif.ilan_id);
-                    const teklifEdilenIlan = tumIlanDetaylari?.find(i => i.id === teklif.teklif_edilen_ilan_id); 
-                    
-                    if(!ilan) return null; 
-                    
+                    const teklifEdilenIlan = tumIlanDetaylari?.find(i => i.id === teklif.teklif_edilen_ilan_id);
+
+                    if (!ilan) return null;
+
                     const isBenimIlanim = ilan.sahip_email === benimEmailim;
                     const karsiEmail = isBenimIlanim ? teklif.teklif_veren_email : ilan.sahip_email;
 
@@ -284,48 +314,53 @@
                         teklif_veren_onay: teklif.teklif_veren_onay,
                         durum: teklif.durum,
                         ben_puan_verdim_mi: isBenimIlanim ? (teklif.teklif_veren_puan != null) : (teklif.ilan_sahibi_puan != null),
-                        okunmamis_sayisi: okunmamisMap[teklif.id] || 0 // YENİ: Okunmamış mesaj sayısını sohbete ekle
+                        okunmamis_sayisi: okunmamisMap[teklif.id] || 0
                     };
                 }).filter(s => s !== null);
 
-                if(tumSohbetler.length === 0) {
-                     document.getElementById('sohbet-listesi').innerHTML = `<div class="p-6 text-center text-gray-400 font-bold text-[10px] uppercase tracking-widest border-2 border-dashed border-gray-100 rounded-xl m-2">Tüm sohbetlere ait ilanlar silinmiş.</div>`;
-                     return;
+                if (tumSohbetler.length === 0) {
+                    document.getElementById('sohbet-listesi').innerHTML = `<div class="p-6 text-center text-slate-500 font-bold text-xs uppercase tracking-wider border border-slate-200 rounded m-2 bg-slate-50">Tüm sohbetlere ait ilanlar silinmiş.</div>`;
+                    return;
                 }
 
                 listeyiCiz();
 
-            } catch(e) {
+            } catch (e) {
                 console.error("Sohbet çekme hatası:", e);
                 document.getElementById('sohbet-listesi').innerHTML = `
-                    <div class="p-4 m-2 bg-red-50 border border-red-200 rounded-xl text-center shadow-sm">
-                        <div class="text-red-600 font-black text-xs uppercase tracking-widest mb-2 border-b border-red-200 pb-2">Veritabanı Hatası!</div>
-                        <div class="text-[10px] font-bold text-gray-700 break-words">${e.message}</div>
+                    <div class="p-4 m-2 bg-red-50 border border-red-200 rounded text-center">
+                        <div class="text-red-700 font-extrabold text-xs uppercase tracking-wider mb-1.5 border-b border-red-200 pb-1.5">Veritabanı Hatası</div>
+                        <div class="text-xs font-medium text-slate-700 break-words">${e.message}</div>
                     </div>`;
             }
         }
 
-        // YENİ: Sol menüyü (Sohbet Listesini) çizerken kırmızı rozetleri de ekler
         function listeyiCiz() {
             let html = "";
             tumSohbetler.forEach(sohbet => {
                 const ilkResim = sohbet.ilan_detay.resim_url ? sohbet.ilan_detay.resim_url.split(',')[0] : "";
                 const karsiIsim = sohbet.karsi_email.split('@')[0].toUpperCase();
-                
-                const durumRozeti = sohbet.durum === 'Tamamlandı' ? `<span class="inline-flex items-center gap-1 bg-[#0f172a] text-[#34d399] px-2 py-0.5 rounded-md text-[8px] md:text-[9px] font-black uppercase tracking-widest ml-2 align-middle shadow-sm"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>TAKASLANDI</span>` : '';
-                
-                const aktifClass = sohbet.teklif_id == aktifTeklifId ? 'bg-yellow-50 border-yellow-200' : 'border-transparent hover:border-gray-200';
-                const metinClass = sohbet.okunmamis_sayisi > 0 ? 'text-gray-900 font-black' : 'text-gray-500 font-bold';
-                const okunmamisRozet = sohbet.okunmamis_sayisi > 0 ? `<div class="bg-red-500 text-white w-5 h-5 flex items-center justify-center rounded-full text-[10px] font-black shadow-sm ml-auto flex-shrink-0 animate-pulse">${sohbet.okunmamis_sayisi}</div>` : '';
+
+                const durumRozeti = sohbet.durum === 'Tamamlandı'
+                    ? `<span class="inline-flex items-center gap-1 bg-emerald-950 text-emerald-400 border border-emerald-800 px-1.5 py-0.5 rounded-sm text-[9px] font-bold uppercase tracking-wider ml-2 flex-shrink-0">✓ Takaslandı</span>`
+                    : '';
+
+                const aktifClass = sohbet.teklif_id == aktifTeklifId
+                    ? 'bg-slate-100 border-l-4 border-l-[#0f172a] border-slate-300'
+                    : 'bg-white border-slate-200 hover:bg-slate-50 hover:border-slate-300';
+                const metinClass = sohbet.okunmamis_sayisi > 0 ? 'text-slate-900 font-bold' : 'text-slate-500 font-medium';
+                const okunmamisRozet = sohbet.okunmamis_sayisi > 0
+                    ? `<div class="bg-red-600 text-white min-w-[20px] h-5 px-1.5 flex items-center justify-center rounded-sm text-[10px] font-extrabold ml-auto flex-shrink-0">${sohbet.okunmamis_sayisi}</div>`
+                    : '';
 
                 html += `
-                <div onclick="sohbetiAc('${sohbet.teklif_id}', '${sohbet.karsi_email}', '${sohbet.ilan_detay.baslik.replace(/'/g, "\\'")}', '${ilkResim}')" class="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-100 cursor-pointer transition-colors border ${aktifClass} sohbet-item" id="btn-sohbet-${sohbet.teklif_id}">
-                    <div class="w-12 h-12 rounded-full bg-gray-200 overflow-hidden flex-shrink-0 border-2 border-white shadow-sm relative">
-                        ${ilkResim ? `<img src="${ilkResim}" class="w-full h-full object-cover">` : `<div class="w-full h-full flex items-center justify-center text-[8px] font-bold text-gray-500">YOK</div>`}
+                <div onclick="sohbetiAc('${sohbet.teklif_id}', '${sohbet.karsi_email}', '${sohbet.ilan_detay.baslik.replace(/'/g, "\\'")}', '${ilkResim}')" class="flex items-center gap-3 p-3 rounded border cursor-pointer transition-colors ${aktifClass} sohbet-item" id="btn-sohbet-${sohbet.teklif_id}">
+                    <div class="w-11 h-11 rounded-sm bg-slate-200 overflow-hidden flex-shrink-0 border border-slate-300 relative">
+                        ${ilkResim ? `<img src="${ilkResim}" onerror="this.style.display='none'" class="w-full h-full object-cover">` : `<div class="w-full h-full flex items-center justify-center text-[9px] font-bold text-slate-500">YOK</div>`}
                     </div>
-                    <div class="flex-grow min-w-0 pr-2">
-                        <h4 class="font-black text-sm text-[#0f172a] truncate flex items-center">${karsiIsim}${durumRozeti}</h4>
-                        <p class="text-[10px] ${metinClass} uppercase tracking-widest truncate mt-0.5">İlan: ${sohbet.ilan_detay.baslik}</p>
+                    <div class="flex-grow min-w-0 pr-1">
+                        <h4 class="font-extrabold text-xs sm:text-sm text-slate-900 truncate flex items-center">${karsiIsim}${durumRozeti}</h4>
+                        <p class="text-[11px] ${metinClass} truncate mt-0.5">İlan: ${sohbet.ilan_detay.baslik}</p>
                     </div>
                     ${okunmamisRozet}
                 </div>`;
@@ -340,85 +375,83 @@
             const seciliSohbet = tumSohbetler.find(s => s.teklif_id == teklifId);
             onayDurumunuGuncelle(seciliSohbet);
 
-            // Tıklanan sohbetin kırmızı zilini hemen sıfırla ve menüyü tekrar çizdir
-            if(seciliSohbet) {
+            if (seciliSohbet) {
                 seciliSohbet.okunmamis_sayisi = 0;
-                listeyiCiz(); 
+                listeyiCiz();
             }
 
             const solPanel = document.querySelector('.md\\:w-1\\/3');
             if (window.innerWidth < 768) { solPanel.classList.add('hidden'); }
             document.getElementById('sohbet-alani').classList.remove('hidden');
             document.getElementById('sohbet-alani').classList.add('flex');
-            
+
             document.getElementById('sohbet-bos').classList.add('hidden');
             document.getElementById('header-ilan-baslik').innerText = ilanBaslik;
             document.getElementById('header-karsi-isim').innerText = karsiEmail.split('@')[0].toUpperCase();
-            
+
             document.getElementById('mesaj-gonderme-formu').classList.remove('hidden');
             document.getElementById('mesaj-gonderme-formu').classList.add('flex');
 
-            if(ilanResim) { document.getElementById('header-ilan-resim').src = ilanResim; } 
-            else { document.getElementById('header-ilan-resim').src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" fill="none"><rect width="100%" height="100%" fill="%23f3f4f6"/></svg>'; }
+            if (ilanResim) { document.getElementById('header-ilan-resim').src = ilanResim; }
+            else { document.getElementById('header-ilan-resim').src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" fill="none"><rect width="100%" height="100%" fill="%23e2e8f0"/></svg>'; }
 
-            document.getElementById('mesajlar-kutusu').innerHTML = `<div class="text-center text-xs font-bold text-gray-400 mt-10">Mesajlar Yükleniyor...</div>`;
+            document.getElementById('mesajlar-kutusu').innerHTML = `<div class="text-center text-xs font-bold text-slate-500 mt-10">Mesajlar yükleniyor...</div>`;
 
-            // Veritabanında okundu yap ve ana menüdeki kırmızı zilleri güncelle
             await mesajlariOkunduIsaretle(teklifId);
             bildirimleriKontrolEt();
 
             eskiMesajlariGetir(seciliSohbet);
-            canliYayinAboneligiBaslat(); 
+            canliYayinAboneligiBaslat();
         }
 
         function onayDurumunuGuncelle(sohbet) {
             const isBenimIlanim = sohbet.is_benim_ilanim;
             const benimOnayim = isBenimIlanim ? sohbet.ilan_sahibi_onay : sohbet.teklif_veren_onay;
             const karsiOnay = isBenimIlanim ? sohbet.teklif_veren_onay : sohbet.ilan_sahibi_onay;
-            
+
             const sagKisim = document.getElementById('header-sag-kisim');
 
             if (sohbet.durum === 'Tamamlandı') {
                 if (sohbet.ben_puan_verdim_mi) {
                     sagKisim.innerHTML = `
                         <div class="flex items-center gap-2">
-                            <span class="text-[9px] font-black text-gray-400 uppercase tracking-widest hidden md:inline">DEĞERLENDİRİLDİ</span>
-                            <div class="bg-emerald-50 text-emerald-600 px-3 py-1.5 rounded-lg font-black text-[10px] md:text-xs uppercase tracking-widest flex items-center gap-1.5 border border-emerald-200 shadow-sm">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
-                                <span>TAKASLANDI</span>
+                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider hidden md:inline">Değerlendirildi</span>
+                            <div class="bg-emerald-50 text-emerald-700 px-2.5 py-1.5 rounded-sm font-extrabold text-[10px] md:text-xs uppercase tracking-wider flex items-center gap-1 border border-emerald-300">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
+                                <span>Takaslandı</span>
                             </div>
                         </div>`;
                 } else {
                     sagKisim.innerHTML = `
                         <div class="flex items-center gap-2">
-                            <button onclick="degerlendirmeModalAc()" class="bg-[#facc15] text-[#0f172a] px-3 py-1.5 rounded-lg font-black text-[9px] md:text-[10px] uppercase tracking-widest hover:bg-yellow-500 transition-colors shadow-md flex items-center gap-1 animate-pulse">
+                            <button onclick="degerlendirmeModalAc()" class="bg-[#facc15] hover:bg-[#eab308] text-[#0b1120] px-3 py-2 rounded font-extrabold text-[10px] md:text-xs uppercase tracking-wider transition-colors flex items-center gap-1 cursor-pointer">
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path></svg>
-                                <span>DEĞERLENDİR</span>
+                                <span>Değerlendir</span>
                             </button>
-                            <div class="bg-emerald-50 text-emerald-600 px-3 py-1.5 rounded-lg font-black text-[10px] md:text-xs uppercase tracking-widest flex items-center gap-1.5 border border-emerald-200 shadow-sm hidden md:flex">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
-                                <span>TAKASLANDI</span>
+                            <div class="bg-emerald-50 text-emerald-700 px-2.5 py-2 rounded-sm font-extrabold text-[10px] md:text-xs uppercase tracking-wider items-center gap-1 border border-emerald-300 hidden md:flex">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
+                                <span>Takaslandı</span>
                             </div>
                         </div>`;
                 }
             } else if (benimOnayim) {
                 sagKisim.innerHTML = `
-                    <div class="bg-amber-50 text-amber-600 px-3 py-1.5 rounded-lg font-bold text-[9px] md:text-[10px] uppercase tracking-widest text-right border border-amber-200 leading-tight">
-                        KARŞI TARAFIN<br><span class="font-black text-amber-500">ONAYI BEKLENİYOR</span>
+                    <div class="bg-amber-50 text-amber-800 px-2.5 py-1.5 rounded-sm font-bold text-[10px] uppercase tracking-wider text-right border border-amber-300 leading-tight">
+                        Karşı Onay<br><span class="font-extrabold">Bekleniyor</span>
                     </div>`;
             } else if (karsiOnay) {
                 sagKisim.innerHTML = `
-                    <button onclick="onayVer()" class="bg-green-500 text-white px-3 py-1.5 md:px-4 md:py-2 rounded-lg font-black text-[9px] md:text-[10px] uppercase tracking-widest hover:bg-green-600 transition-colors shadow-md flex items-center gap-1.5 animate-pulse">
+                    <button onclick="onayVer()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded font-extrabold text-[10px] md:text-xs uppercase tracking-wider transition-colors flex items-center gap-1.5 cursor-pointer">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
-                        <span class="hidden sm:inline">KARŞISI ONAYLADI! SIRA SENDE</span>
-                        <span class="sm:hidden">SIRA SENDE</span>
+                        <span class="hidden sm:inline">Karşısı Onayladı — Sıra Sende</span>
+                        <span class="sm:hidden">Sıra Sende</span>
                     </button>`;
             } else {
                 sagKisim.innerHTML = `
-                    <button onclick="onayVer()" class="bg-[#0f172a] text-[#facc15] px-3 py-1.5 md:px-4 md:py-2 rounded-lg font-black text-[9px] md:text-[10px] uppercase tracking-widest hover:bg-black transition-colors shadow-md flex items-center gap-1.5">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
-                        <span class="hidden sm:inline">TAKASI ONAYLA</span>
-                        <span class="sm:hidden">ONAYLA</span>
+                    <button onclick="onayVer()" class="bg-[#0f172a] hover:bg-black text-[#facc15] px-3 py-2 rounded font-extrabold text-[10px] md:text-xs uppercase tracking-wider transition-colors flex items-center gap-1.5 cursor-pointer">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                        <span class="hidden sm:inline">Takası Onayla</span>
+                        <span class="sm:hidden">Onayla</span>
                     </button>`;
             }
         }
@@ -426,22 +459,22 @@
         async function onayVer() {
             const sohbet = tumSohbetler.find(s => s.teklif_id == aktifTeklifId);
             const isBenimIlanim = sohbet.is_benim_ilanim;
-            
+
             const guncellemeData = isBenimIlanim ? { ilan_sahibi_onay: true } : { teklif_veren_onay: true };
-            
-            document.getElementById('header-sag-kisim').innerHTML = '<span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">İŞLENİYOR...</span>';
+
+            document.getElementById('header-sag-kisim').innerHTML = '<span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">İşleniyor...</span>';
 
             try {
                 const { error } = await _supabase.from('teklifler').update(guncellemeData).eq('id', aktifTeklifId);
                 if (error) throw error;
 
                 const { data: guncelTeklif } = await _supabase.from('teklifler').select('*').eq('id', aktifTeklifId).single();
-                
+
                 if (guncelTeklif.ilan_sahibi_onay && guncelTeklif.teklif_veren_onay) {
-                    finalKapatma(guncelTeklif.ilan_id, aktifTeklifId, guncelTeklif.teklif_edilen_ilan_id); 
+                    finalKapatma(guncelTeklif.ilan_id, aktifTeklifId, guncelTeklif.teklif_edilen_ilan_id);
                 } else {
                     modalAc("ONAY ALINDI", "Takas onayınız başarıyla sisteme kaydedildi. Karşı taraf da onayladığı an ilan vitrinden kaldırılacaktır.", "basarili");
-                    await sohbetListesiniCek(); 
+                    await sohbetListesiniCek();
                 }
             } catch (err) {
                 console.error(err);
@@ -452,15 +485,15 @@
         async function finalKapatma(ilanId, teklifId, teklifEdilenIlanId) {
             try {
                 await _supabase.from('ilanlar').update({ durum: 'Takaslandı' }).eq('id', ilanId);
-                if(teklifEdilenIlanId) {
+                if (teklifEdilenIlanId) {
                     await _supabase.from('ilanlar').update({ durum: 'Takaslandı' }).eq('id', teklifEdilenIlanId);
                 }
 
                 await _supabase.from('teklifler').update({ durum: 'Tamamlandı' }).eq('id', teklifId);
-                
-                modalAc("TEBRİKLER! 🎉", "Her iki taraf da onay verdi ve takas başarıyla tamamlandı! Lütfen şimdi karşı tarafın profilinde görünecek Güven Skorunu belirlemek için ticareti değerlendirin.", "basarili", false, async () => {
-                    await sohbetListesiniCek(); 
-                    degerlendirmeModalAc(); 
+
+                modalAc("TEBRİKLER!", "Her iki taraf da onay verdi ve takas başarıyla tamamlandı! Lütfen şimdi karşı tarafın profilinde görünecek Güven Skorunu belirlemek için ticareti değerlendirin.", "basarili", false, async () => {
+                    await sohbetListesiniCek();
+                    degerlendirmeModalAc();
                 });
             } catch (err) {
                 console.error("Kapatma işlemi başarısız:", err);
@@ -469,23 +502,23 @@
 
         function degerlendirmeModalAc() {
             secilenPuan = 0;
-            yildizCek(); 
-            document.getElementById('degerlendirme-yorum').value = ""; 
-            
+            yildizCek();
+            document.getElementById('degerlendirme-yorum').value = "";
+
             document.getElementById('degerlendirme-modal').classList.remove('hidden');
             setTimeout(() => { document.getElementById('degerlendirme-modal-kutu').classList.remove('scale-95', 'opacity-0'); }, 10);
         }
 
         function degerlendirmeModalKapat() {
             document.getElementById('degerlendirme-modal-kutu').classList.add('scale-95', 'opacity-0');
-            setTimeout(() => { document.getElementById('degerlendirme-modal').classList.add('hidden'); }, 300);
+            setTimeout(() => { document.getElementById('degerlendirme-modal').classList.add('hidden'); }, 200);
         }
 
         function yildizHover(puan) {
             const yildizlar = document.querySelectorAll('.star-btn');
             yildizlar.forEach((y, i) => {
                 if (i < puan) y.style.color = '#facc15';
-                else if (i >= secilenPuan) y.style.color = '#d1d5db';
+                else if (i >= secilenPuan) y.style.color = '#cbd5e1';
             });
         }
 
@@ -493,7 +526,7 @@
             const yildizlar = document.querySelectorAll('.star-btn');
             yildizlar.forEach((y, i) => {
                 if (i < secilenPuan) y.style.color = '#facc15';
-                else y.style.color = '#d1d5db';
+                else y.style.color = '#cbd5e1';
             });
         }
 
@@ -507,14 +540,14 @@
 
             const yorum = document.getElementById('degerlendirme-yorum').value.trim();
             const btn = document.getElementById('degerlendirme-gonder-btn');
-            
+
             btn.disabled = true; btn.innerHTML = "KAYDEDİLİYOR...";
 
             const sohbet = tumSohbetler.find(s => s.teklif_id == aktifTeklifId);
             const isBenimIlanim = sohbet.is_benim_ilanim;
-            
-            const guncellemeData = isBenimIlanim 
-                ? { teklif_veren_puan: secilenPuan, teklif_veren_yorum: yorum } 
+
+            const guncellemeData = isBenimIlanim
+                ? { teklif_veren_puan: secilenPuan, teklif_veren_yorum: yorum }
                 : { ilan_sahibi_puan: secilenPuan, ilan_sahibi_yorum: yorum };
 
             try {
@@ -523,14 +556,14 @@
 
                 degerlendirmeModalKapat();
                 modalAc("BAŞARILI", "Değerlendirmeniz kaydedildi! Karşı tarafın Güven Skoruna katkıda bulundunuz.", "basarili");
-                await sohbetListesiniCek(); 
+                await sohbetListesiniCek();
 
             } catch (err) {
                 console.error(err);
                 modalAc("HATA", "Değerlendirme kaydedilirken bir sorun oluştu.", "hata");
             } finally {
                 btn.disabled = false;
-                btn.innerHTML = `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>DEĞERLENDİRMEYİ GÖNDER`;
+                btn.innerHTML = `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>Değerlendirmeyi Gönder`;
             }
         }
 
@@ -540,41 +573,36 @@
             document.getElementById('sohbet-alani').classList.remove('flex');
         }
 
-        // YENİ: Anlık Mesajlaşma Radarı
         function canliYayinAboneligiBaslat() {
             if (realtimeAbonelik) { _supabase.removeChannel(realtimeAbonelik); }
             realtimeAbonelik = _supabase.channel('custom-all-channel')
                 .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'mesajlar' }, async (payload) => {
-                        
-                        if (payload.new.teklif_id == aktifTeklifId) { 
-                            mesajiEkranaCiz(payload.new); 
-                            
-                            // Adam zaten bu sohbetteyse zili yakma, direkt "okundu" say ve radarı güncelle
-                            if (payload.new.alici_email === benimEmailim) {
-                                await mesajlariOkunduIsaretle(aktifTeklifId);
-                                bildirimleriKontrolEt();
-                            }
-                        } else {
-                            // Başka birinden mesaj geldiyse
-                            if (payload.new.alici_email === benimEmailim) {
-                                bildirimleriKontrolEt(); // Tepedeki zili yak
-                                
-                                // Sol taraftaki kişinin rozetini 1 arttır ve listeyi tekrar çiz
-                                const chat = tumSohbetler.find(s => s.teklif_id == payload.new.teklif_id);
-                                if (chat) {
-                                    chat.okunmamis_sayisi = (chat.okunmamis_sayisi || 0) + 1;
-                                    listeyiCiz();
-                                } else {
-                                    sohbetListesiniCek();
-                                }
+
+                    if (payload.new.teklif_id == aktifTeklifId) {
+                        mesajiEkranaCiz(payload.new);
+
+                        if (payload.new.alici_email === benimEmailim) {
+                            await mesajlariOkunduIsaretle(aktifTeklifId);
+                            bildirimleriKontrolEt();
+                        }
+                    } else {
+                        if (payload.new.alici_email === benimEmailim) {
+                            bildirimleriKontrolEt();
+
+                            const chat = tumSohbetler.find(s => s.teklif_id == payload.new.teklif_id);
+                            if (chat) {
+                                chat.okunmamis_sayisi = (chat.okunmamis_sayisi || 0) + 1;
+                                listeyiCiz();
+                            } else {
+                                sohbetListesiniCek();
                             }
                         }
                     }
-                ).subscribe();
+                }).subscribe();
         }
 
         async function eskiMesajlariGetir(seciliSohbet) {
-            if(!aktifTeklifId) return;
+            if (!aktifTeklifId) return;
             const kutu = document.getElementById('mesajlar-kutusu');
 
             let teklifKartHtml = "";
@@ -582,37 +610,37 @@
                 const sunulanEsya = seciliSohbet.teklif_edilen_ilan_detay;
                 const sunulanEsyaResim = sunulanEsya.resim_url ? sunulanEsya.resim_url.split(',')[0] : '';
                 const sunulanEsyaBaslik = sunulanEsya.baslik;
-                const nakitMetni = seciliSohbet.teklif_nakit > 0 ? `<div class="bg-green-50 text-green-700 px-3 py-1.5 rounded-lg border border-green-200 font-black text-[10px] md:text-xs tracking-widest mt-3 flex items-center justify-center gap-1.5"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> + ${seciliSohbet.teklif_nakit} TL NAKİT EKLENDİ</div>` : '';
-                
-                const kartBaslik = seciliSohbet.is_benim_ilanim 
-                    ? `SİZE SUNULAN TAKAS TEKLİFİ` 
-                    : `SİZİN SUNDUĞUNUZ TAKAS TEKLİFİ`;
+                const nakitStr = Number(seciliSohbet.teklif_nakit || 0).toLocaleString('tr-TR');
+                const nakitMetni = seciliSohbet.teklif_nakit > 0
+                    ? `<div class="bg-emerald-500/15 text-emerald-400 px-3 py-1.5 rounded-sm border border-emerald-500/30 font-extrabold text-xs tracking-wide mt-3 flex items-center justify-center gap-1.5">+ ${nakitStr} ₺ Nakit Fark</div>`
+                    : '';
+
+                const kartBaslik = seciliSohbet.is_benim_ilanim
+                    ? `Size Sunulan Takas Teklifi`
+                    : `Sizin Sunduğunuz Takas Teklifi`;
 
                 teklifKartHtml = `
-                <div class="w-full bg-[#0f172a] rounded-2xl shadow-md border border-gray-800 p-4 mb-6 relative overflow-hidden flex-shrink-0">
-                    <div class="absolute -right-4 -top-4 opacity-10"><svg class="w-24 h-24 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path></svg></div>
-                    <div class="relative z-10">
-                        <div class="text-[9px] md:text-[10px] font-black text-[#facc15] uppercase tracking-widest mb-3">${kartBaslik}</div>
-                        
-                        <a href="detay.html?id=${sunulanEsya.id}" target="_blank" class="flex items-center gap-3 bg-white/10 p-3 rounded-xl border border-white/10 backdrop-blur-sm hover:bg-white/20 transition-colors cursor-pointer group">
-                            <div class="w-12 h-12 rounded-lg bg-gray-200 overflow-hidden flex-shrink-0">
-                                ${sunulanEsyaResim ? `<img src="${sunulanEsyaResim}" class="w-full h-full object-cover">` : `<div class="w-full h-full flex items-center justify-center text-[8px] text-gray-500 font-bold">YOK</div>`}
-                            </div>
-                            <div class="text-white min-w-0 flex-1 pr-2">
-                                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-0.5 group-hover:text-gray-300 transition-colors">VERİLECEK EŞYA</p>
-                                <h4 class="font-black text-xs md:text-sm truncate uppercase group-hover:text-[#facc15] transition-colors">${sunulanEsyaBaslik}</h4>
-                            </div>
-                            <div class="flex-shrink-0 text-gray-500 group-hover:text-[#facc15] transition-colors">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path></svg>
-                            </div>
-                        </a>
+                <div class="w-full bg-[#0f172a] rounded-md border border-slate-800 p-3.5 sm:p-4 mb-3 flex-shrink-0">
+                    <div class="text-[10px] font-extrabold text-[#facc15] uppercase tracking-wider mb-2.5">${kartBaslik}</div>
 
-                        ${nakitMetni}
-                    </div>
+                    <a href="detay.html?id=${sunulanEsya.id}" target="_blank" class="flex items-center gap-3 bg-slate-800/70 hover:bg-slate-800 p-2.5 rounded border border-slate-700 transition-colors cursor-pointer group">
+                        <div class="w-11 h-11 rounded-sm bg-slate-700 overflow-hidden flex-shrink-0">
+                            ${sunulanEsyaResim ? `<img src="${sunulanEsyaResim}" onerror="this.style.display='none'" class="w-full h-full object-cover">` : `<div class="w-full h-full flex items-center justify-center text-[9px] text-slate-400 font-bold">YOK</div>`}
+                        </div>
+                        <div class="text-white min-w-0 flex-1 pr-2">
+                            <p class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Verilecek Eşya</p>
+                            <h4 class="font-bold text-xs sm:text-sm truncate group-hover:text-[#facc15] transition-colors">${sunulanEsyaBaslik}</h4>
+                        </div>
+                        <div class="flex-shrink-0 text-slate-400 group-hover:text-[#facc15] transition-colors">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path></svg>
+                        </div>
+                    </a>
+
+                    ${nakitMetni}
                 </div>`;
             } else {
                 teklifKartHtml = `
-                <div class="w-full bg-gray-100 rounded-2xl border border-gray-200 p-4 mb-6 text-center text-[10px] font-bold text-gray-500 uppercase tracking-widest">
+                <div class="w-full bg-white rounded border border-slate-200 p-3 mb-3 text-center text-[11px] font-semibold text-slate-500">
                     Bu teklifte eşya seçimi yapılmamış (Eski sistem).
                 </div>`;
             }
@@ -621,12 +649,12 @@
                 const { data, error } = await _supabase.from('mesajlar').select('*').eq('teklif_id', aktifTeklifId).order('created_at', { ascending: true });
                 if (error) throw error;
 
-                if(!data || data.length === 0) {
-                    kutu.innerHTML = teklifKartHtml + `<div class="text-center text-[10px] uppercase tracking-widest font-bold text-gray-500 bg-white shadow-sm p-3 rounded-xl mx-auto w-fit mt-2 border border-gray-200 baslangic-mesaji">Detayları konuşmak için ilk mesajı gönderin.</div>`;
+                if (!data || data.length === 0) {
+                    kutu.innerHTML = teklifKartHtml + `<div class="text-center text-xs font-semibold text-slate-500 bg-white px-4 py-2.5 rounded mx-auto w-fit mt-2 border border-slate-200 baslangic-mesaji">Detayları konuşmak için ilk mesajı gönderin.</div>`;
                     return;
                 }
-                
-                kutu.innerHTML = teklifKartHtml; 
+
+                kutu.innerHTML = teklifKartHtml;
                 data.forEach(m => mesajiEkranaCiz(m));
 
             } catch (err) {
@@ -637,23 +665,23 @@
         function mesajiEkranaCiz(m) {
             const kutu = document.getElementById('mesajlar-kutusu');
             const baslangicMesaji = kutu.querySelector('.baslangic-mesaji');
-            if(baslangicMesaji) baslangicMesaji.remove();
+            if (baslangicMesaji) baslangicMesaji.remove();
 
             const benMiyim = m.gonderen_email === benimEmailim;
             const hizalama = benMiyim ? "justify-end" : "justify-start";
-            const renkClass = benMiyim ? "mesaj-giden shadow-md" : "mesaj-gelen border border-gray-200 shadow-sm";
+            const renkClass = benMiyim ? "mesaj-giden" : "mesaj-gelen border border-slate-200";
             const saat = new Date(m.created_at).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
 
             const html = `
-            <div class="w-full flex ${hizalama} mesaj-satiri mb-3 flex-shrink-0">
-                <div class="max-w-[85%] md:max-w-[70%] p-3 rounded-2xl ${renkClass} relative group">
-                    <p class="text-sm font-medium leading-relaxed">${m.mesaj}</p>
-                    <span class="text-[9px] font-bold opacity-50 block text-right mt-1 tracking-widest">${saat}</span>
+            <div class="w-full flex ${hizalama} mesaj-satiri flex-shrink-0">
+                <div class="max-w-[85%] md:max-w-[70%] px-3.5 py-2.5 rounded-md ${renkClass} relative">
+                    <p class="text-sm font-medium leading-relaxed break-words">${m.mesaj}</p>
+                    <span class="text-[10px] font-semibold opacity-60 block text-right mt-1">${saat}</span>
                 </div>
             </div>`;
 
             kutu.insertAdjacentHTML('beforeend', html);
-            kutu.scrollTop = kutu.scrollHeight; 
+            kutu.scrollTop = kutu.scrollHeight;
         }
 
         async function mesajGonder(event) {
@@ -662,7 +690,7 @@
             const btn = document.getElementById('gonder-btn');
             const mesaj = input.value.trim();
 
-            if(!mesaj || !aktifTeklifId || !aktifKarsiEmail) return;
+            if (!mesaj || !aktifTeklifId || !aktifKarsiEmail) return;
 
             input.disabled = true; btn.disabled = true;
 
@@ -673,10 +701,10 @@
                     alici_email: aktifKarsiEmail,
                     mesaj: mesaj
                 }]);
-                
+
                 if (error) throw error;
                 input.value = "";
-            } catch(e) {
+            } catch (e) {
                 console.error(e);
             } finally {
                 input.disabled = false; btn.disabled = false; input.focus();
@@ -689,52 +717,57 @@
             const menuDiv = document.getElementById('auth-menu');
             const mobilTopDiv = document.getElementById('auth-menu-mobil');
             const mobileMenu = document.getElementById('mobile-menu');
-            
-            let gorunenIsim = "KULLANICI";
-            if(session && session.user) {
+
+            let gorunenIsim = "Kullanıcı";
+            if (session && session.user) {
                 const meta = session.user.user_metadata || {};
-                gorunenIsim = meta.ad_soyad ? meta.ad_soyad.toUpperCase() : session.user.email.split('@')[0].toUpperCase();
+                gorunenIsim = meta.ad_soyad ? meta.ad_soyad : session.user.email.split('@')[0];
             }
-            
+
             menuDiv.innerHTML = `
-                <a href="profil.html" class="text-[#facc15] font-black text-xs uppercase tracking-widest border-b-2 border-[#facc15] hover:border-white transition-colors pb-0.5">${gorunenIsim}</a>
-                <a href="favorilerim.html" class="text-gray-400 font-bold text-[11px] uppercase tracking-widest hover:text-white transition-colors">FAVORİLERİM</a>
-                <a href="ilanlarim.html" class="text-gray-400 font-bold text-[11px] uppercase tracking-widest hover:text-white transition-colors">İLANLARIM</a>
-                <a href="sohbetler.html" class="text-white font-black text-[11px] uppercase tracking-widest transition-colors flex items-center">MESAJLARIM <span class="nav-mesaj-badge"></span></a>
-                <a href="teklifler.html" class="text-gray-400 font-bold text-[11px] uppercase tracking-widest hover:text-white transition-colors flex items-center">TEKLİFLERİM <span class="nav-teklif-badge"></span></a>
-                <span class="text-gray-700">|</span>
-                <button onclick="cikisYap()" class="text-red-500 font-bold text-[11px] uppercase tracking-widest hover:text-red-400">ÇIKIŞ</button>
-                <a href="ilan-ver.html" class="ml-2 bg-[#facc15] text-[#0f172a] px-6 py-2.5 rounded-lg font-black text-[11px] uppercase tracking-widest shadow-sm">İLAN VER</a>
+                <a href="profil.html" class="text-[#facc15] font-bold text-xs uppercase tracking-wider flex items-center gap-1.5 hover:text-yellow-300">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                    ${gorunenIsim}
+                </a>
+                <a href="favorilerim.html" class="text-slate-300 font-semibold text-xs hover:text-white transition-colors">Favorilerim</a>
+                <a href="ilanlarim.html" class="text-slate-300 font-semibold text-xs hover:text-white transition-colors">İlanlarım</a>
+                <a href="sohbetler.html" class="text-white font-extrabold text-xs border-b-2 border-[#facc15] pb-0.5 flex items-center">Mesajlar <span class="nav-mesaj-badge"></span></a>
+                <a href="teklifler.html" class="text-slate-300 font-semibold text-xs hover:text-white transition-colors flex items-center">Teklifler <span class="nav-teklif-badge"></span></a>
+                <span class="text-slate-700">|</span>
+                <button onclick="cikisYap()" class="text-slate-400 font-semibold text-xs hover:text-red-400 transition-colors cursor-pointer">Çıkış</button>
+                <a href="ilan-ver.html" class="bg-[#facc15] hover:bg-[#eab308] text-[#0b1120] px-4 py-2 rounded font-extrabold text-xs uppercase tracking-wider transition-colors">+ İlan Ver</a>
             `;
-            
+
             mobilTopDiv.innerHTML = `
-                <a href="ilan-ver.html" class="bg-[#facc15] text-[#0f172a] px-3 py-1.5 rounded-lg font-black text-[10px] uppercase tracking-widest shadow-sm">İLAN VER</a>
-                <button onclick="toggleMobileMenu()" class="text-white p-1 focus:outline-none"><svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg></button>
+                <a href="ilan-ver.html" class="bg-[#facc15] text-[#0b1120] px-3 py-1.5 rounded font-extrabold text-[11px] uppercase">+ İlan Ver</a>
+                <button onclick="toggleMobileMenu()" class="text-white p-1.5 focus:outline-none">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                </button>
             `;
-            
+
             mobileMenu.innerHTML = `
-                <a href="profil.html" class="block px-6 py-4 text-[#facc15] font-black text-[11px] uppercase tracking-widest border-b border-gray-800">${gorunenIsim}</a>
-                <a href="favorilerim.html" class="block px-6 py-4 text-gray-300 font-bold text-[11px] uppercase tracking-widest border-b border-gray-800 hover:bg-gray-800 transition-colors">FAVORİLERİM</a>
-                <a href="ilanlarim.html" class="block px-6 py-4 text-gray-300 font-bold text-[11px] uppercase tracking-widest border-b border-gray-800 hover:bg-gray-800 transition-colors">İLANLARIM</a>
-                <a href="sohbetler.html" class="px-6 py-4 text-[#facc15] font-black text-[11px] uppercase tracking-widest border-b border-gray-800 flex items-center justify-between"><span>MESAJLARIM</span> <span class="nav-mesaj-badge"></span></a>
-                <a href="teklifler.html" class="px-6 py-4 text-gray-300 font-bold text-[11px] uppercase tracking-widest border-b border-gray-800 hover:bg-gray-800 transition-colors flex items-center justify-between"><span>TEKLİFLERİM</span> <span class="nav-teklif-badge"></span></a>
-                <button onclick="cikisYap()" class="w-full text-left block px-6 py-4 text-red-500 font-bold text-[11px] uppercase tracking-widest border-b border-gray-800 hover:bg-gray-800 transition-colors">ÇIKIŞ</button>
+                <a href="profil.html" class="block px-5 py-3.5 text-[#facc15] font-bold text-xs uppercase border-b border-slate-800">${gorunenIsim}</a>
+                <a href="favorilerim.html" class="block px-5 py-3.5 text-slate-300 font-semibold text-xs border-b border-slate-800">Favorilerim</a>
+                <a href="ilanlarim.html" class="block px-5 py-3.5 text-slate-300 font-semibold text-xs border-b border-slate-800">İlanlarım</a>
+                <a href="sohbetler.html" class="px-5 py-3.5 text-[#facc15] font-extrabold text-xs border-b border-slate-800 flex items-center justify-between"><span>Mesajlar</span> <span class="nav-mesaj-badge"></span></a>
+                <a href="teklifler.html" class="px-5 py-3.5 text-slate-300 font-semibold text-xs border-b border-slate-800 flex items-center justify-between"><span>Teklifler</span> <span class="nav-teklif-badge"></span></a>
+                <button onclick="cikisYap()" class="w-full text-left block px-5 py-3.5 text-red-400 font-semibold text-xs">Çıkış Yap</button>
             `;
         }
 
         function modalAc(baslik, mesaj, tip, isIptal = false, onayFonk = null) {
             document.getElementById('modal-baslik').innerText = baslik; document.getElementById('modal-mesaj').innerText = mesaj;
             const ikon = document.getElementById('modal-ikon');
-            if(tip === 'basarili') { ikon.className = "mx-auto h-16 w-16 rounded-full bg-green-50 flex items-center justify-center text-green-500 font-bold text-2xl border border-green-100"; ikon.innerHTML = "✓"; }
-            else if(tip === 'hata') { ikon.className = "mx-auto h-16 w-16 rounded-full bg-red-50 flex items-center justify-center text-red-500 font-bold text-2xl border border-red-100"; ikon.innerHTML = "!"; }
-            else { ikon.className = "mx-auto h-16 w-16 rounded-full bg-yellow-50 flex items-center justify-center text-yellow-500 font-bold text-2xl border border-yellow-100"; ikon.innerHTML = "?"; }
-            if(isIptal) { document.getElementById('modal-btn-ikincil').classList.remove('hidden'); document.getElementById('modal-btn-ana').onclick = () => { modalKapat(); if(onayFonk) onayFonk(); }; } 
-            else { document.getElementById('modal-btn-ikincil').classList.add('hidden'); document.getElementById('modal-btn-ana').innerText = "TAMAM"; document.getElementById('modal-btn-ana').onclick = () => { modalKapat(); if(onayFonk) onayFonk(); }; }
+            if (tip === 'basarili') { ikon.className = "mx-auto h-12 w-12 rounded-md bg-emerald-50 flex items-center justify-center text-emerald-600 font-extrabold text-xl border border-emerald-200 mb-4"; ikon.innerHTML = "✓"; }
+            else if (tip === 'hata') { ikon.className = "mx-auto h-12 w-12 rounded-md bg-red-50 flex items-center justify-center text-red-600 font-extrabold text-xl border border-red-200 mb-4"; ikon.innerHTML = "!"; }
+            else { ikon.className = "mx-auto h-12 w-12 rounded-md bg-amber-50 flex items-center justify-center text-amber-600 font-extrabold text-xl border border-amber-200 mb-4"; ikon.innerHTML = "?"; }
+            if (isIptal) { document.getElementById('modal-btn-ikincil').classList.remove('hidden'); document.getElementById('modal-btn-ana').onclick = () => { modalKapat(); if (onayFonk) onayFonk(); }; }
+            else { document.getElementById('modal-btn-ikincil').classList.add('hidden'); document.getElementById('modal-btn-ana').innerText = "Tamam"; document.getElementById('modal-btn-ana').onclick = () => { modalKapat(); if (onayFonk) onayFonk(); }; }
             document.getElementById('ozel-modal').classList.remove('hidden');
             setTimeout(() => { document.getElementById('ozel-modal-kutu').classList.remove('scale-95', 'opacity-0'); }, 10);
         }
 
-        function modalKapat() { document.getElementById('ozel-modal-kutu').classList.add('scale-95', 'opacity-0'); setTimeout(() => { document.getElementById('ozel-modal').classList.add('hidden'); }, 300); }
+        function modalKapat() { document.getElementById('ozel-modal-kutu').classList.add('scale-95', 'opacity-0'); setTimeout(() => { document.getElementById('ozel-modal').classList.add('hidden'); }, 200); }
         async function cikisYap() { await _supabase.auth.signOut(); window.location.href = 'index.html'; }
 
         sitemiCalistir();
